@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400;1,600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", serif;
+  
+  --color-island-green: #2D4F3B;
+  --color-island-emerald: #5E8C71;
+  --color-island-coral: #E67E6E;
+  --color-island-sunset: #D9A066;
+  --color-island-ocean: #7BA9B8;
+  --color-island-volcanic: #1A1C19;
+  --color-island-cream: #F9F8F3;
+}
+
+@layer base {
+  body {
+    @apply font-sans text-island-volcanic bg-island-cream antialiased;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-serif tracking-tight;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.glass {
+  @apply bg-white/40 backdrop-blur-xl border border-white/30 shadow-sm;
+}
+
+.island-gradient {
+  background: linear-gradient(135deg, #2D4F3B 0%, #5E8C71 100%);
+}
+
+.sunset-gradient {
+  background: linear-gradient(135deg, #D9A066 0%, #E67E6E 100%);
+}
+
+.soft-shadow {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-island-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-island-emerald);
+}
