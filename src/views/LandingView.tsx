@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { Search, MapPin, Calendar, Compass, Hotel, Ship, Utensils, Map as MapIcon, ArrowRight, Star, ShieldCheck, Waves, Mountain, Palmtree } from 'lucide-react';
 
 const experiences = [
-  { id: 1, title: 'White Island Sandbar', type: 'Island Hopping', rating: 4.9, price: '₱1,500', image: 'https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?q=80&w=1000&auto=format&fit=crop' },
-  { id: 2, title: 'Sunken Cemetery Diving', type: 'Diving', rating: 4.8, price: '₱2,500', image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1000&auto=format&fit=crop' },
-  { id: 3, title: 'Hibok-Hibok Volcano Hike', type: 'Adventure', rating: 4.7, price: '₱3,000', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1000&auto=format&fit=crop' },
-  { id: 4, title: 'Katibawasan Falls', type: 'Nature', rating: 4.9, price: '₱500', image: 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=1000&auto=format&fit=crop' },
+  { id: 1, title: 'White Island Sandbar', type: 'Island Hopping', rating: 4.9, price: '₱1,500', image: 'https://picsum.photos/seed/tropical-beach-1/1000/800' },
+  { id: 2, title: 'Sunken Cemetery Diving', type: 'Diving', rating: 4.8, price: '₱2,500', image: 'https://picsum.photos/seed/ocean-diving/1000/800' },
+  { id: 3, title: 'Hibok-Hibok Volcano Hike', type: 'Adventure', rating: 4.7, price: '₱3,000', image: 'https://picsum.photos/seed/mountain-volcano/1000/800' },
+  { id: 4, title: 'Katibawasan Falls', type: 'Nature', rating: 4.9, price: '₱500', image: 'https://picsum.photos/seed/tropical-waterfall/1000/800' },
 ];
 
 const features = [
@@ -23,12 +23,14 @@ export default function LandingView() {
       <section className="relative min-h-screen flex items-center pt-20 pb-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?q=80&w=2000&auto=format&fit=crop" 
+            src="https://picsum.photos/seed/lush-emerald-tropical-island/2000/1200" 
             alt="Camiguin Landscape" 
-            className="w-full h-full object-cover brightness-[0.65]"
+            className="w-full h-full object-cover brightness-[0.75] contrast-[1.05] saturate-[0.9]"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-island-cream"></div>
+          {/* Complementary Gradient Overlay: Blends from dark island-green to a soft emerald tint to the cream background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-island-green/70 via-island-emerald/20 to-island-cream"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-island-cream via-transparent to-transparent opacity-60"></div>
         </div>
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -68,7 +70,7 @@ export default function LandingView() {
               className="hidden lg:block relative"
             >
               <div className="relative z-10 rounded-[3rem] overflow-hidden border-8 border-white/10 shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-700">
-                <img src="https://images.unsplash.com/photo-1544161515-436ceaf54a7b?q=80&w=800&auto=format&fit=crop" alt="Mantigue Island" className="w-full aspect-[4/5] object-cover" />
+                <img src="https://picsum.photos/seed/tropical-paradise-island/800/1000" alt="Mantigue Island" className="w-full aspect-[4/5] object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-island-coral rounded-full blur-3xl opacity-30"></div>
               <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-island-emerald rounded-full blur-3xl opacity-20"></div>
@@ -220,7 +222,7 @@ export default function LandingView() {
             <div className="relative">
               <div className="rounded-[4rem] overflow-hidden shadow-2xl relative aspect-square">
                 <img 
-                  src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1000&auto=format&fit=crop" 
+                  src="https://picsum.photos/seed/tropical-island-map/1000/1000" 
                   alt="Camiguin Map" 
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"

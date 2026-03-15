@@ -209,7 +209,7 @@ export default function GovernmentDashboard() {
           </div>
           <div className="aspect-video bg-slate-50 rounded-[2.5rem] relative overflow-hidden group">
             <img 
-              src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1200&auto=format&fit=crop" 
+              src="https://picsum.photos/seed/tropical-island-aerial/1200/800" 
               alt="Island Heatmap" 
               className="w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-1000"
               referrerPolicy="no-referrer"

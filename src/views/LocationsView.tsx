@@ -6,21 +6,21 @@ const locations = [
     id: 1,
     name: "Sunken Cemetery",
     type: "Historical",
-    image: "https://images.unsplash.com/photo-1544198365-f5d60b6d8190?q=80&w=800&auto=format&fit=crop",
+    image: "https://picsum.photos/seed/tropical-ocean-cross/800/600",
     coords: "9.2014° N, 124.6675° E"
   },
   {
     id: 2,
     name: "Old Spanish Church Ruins",
     type: "Historical",
-    image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800&auto=format&fit=crop",
+    image: "https://picsum.photos/seed/tropical-ancient-ruins/800/600",
     coords: "9.2123° N, 124.6543° E"
   },
   {
     id: 3,
     name: "Ardent Hot Springs",
     type: "Nature",
-    image: "https://images.unsplash.com/photo-1544198365-f5d60b6d8190?q=80&w=800&auto=format&fit=crop",
+    image: "https://picsum.photos/seed/tropical-jungle-spring/800/600",
     coords: "9.2234° N, 124.6789° E"
   }
 ];

@@ -48,7 +48,7 @@ export default function TransportView() {
       {/* Header */}
       <section className="relative h-[40vh] flex items-center overflow-hidden">
         <img 
-          src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=2000&auto=format&fit=crop" 
+          src="https://picsum.photos/seed/tropical-coast-road/2000/1000" 
           alt="Camiguin Transport" 
           className="absolute inset-0 w-full h-full object-cover brightness-50"
           referrerPolicy="no-referrer"

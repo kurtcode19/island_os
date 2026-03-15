@@ -29,7 +29,7 @@ const spots = [
     name: 'White Island',
     category: 'Beaches',
     rating: 4.9,
-    image: 'https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?q=80&w=800&auto=format&fit=crop',
+    image: 'https://picsum.photos/seed/tropical-island-sand/800/800',
     distance: '2.4 km'
   },
   {
@@ -37,7 +37,7 @@ const spots = [
     name: 'Katibawasan Falls',
     category: 'Waterfalls',
     rating: 4.8,
-    image: 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?q=80&w=800&auto=format&fit=crop',
+    image: 'https://picsum.photos/seed/jungle-waterfall/800/800',
     distance: '5.1 km'
   },
   {
@@ -45,7 +45,7 @@ const spots = [
     name: 'Hibok-Hibok Volcano',
     category: 'Hiking',
     rating: 4.7,
-    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop',
+    image: 'https://picsum.photos/seed/volcano-mountain-peak/800/800',
     distance: '8.2 km'
   }
 ];
