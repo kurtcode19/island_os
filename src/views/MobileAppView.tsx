@@ -14,10 +14,14 @@ import {
   Filter,
   Bell,
   Ticket,
-  MapPin
+  MapPin,
+  Bus,
+  ShoppingBag,
+  Store,
+  LayoutDashboard
 } from 'lucide-react';
 
-const categories = ['All', 'Beaches', 'Hiking', 'Waterfalls', 'Dining'];
+const categories = ['All', 'Beaches', 'Hiking', 'Waterfalls', 'Dining', 'Shops'];
 
 const spots = [
   {
@@ -148,6 +152,62 @@ export default function MobileAppView() {
               </motion.div>
             )}
 
+            {activeTab === 'services' && (
+              <motion.div 
+                key="services"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="px-6"
+              >
+                <header className="mb-8">
+                  <p className="text-[10px] font-bold text-island-emerald uppercase tracking-[0.2em] mb-1">Island Services</p>
+                  <h2 className="text-3xl font-serif font-bold text-island-green italic">Directory</h2>
+                </header>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <ServiceCard 
+                    icon={Bus} 
+                    title="Transport" 
+                    subtitle="Buses, Vans, Boats"
+                    color="bg-blue-500"
+                  />
+                  <ServiceCard 
+                    icon={ShoppingBag} 
+                    title="Shops" 
+                    subtitle="Local Markets & Malls"
+                    color="bg-island-coral"
+                  />
+                  <ServiceCard 
+                    icon={MapPin} 
+                    title="Locations" 
+                    subtitle="Points of Interest"
+                    color="bg-island-emerald"
+                  />
+                  <ServiceCard 
+                    icon={Store} 
+                    title="Dining" 
+                    subtitle="Restaurants & Cafes"
+                    color="bg-orange-500"
+                  />
+                </div>
+
+                <div className="mt-8 p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+                  <h4 className="font-bold text-island-green mb-2">Emergency Contacts</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-500">Island Police</span>
+                      <span className="font-bold text-island-green">911</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-slate-500">Tourist Assistance</span>
+                      <span className="font-bold text-island-green">+63 999 000 0000</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {activeTab === 'pass' && (
               <motion.div 
                 key="pass"
@@ -194,7 +254,7 @@ export default function MobileAppView() {
         </div>
 
         {/* Bottom Nav */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-xl border-t border-slate-100 px-8 flex items-center justify-between z-50">
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-xl border-t border-slate-100 px-6 flex items-center justify-between z-50">
           <NavButton active={activeTab === 'explore'} onClick={() => setActiveTab('explore')} icon={Compass} label="Explore" />
           <NavButton active={activeTab === 'map'} onClick={() => setActiveTab('map')} icon={MapIcon} label="Map" />
           <div className="relative -top-6">
@@ -207,11 +267,28 @@ export default function MobileAppView() {
               <QrCode size={24} />
             </button>
           </div>
-          <NavButton active={activeTab === 'saved'} onClick={() => setActiveTab('saved')} icon={Heart} label="Saved" />
+          <NavButton active={activeTab === 'services'} onClick={() => setActiveTab('services')} icon={LayoutDashboard} label="Services" />
           <NavButton active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} icon={User} label="Profile" />
         </div>
       </div>
     </div>
+  );
+}
+
+function ServiceCard({ icon: Icon, title, subtitle, color }: any) {
+  return (
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm text-left flex flex-col gap-3"
+    >
+      <div className={`w-10 h-10 ${color} text-white rounded-xl flex items-center justify-center`}>
+        <Icon size={20} />
+      </div>
+      <div>
+        <h4 className="font-bold text-island-green text-sm">{title}</h4>
+        <p className="text-[10px] text-slate-400 font-medium">{subtitle}</p>
+      </div>
+    </motion.button>
   );
 }
 

@@ -27,6 +27,8 @@ import MobileAppView from './views/MobileAppView';
 import StayView from './views/StayView';
 import TransportView from './views/TransportView';
 import TouristPassView from './views/TouristPassView';
+import ShopsView from './views/ShopsView';
+import LocationsView from './views/LocationsView';
 
 function Navigation() {
   const location = useLocation();
@@ -36,6 +38,8 @@ function Navigation() {
     { path: '/', label: 'Explore', icon: Compass },
     { path: '/stay', label: 'Stay', icon: Hotel },
     { path: '/transport', label: 'Transport', icon: Ship },
+    { path: '/shops', label: 'Shops', icon: Building2 },
+    { path: '/locations', label: 'Locations', icon: MapIcon },
     { path: '/pass', label: 'Tourist Pass', icon: Ticket },
     { path: '/business', label: 'Business', icon: Building2 },
     { path: '/government', label: 'LGU', icon: LayoutDashboard },
@@ -115,6 +119,8 @@ export default function App() {
             <Route path="/" element={<LandingView />} />
             <Route path="/stay" element={<StayView />} />
             <Route path="/transport" element={<TransportView />} />
+            <Route path="/shops" element={<ShopsView />} />
+            <Route path="/locations" element={<LocationsView />} />
             <Route path="/pass" element={<TouristPassView />} />
             <Route path="/business/*" element={<BusinessDashboard />} />
             <Route path="/government" element={<GovernmentDashboard />} />
