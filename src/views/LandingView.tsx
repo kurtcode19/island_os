@@ -1,6 +1,17 @@
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Search, MapPin, Calendar, Compass, Hotel, Ship, Utensils, Map as MapIcon, ArrowRight, Star, ShieldCheck, Waves, Mountain, Palmtree } from 'lucide-react';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import L from 'leaflet';
+
+// Fix for default marker icon issue in Leaflet with React
+const customIcon = new L.Icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
 
 const experiences = [
   { id: 1, title: 'White Island Sandbar', type: 'Island Hopping', rating: 4.9, price: '₱1,500', image: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/61/b8/e7/white-island-is-an-uninhabited.jpg?w=700&h=-1&s=1' },
@@ -25,12 +36,12 @@ export default function LandingView() {
           <img 
             src="https://www.projectlupad.com/wp-content/uploads/2022/07/Mantigue-Island-Camiguin-Philippines-Aerial-View-Copyright-to-Project-LUPAD-5-1024x767.jpg" 
             alt="Camiguin Landscape" 
-            className="w-full h-full object-cover brightness-[0.75] contrast-[1.05] saturate-[0.9]"
+            className="w-full h-full object-cover brightness-[0.6] contrast-[1.1] saturate-[0.8]"
             referrerPolicy="no-referrer"
           />
-          {/* Complementary Gradient Overlay: Blends from dark island-green to a soft emerald tint to the cream background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-island-green/70 via-island-emerald/20 to-island-cream"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-island-cream via-transparent to-transparent opacity-60"></div>
+          {/* Enhanced Gradient Overlay: Darker on the left for text legibility */}
+          <div className="absolute inset-0 bg-gradient-to-r from-island-volcanic/90 via-island-volcanic/40 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-island-cream/20 via-transparent to-transparent"></div>
         </div>
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -40,16 +51,16 @@ export default function LandingView() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-bold mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-island-volcanic/60 backdrop-blur-md border border-white/20 text-white text-sm font-bold mb-6">
                 <span className="w-2 h-2 rounded-full bg-island-coral animate-pulse"></span>
                 The Island Born of Fire
               </div>
-              <h1 className="text-6xl md:text-8xl font-serif font-bold text-white leading-[0.9] mb-8 italic">
+              <h1 className="text-6xl md:text-8xl font-serif font-bold text-white leading-[0.9] mb-8 italic drop-shadow-2xl">
                 Explore <br />
-                <span className="text-island-emerald not-italic">Camiguin</span> <br />
+                <span className="text-island-sunset not-italic">Camiguin</span> <br />
                 Smarter.
               </h1>
-              <p className="text-xl text-slate-200 mb-10 leading-relaxed font-light max-w-lg">
+              <p className="text-xl text-white/80 mb-10 leading-relaxed font-light max-w-lg drop-shadow-md">
                 Discover the mystical beauty of the Philippines' most volcanic island through a seamless digital experience.
               </p>
               
@@ -82,35 +93,35 @@ export default function LandingView() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-20 glass p-3 rounded-[2.5rem] shadow-2xl max-w-5xl mx-auto flex flex-wrap md:flex-nowrap gap-2 items-center"
+            className="mt-20 bg-white p-3 rounded-[2.5rem] shadow-2xl max-w-5xl mx-auto flex flex-wrap md:flex-nowrap gap-2 items-center border border-white/20"
           >
-            <div className="flex-1 flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-white/50 transition-colors cursor-pointer">
+            <div className="flex-1 flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-slate-50 transition-colors cursor-pointer">
               <div className="w-10 h-10 rounded-full bg-island-emerald/10 flex items-center justify-center text-island-emerald">
                 <MapPin size={20} />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Location</span>
-                <input type="text" placeholder="Where to?" className="text-slate-900 font-bold outline-none bg-transparent placeholder:text-slate-400" />
+                <span className="text-[10px] font-bold text-island-green/60 uppercase tracking-widest">Location</span>
+                <input type="text" placeholder="Where to?" className="text-island-volcanic font-bold outline-none bg-transparent placeholder:text-slate-400" />
               </div>
             </div>
             <div className="w-px h-10 bg-slate-200 hidden md:block"></div>
-            <div className="flex-1 flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-white/50 transition-colors cursor-pointer">
+            <div className="flex-1 flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-slate-50 transition-colors cursor-pointer">
               <div className="w-10 h-10 rounded-full bg-island-coral/10 flex items-center justify-center text-island-coral">
                 <Calendar size={20} />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Dates</span>
-                <input type="text" placeholder="Add dates" className="text-slate-900 font-bold outline-none bg-transparent placeholder:text-slate-400" />
+                <span className="text-[10px] font-bold text-island-green/60 uppercase tracking-widest">Dates</span>
+                <input type="text" placeholder="Add dates" className="text-island-volcanic font-bold outline-none bg-transparent placeholder:text-slate-400" />
               </div>
             </div>
             <div className="w-px h-10 bg-slate-200 hidden md:block"></div>
-            <div className="flex-1 flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-white/50 transition-colors cursor-pointer">
+            <div className="flex-1 flex items-center gap-4 px-6 py-4 rounded-3xl hover:bg-slate-50 transition-colors cursor-pointer">
               <div className="w-10 h-10 rounded-full bg-island-ocean/10 flex items-center justify-center text-island-ocean">
                 <Compass size={20} />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Activity</span>
-                <input type="text" placeholder="What to do?" className="text-slate-900 font-bold outline-none bg-transparent placeholder:text-slate-400" />
+                <span className="text-[10px] font-bold text-island-green/60 uppercase tracking-widest">Activity</span>
+                <input type="text" placeholder="What to do?" className="text-island-volcanic font-bold outline-none bg-transparent placeholder:text-slate-400" />
               </div>
             </div>
             <button className="island-gradient p-5 rounded-[2rem] text-white hover:shadow-lg hover:shadow-island-emerald/30 transition-all">
@@ -220,15 +231,25 @@ export default function LandingView() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div className="relative">
-              <div className="rounded-[4rem] overflow-hidden shadow-2xl relative aspect-square">
-                <img 
-                  src="https://picsum.photos/seed/tropical-island-map/1000/1000" 
-                  alt="Camiguin Map" 
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute inset-0 bg-island-green/20 backdrop-blur-[2px]"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
+              <div className="rounded-[4rem] overflow-hidden shadow-2xl relative aspect-square z-0">
+                <MapContainer 
+                  center={[9.22, 124.68]} 
+                  zoom={11} 
+                  style={{ height: '100%', width: '100%' }}
+                  scrollWheelZoom={false}
+                  zoomControl={false}
+                  dragging={false}
+                  doubleClickZoom={false}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <Marker position={[9.2014, 124.6675]} icon={customIcon} />
+                  <Marker position={[9.2500, 124.6500]} icon={customIcon} />
+                </MapContainer>
+                <div className="absolute inset-0 bg-island-green/10 pointer-events-none"></div>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl animate-bounce">
                     <MapPin size={40} className="text-island-coral" />
                   </div>
@@ -271,9 +292,9 @@ export default function LandingView() {
                   <span className="font-bold text-island-green">Offline Trail Maps for Volcano Hikes</span>
                 </div>
               </div>
-              <button className="px-10 py-5 island-gradient text-white rounded-full font-bold transition-all shadow-xl shadow-island-emerald/20 flex items-center gap-3">
+              <Link to="/locations" className="px-10 py-5 island-gradient text-white rounded-full font-bold transition-all shadow-xl shadow-island-emerald/20 inline-flex items-center gap-3">
                 Open Interactive Map <MapIcon size={20} />
-              </button>
+              </Link>
             </div>
           </div>
         </div>
