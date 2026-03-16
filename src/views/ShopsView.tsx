@@ -7,7 +7,7 @@ const shops = [
     name: "Island Souvenirs",
     category: "Gifts",
     rating: 4.8,
-    image: "https://picsum.photos/seed/tropical-crafts/800/600",
+    image: "https://picsum.photos/seed/local-souvenirs-crafts/800/600",
     description: "Best local crafts and delicacies."
   },
   {
@@ -15,7 +15,7 @@ const shops = [
     name: "Camiguin Public Market",
     category: "Market",
     rating: 4.5,
-    image: "https://picsum.photos/seed/local-market-fruit/800/600",
+    image: "https://picsum.photos/seed/tropical-market-fruits/800/600",
     description: "Fresh produce and local street food."
   },
   {
@@ -23,7 +23,7 @@ const shops = [
     name: "Surf & Sand Shop",
     category: "Apparel",
     rating: 4.7,
-    image: "https://picsum.photos/seed/beach-surf-shop/800/600",
+    image: "https://picsum.photos/seed/surf-shop-beach/800/600",
     description: "Beachwear and surfing gear."
   }
 ];

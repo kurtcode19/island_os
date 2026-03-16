@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { Search, MapPin, Calendar, Compass, Hotel, Ship, Utensils, Map as MapIcon, ArrowRight, Star, ShieldCheck, Waves, Mountain, Palmtree } from 'lucide-react';
 
 const experiences = [
-  { id: 1, title: 'White Island Sandbar', type: 'Island Hopping', rating: 4.9, price: '₱1,500', image: 'https://picsum.photos/seed/tropical-beach-1/1000/800' },
-  { id: 2, title: 'Sunken Cemetery Diving', type: 'Diving', rating: 4.8, price: '₱2,500', image: 'https://picsum.photos/seed/ocean-diving/1000/800' },
-  { id: 3, title: 'Hibok-Hibok Volcano Hike', type: 'Adventure', rating: 4.7, price: '₱3,000', image: 'https://picsum.photos/seed/mountain-volcano/1000/800' },
-  { id: 4, title: 'Katibawasan Falls', type: 'Nature', rating: 4.9, price: '₱500', image: 'https://picsum.photos/seed/tropical-waterfall/1000/800' },
+  { id: 1, title: 'White Island Sandbar', type: 'Island Hopping', rating: 4.9, price: '₱1,500', image: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/61/b8/e7/white-island-is-an-uninhabited.jpg?w=700&h=-1&s=1' },
+  { id: 2, title: 'Sunken Cemetery Diving', type: 'Diving', rating: 4.8, price: '₱2,500', image: 'https://eazytraveler.net/wp-content/uploads/2013/12/11264466243_993705526b_z.jpg' },
+  { id: 3, title: 'Hibok-Hibok Volcano Hike', type: 'Adventure', rating: 4.7, price: '₱3,000', image: 'https://i.pinimg.com/564x/fe/75/c7/fe75c770631bcf5c9f1a93086ea071d3.jpg' },
+  { id: 4, title: 'Katibawasan Falls', type: 'Nature', rating: 4.9, price: '₱500', image: 'https://chrisandwrensworld.com/wp-content/uploads/2025/04/katibawasan-falls.jpeg' },
 ];
 
 const features = [
@@ -23,7 +23,7 @@ export default function LandingView() {
       <section className="relative min-h-screen flex items-center pt-20 pb-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://picsum.photos/seed/lush-emerald-tropical-island/2000/1200" 
+            src="https://img.liveaboard.com/imageserver/picture_library/site/top-liveaboard-destinations-v4/philippines--camiguin-xl.jpg" 
             alt="Camiguin Landscape" 
             className="w-full h-full object-cover brightness-[0.75] contrast-[1.05] saturate-[0.9]"
             referrerPolicy="no-referrer"

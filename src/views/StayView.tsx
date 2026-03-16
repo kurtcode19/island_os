@@ -9,7 +9,7 @@ const accommodations = [
     rating: 4.9,
     reviews: 128,
     price: '₱8,500',
-    image: 'https://picsum.photos/seed/luxury-resort-beach/1000/800',
+    image: 'https://image.kkday.com/v2/image/get/w_960%2Cc_fit%2Cq_55%2Ct_webp/s1.kkday.com/dyhotel_175987/20250918203629_zYO9b/jpg',
     tags: ['Beachfront', 'Pool', 'Spa'],
   },
   {
@@ -19,7 +19,7 @@ const accommodations = [
     rating: 4.7,
     reviews: 85,
     price: '₱3,200',
-    image: 'https://picsum.photos/seed/eco-lodge-nature/1000/800',
+    image: 'https://images.trvl-media.com/lodging/12000000/11610000/11607200/11607107/a51d0cd1.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
     tags: ['Mountain View', 'Sustainable', 'Quiet'],
   },
   {
@@ -29,7 +29,7 @@ const accommodations = [
     rating: 4.8,
     reviews: 56,
     price: '₱1,500',
-    image: 'https://picsum.photos/seed/tropical-homestay/1000/800',
+    image: 'https://pix6.agoda.net/hotelImages/870/870032/870032_15071314040032171296.jpg?s=1024x768',
     tags: ['Local Experience', 'Budget', 'Near Port'],
   },
   {
@@ -39,7 +39,7 @@ const accommodations = [
     rating: 4.6,
     reviews: 42,
     price: '₱4,500',
-    image: 'https://picsum.photos/seed/glamping-tropical/1000/800',
+    image: 'https://static.wixstatic.com/media/47e390_6412453b496c43e2ae3659aa4e10c4f2~mv2.jpg/v1/fill/w_980,h_735,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/47e390_6412453b496c43e2ae3659aa4e10c4f2~mv2.jpg',
     tags: ['Adventure', 'Star Gazing', 'Nature'],
   },
 ];
@@ -50,7 +50,7 @@ export default function StayView() {
       {/* Header */}
       <section className="relative h-[40vh] flex items-center overflow-hidden">
         <img 
-          src="https://picsum.photos/seed/tropical-resort-view/2000/1000" 
+          src="https://picsum.photos/seed/camiguin-island-aerial/2000/1000" 
           alt="Camiguin Resorts" 
           className="absolute inset-0 w-full h-full object-cover brightness-50"
           referrerPolicy="no-referrer"

@@ -6,21 +6,21 @@ const locations = [
     id: 1,
     name: "Sunken Cemetery",
     type: "Historical",
-    image: "https://picsum.photos/seed/tropical-ocean-cross/800/600",
+    image: "https://eazytraveler.net/wp-content/uploads/2013/12/11264466243_993705526b_z.jpg",
     coords: "9.2014° N, 124.6675° E"
   },
   {
     id: 2,
     name: "Old Spanish Church Ruins",
     type: "Historical",
-    image: "https://picsum.photos/seed/tropical-ancient-ruins/800/600",
+    image: "https://files01.pna.gov.ph/source/2024/05/06/camiguin-old-church-ruins-05032024jb.jpg",
     coords: "9.2123° N, 124.6543° E"
   },
   {
     id: 3,
     name: "Ardent Hot Springs",
     type: "Nature",
-    image: "https://picsum.photos/seed/tropical-jungle-spring/800/600",
+    image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiQaP43OAXTNmtHca_inwoebHilEDuksnsxWraO6nUciaZfzozMtkYgNDHrDIOvov6iDJuk5qUsCIXE00PE8JFffm2L1JePVPp9dwkmiTUgXwXkx0s8nXBavOUOKIeIpT-CKzYwowm0Tv0/w1200-h630-p-k-no-nu/geejay-travel-log-ardent-hot-spring-camiguin-09.jpg",
     coords: "9.2234° N, 124.6789° E"
   }
 ];
