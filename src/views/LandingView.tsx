@@ -23,7 +23,7 @@ export default function LandingView() {
       <section className="relative min-h-screen flex items-center pt-20 pb-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://img.liveaboard.com/imageserver/picture_library/site/top-liveaboard-destinations-v4/philippines--camiguin-xl.jpg" 
+            src="https://www.projectlupad.com/wp-content/uploads/2022/07/Mantigue-Island-Camiguin-Philippines-Aerial-View-Copyright-to-Project-LUPAD-5-1024x767.jpg" 
             alt="Camiguin Landscape" 
             className="w-full h-full object-cover brightness-[0.75] contrast-[1.05] saturate-[0.9]"
             referrerPolicy="no-referrer"
@@ -70,7 +70,7 @@ export default function LandingView() {
               className="hidden lg:block relative"
             >
               <div className="relative z-10 rounded-[3rem] overflow-hidden border-8 border-white/10 shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-700">
-                <img src="https://picsum.photos/seed/tropical-paradise-island/800/1000" alt="Mantigue Island" className="w-full aspect-[4/5] object-cover" referrerPolicy="no-referrer" />
+                <img src="https://www.projectlupad.com/wp-content/uploads/2022/07/Mantigue-Island-Camiguin-Philippines-Aerial-View-Copyright-to-Project-LUPAD-5-1024x767.jpg" alt="Mantigue Island" className="w-full aspect-[4/5] object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-island-coral rounded-full blur-3xl opacity-30"></div>
               <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-island-emerald rounded-full blur-3xl opacity-20"></div>
