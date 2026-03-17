@@ -142,7 +142,7 @@ export default function TouristPassView() {
               <div className="flex-1 text-center md:text-left">
                 <h3 className="text-2xl font-serif font-bold text-island-green mb-2">Better on Mobile</h3>
                 <p className="text-slate-500 font-light mb-6">
-                  Download the IslandOS app to keep your pass offline and get real-time notifications.
+                  Download the IsleGO app to keep your pass offline and get real-time notifications.
                 </p>
                 <div className="flex flex-wrap justify-center md:justify-start gap-4">
                   <button className="px-6 py-3 bg-island-volcanic text-white rounded-xl font-bold text-sm">App Store</button>

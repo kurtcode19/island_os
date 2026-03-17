@@ -139,12 +139,12 @@ export default function LandingView() {
             <div className="lg:col-span-1">
               <span className="text-island-coral font-bold uppercase tracking-[0.2em] text-xs mb-4 block">The Ecosystem</span>
               <h2 className="text-5xl md:text-6xl font-serif font-bold text-island-green leading-tight mb-6 italic">
-                The Operating <br /> System for <br /> <span className="not-italic text-island-emerald">Island Tourism</span>
+                The Operating <br /> System for <br /> <span className="not-italic text-island-emerald">IsleGO</span>
               </h2>
             </div>
             <div className="lg:col-span-2">
               <p className="text-xl text-slate-500 font-light leading-relaxed">
-                IslandOS connects every touchpoint of your journey. From the moment you land to your final sunset, we ensure the island's magic is just a tap away.
+                IsleGO connects every touchpoint of your journey. From the moment you land to your final sunset, we ensure the island's magic is just a tap away.
               </p>
             </div>
           </div>
@@ -308,7 +308,7 @@ export default function LandingView() {
             <div className="col-span-1 md:col-span-1">
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-10 h-10 island-gradient rounded-xl flex items-center justify-center text-white font-bold text-xl">I</div>
-                <span className="text-3xl font-serif font-bold tracking-tight italic">Island<span className="text-island-emerald not-italic">OS</span></span>
+                <span className="text-3xl font-serif font-bold tracking-tight italic">Isle<span className="text-island-emerald not-italic">GO</span></span>
               </div>
               <p className="text-slate-400 leading-relaxed font-light text-lg">
                 Building the digital infrastructure for the world's most beautiful island destinations.
@@ -343,7 +343,7 @@ export default function LandingView() {
             </div>
           </div>
           <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-500 text-sm font-light">
-            <p>© 2026 IslandOS. Built for the Island Born of Fire.</p>
+            <p>© 2026 IsleGO. Built for the Island Born of Fire.</p>
             <div className="flex gap-8">
               <a href="#" className="hover:text-white transition-colors">Instagram</a>
               <a href="#" className="hover:text-white transition-colors">Facebook</a>
