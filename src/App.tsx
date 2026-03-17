@@ -51,7 +51,7 @@ function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-island-green rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-island-green/20">I</div>
+            <img src="/logo.png" alt="IsleGO Logo" className="w-10 h-10 object-contain rounded-xl shadow-lg shadow-island-green/10" referrerPolicy="no-referrer" />
             <span className="text-2xl font-serif font-bold tracking-tight text-island-green italic">Isle<span className="not-italic text-island-emerald">GO</span></span>
           </div>
 

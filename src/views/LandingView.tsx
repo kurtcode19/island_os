@@ -307,7 +307,7 @@ export default function LandingView() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-24">
             <div className="col-span-1 md:col-span-1">
               <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 island-gradient rounded-xl flex items-center justify-center text-white font-bold text-xl">I</div>
+                <img src="/logo.png" alt="IsleGO Logo" className="w-12 h-12 object-contain rounded-xl" referrerPolicy="no-referrer" />
                 <span className="text-3xl font-serif font-bold tracking-tight italic">Isle<span className="text-island-emerald not-italic">GO</span></span>
               </div>
               <p className="text-slate-400 leading-relaxed font-light text-lg">
