@@ -37,8 +37,29 @@ function RoleNavigator({ role }: { role: UserRole }) {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     const currentPath = location.pathname;
+
+    // If on mobile and not already on the mobile view, redirect to /mobile
+    if (isMobile && currentPath !== '/mobile') {
+      navigate('/mobile');
+      return;
+    }
+
+    // If not on mobile but on the mobile view, redirect back to home (or stay if appropriate)
+    if (!isMobile && currentPath === '/mobile') {
+      navigate('/');
+      return;
+    }
+
     if (role === 'BUSINESS' && !currentPath.startsWith('/business')) {
       navigate('/business');
     } else if (role === 'LGU' && !currentPath.startsWith('/government')) {
@@ -46,7 +67,7 @@ function RoleNavigator({ role }: { role: UserRole }) {
     } else if (role === 'TOURIST' && (currentPath.startsWith('/business') || currentPath.startsWith('/government'))) {
       navigate('/');
     }
-  }, [role, navigate, location.pathname]);
+  }, [role, navigate, location.pathname, isMobile]);
 
   return null;
 }
@@ -63,7 +84,6 @@ function Navigation({ currentRole, onRoleChange }: { currentRole: UserRole, onRo
     { path: '/shops', label: 'Shops', icon: Building2 },
     { path: '/locations', label: 'Locations', icon: MapIcon },
     { path: '/pass', label: 'Tourist Pass', icon: Ticket },
-    { path: '/mobile', label: 'App', icon: Smartphone },
   ];
 
   const businessItems = [
@@ -235,20 +255,26 @@ export default function App() {
     <Router>
       <RoleNavigator role={role} />
       <div className="min-h-screen bg-island-cream font-sans text-island-volcanic selection:bg-island-emerald/20">
-        <Navigation currentRole={role} onRoleChange={setRole} />
-        <main className="pt-20">
-          <Routes>
-            <Route path="/" element={<LandingView />} />
-            <Route path="/stay" element={<StayView />} />
-            <Route path="/transport" element={<TransportView />} />
-            <Route path="/shops" element={<ShopsView />} />
-            <Route path="/locations" element={<LocationsView />} />
-            <Route path="/pass" element={<TouristPassView />} />
-            <Route path="/business/*" element={<BusinessDashboard />} />
-            <Route path="/government/*" element={<GovernmentDashboard />} />
-            <Route path="/mobile" element={<MobileAppView />} />
-          </Routes>
-        </main>
+        <Routes>
+          <Route path="/mobile" element={<MobileAppView />} />
+          <Route path="*" element={
+            <>
+              <Navigation currentRole={role} onRoleChange={setRole} />
+              <main className="pt-20">
+                <Routes>
+                  <Route path="/" element={<LandingView />} />
+                  <Route path="/stay" element={<StayView />} />
+                  <Route path="/transport" element={<TransportView />} />
+                  <Route path="/shops" element={<ShopsView />} />
+                  <Route path="/locations" element={<LocationsView />} />
+                  <Route path="/pass" element={<TouristPassView />} />
+                  <Route path="/business/*" element={<BusinessDashboard />} />
+                  <Route path="/government/*" element={<GovernmentDashboard />} />
+                </Routes>
+              </main>
+            </>
+          } />
+        </Routes>
       </div>
     </Router>
   );
