@@ -70,10 +70,10 @@ export default function StayView() {
         touristName: user.displayName || 'Anonymous',
         serviceId: hotel.id,
         serviceName: hotel.name,
-        serviceType: 'STAY',
+        serviceType: 'stay',
         businessId: hotel.businessId,
         date: new Date().toISOString(),
-        status: 'PENDING',
+        status: 'pending',
         amount: hotel.price,
         createdAt: serverTimestamp()
       });
@@ -82,8 +82,8 @@ export default function StayView() {
         setBookingStatus(prev => ({ ...prev, [hotel.id]: 'idle' }));
       }, 3000);
     } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'bookings');
       setBookingStatus(prev => ({ ...prev, [hotel.id]: 'idle' }));
+      handleFirestoreError(error, OperationType.CREATE, 'bookings');
     }
   };
 

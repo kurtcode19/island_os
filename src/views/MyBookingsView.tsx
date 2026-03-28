@@ -44,8 +44,8 @@ export default function MyBookingsView() {
       setBookings(bookingsData);
       setLoading(false);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'bookings');
       setLoading(false);
+      handleFirestoreError(error, OperationType.LIST, 'bookings');
     });
 
     return () => unsubscribe();

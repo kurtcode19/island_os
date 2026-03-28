@@ -90,8 +90,8 @@ export default function LandingView() {
         navigate('/my-bookings');
       }, 2000);
     } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'bookings');
       setBookingStatus('idle');
+      handleFirestoreError(error, OperationType.CREATE, 'bookings');
     }
   };
 

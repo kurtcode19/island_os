@@ -1,34 +1,42 @@
-import { motion } from 'motion/react';
-import { Ship, Car, Bike, MapPin, Clock, Calendar, ArrowRight, Info, ShieldCheck, Waves, Navigation } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Ship, Car, Bike, MapPin, Clock, Calendar, ArrowRight, Info, ShieldCheck, Waves, Navigation, X, CheckCircle2, RefreshCw } from 'lucide-react';
+import { db, handleFirestoreError, OperationType } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useAuth } from '../App';
+import { useNavigate } from 'react-router-dom';
 
 const transportOptions = [
   {
-    id: 1,
+    id: 'trans_1',
     title: 'Fast Craft Ferry',
     provider: 'SuperCat / OceanJet',
     route: 'Balingoan ↔ Benoni',
     duration: '45 mins',
-    price: '₱450',
+    price: 450,
+    businessId: 'ferry_co',
     icon: Ship,
     color: 'bg-island-ocean',
   },
   {
-    id: 2,
+    id: 'trans_2',
     title: 'Private Van Rental',
     provider: 'Camiguin Tours',
     route: 'Island-wide / Airport Transfer',
     duration: 'Full Day',
-    price: '₱2,500',
+    price: 2500,
+    businessId: 'van_rentals_inc',
     icon: Car,
     color: 'bg-island-emerald',
   },
   {
-    id: 3,
+    id: 'trans_3',
     title: 'Scooter Rental',
     provider: 'Local Rentals',
     route: 'Self-drive',
     duration: '24 Hours',
-    price: '₱500',
+    price: 500,
+    businessId: 'local_bikes',
     icon: Bike,
     color: 'bg-island-coral',
   },
@@ -43,6 +51,47 @@ const schedules = [
 ];
 
 export default function TransportView() {
+  const { user, login } = useAuth();
+  const navigate = useNavigate();
+  const [selectedTransport, setSelectedTransport] = useState<any>(null);
+  const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+
+  const handleBookTransport = async (transport: any) => {
+    if (!user) {
+      login();
+      return;
+    }
+
+    setBookingStatus('loading');
+    try {
+      const bookingData = {
+        touristUid: user.uid,
+        touristName: user.displayName || 'Anonymous',
+        touristEmail: user.email || '',
+        serviceId: transport.id,
+        serviceName: transport.title,
+        serviceType: 'transport',
+        businessId: transport.businessId,
+        date: new Date().toLocaleDateString(),
+        amount: transport.price,
+        status: 'pending',
+        paymentStatus: 'UNPAID',
+        createdAt: serverTimestamp(),
+      };
+
+      await addDoc(collection(db, 'bookings'), bookingData);
+      setBookingStatus('success');
+      setTimeout(() => {
+        setBookingStatus('idle');
+        setSelectedTransport(null);
+        navigate('/my-bookings');
+      }, 2000);
+    } catch (error) {
+      setBookingStatus('idle');
+      handleFirestoreError(error, OperationType.CREATE, 'bookings');
+    }
+  };
+
   return (
     <div className="bg-island-cream min-h-screen pb-20">
       {/* Header */}
@@ -108,8 +157,11 @@ export default function TransportView() {
                     </div>
                     <div className="text-center md:text-right">
                       <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Starts at</p>
-                      <p className="text-3xl font-bold text-island-green mb-4">{opt.price}</p>
-                      <button className="px-8 py-3 island-gradient text-white rounded-xl font-bold shadow-lg shadow-island-emerald/20 flex items-center gap-2">
+                      <p className="text-3xl font-bold text-island-green mb-4">₱{opt.price.toLocaleString()}</p>
+                      <button 
+                        onClick={() => setSelectedTransport(opt)}
+                        className="px-8 py-3 island-gradient text-white rounded-xl font-bold shadow-lg shadow-island-emerald/20 flex items-center gap-2"
+                      >
                         Book Now <ArrowRight size={18} />
                       </button>
                     </div>
@@ -185,6 +237,95 @@ export default function TransportView() {
           </div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      <AnimatePresence>
+        {selectedTransport && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedTransport(null)}
+              className="absolute inset-0 bg-island-volcanic/60 backdrop-blur-sm"
+            ></motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-lg bg-white rounded-[3rem] overflow-hidden shadow-2xl"
+            >
+              <button 
+                onClick={() => setSelectedTransport(null)}
+                className="absolute top-6 right-6 p-2 bg-slate-100 rounded-full text-slate-400 hover:text-island-coral transition-colors z-10"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className={`w-16 h-16 rounded-2xl ${selectedTransport.color}/10 flex items-center justify-center text-island-green`}>
+                    <selectedTransport.icon size={32} className={selectedTransport.color.replace('bg-', 'text-')} />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-serif font-bold text-island-green italic">{selectedTransport.title}</h3>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{selectedTransport.provider}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center gap-3 text-slate-500">
+                    <MapPin size={18} className="text-island-emerald" />
+                    <span className="text-sm">{selectedTransport.route}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-slate-500">
+                    <Clock size={18} className="text-island-emerald" />
+                    <span className="text-sm">{selectedTransport.duration}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-6 bg-island-cream rounded-3xl mb-8">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-island-green/60 uppercase tracking-widest">Total Fare</span>
+                    <span className="text-2xl font-bold text-island-green">₱{selectedTransport.price.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-island-emerald">
+                    <ShieldCheck size={20} />
+                    <span className="text-xs font-bold uppercase tracking-widest">Secure Booking</span>
+                  </div>
+                </div>
+
+                {bookingStatus === 'success' ? (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col items-center gap-3 py-4"
+                  >
+                    <div className="w-12 h-12 bg-island-emerald rounded-full flex items-center justify-center text-white">
+                      <CheckCircle2 size={24} />
+                    </div>
+                    <p className="text-island-emerald font-bold uppercase tracking-widest text-xs">Booking Successful!</p>
+                  </motion.div>
+                ) : (
+                  <button 
+                    onClick={() => handleBookTransport(selectedTransport)}
+                    disabled={bookingStatus === 'loading'}
+                    className="w-full py-5 island-gradient text-white rounded-2xl font-bold text-sm uppercase tracking-widest shadow-lg shadow-island-emerald/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                  >
+                    {bookingStatus === 'loading' ? (
+                      <RefreshCw size={20} className="animate-spin" />
+                    ) : (
+                      <Ship size={20} />
+                    )}
+                    Confirm Booking
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

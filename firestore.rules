@@ -75,10 +75,10 @@ service cloud.firestore {
              data.touristName is string && data.touristName.size() > 0 && data.touristName.size() < 100 &&
              data.serviceId is string &&
              data.serviceName is string && data.serviceName.size() > 0 && data.serviceName.size() < 100 &&
-             data.serviceType in ['STAY', 'TRANSPORT', 'TOUR'] &&
+             data.serviceType.lower() in ['stay', 'transport', 'tour'] &&
              data.businessId is string &&
              data.date is string &&
-             data.status in ['PENDING', 'CONFIRMED', 'CANCELLED'] &&
+             data.status.lower() in ['pending', 'confirmed', 'cancelled'] &&
              data.amount is number && data.amount >= 0 &&
              data.createdAt is timestamp;
     }
@@ -101,7 +101,7 @@ service cloud.firestore {
       );
       allow create: if isAuthenticated() && isValidBooking(request.resource.data) && request.resource.data.touristUid == request.auth.uid;
       allow update: if isAuthenticated() && isValidBooking(request.resource.data) && (
-        (request.auth.uid == resource.data.touristUid && request.resource.data.status == 'CANCELLED') ||
+        (request.auth.uid == resource.data.touristUid && request.resource.data.status.lower() == 'cancelled') ||
         (getUserData().businessId == resource.data.businessId) ||
         isAdmin()
       );

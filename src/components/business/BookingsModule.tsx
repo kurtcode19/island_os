@@ -23,7 +23,7 @@ import {
   updateDoc,
   orderBy
 } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { useAuth } from '../../App';
 
 export default function BookingsModule() {
@@ -53,8 +53,8 @@ export default function BookingsModule() {
       setBookings(bookingsData);
       setLoading(false);
     }, (error) => {
-      console.error("Error fetching bookings:", error);
       setLoading(false);
+      handleFirestoreError(error, OperationType.LIST, 'bookings');
     });
 
     return () => unsubscribe();
@@ -71,7 +71,7 @@ export default function BookingsModule() {
 
   const filteredBookings = bookings.filter(booking => {
     const matchesSearch = 
-      booking.guestName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (booking.touristName || booking.guestName)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.serviceName?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || booking.status?.toLowerCase() === filterStatus.toLowerCase();
     return matchesSearch && matchesStatus;
@@ -154,11 +154,11 @@ export default function BookingsModule() {
                     <td className="px-10 py-6">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-island-emerald/10 flex items-center justify-center text-island-emerald font-bold">
-                          {booking.guestName?.charAt(0)}
+                          {(booking.touristName || booking.guestName)?.charAt(0)}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-island-green">{booking.guestName}</p>
-                          <p className="text-xs text-slate-400">{booking.guestEmail}</p>
+                          <p className="text-sm font-bold text-island-green">{booking.touristName || booking.guestName}</p>
+                          <p className="text-xs text-slate-400">{booking.touristEmail || booking.guestEmail}</p>
                         </div>
                       </div>
                     </td>

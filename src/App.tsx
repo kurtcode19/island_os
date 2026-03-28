@@ -75,6 +75,7 @@ import TouristPassView from './views/TouristPassView';
 import ShopsView from './views/ShopsView';
 import LocationsView from './views/LocationsView';
 import MyBookingsView from './views/MyBookingsView';
+import ClaimBusinessView from './views/ClaimBusinessView';
 
 function RoleNavigator({ role, onRoleChange }: { role: UserRole, onRoleChange: (role: UserRole) => void }) {
   const navigate = useNavigate();
@@ -269,6 +270,14 @@ function Navigation({ currentRole, onRoleChange }: { currentRole: UserRole, onRo
                             <p className="text-sm font-bold text-island-green">{user.displayName}</p>
                             <p className="text-xs text-slate-400">{user.email}</p>
                           </div>
+                          <Link
+                            to="/claim-business"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-island-emerald hover:bg-island-emerald/5 transition-all mb-2"
+                          >
+                            <Building2 size={16} />
+                            Claim Business
+                          </Link>
                           <button
                             onClick={() => { logout(); setIsUserMenuOpen(false); }}
                             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-island-coral hover:bg-island-coral/5 transition-all"
@@ -421,6 +430,7 @@ function AppRoutes({ role, setRole }: { role: UserRole, setRole: (role: UserRole
                   <Route path="/locations" element={<LocationsView />} />
                   <Route path="/pass" element={<TouristPassView />} />
                   <Route path="/my-bookings" element={<MyBookingsView />} />
+                  <Route path="/claim-business" element={<ClaimBusinessView />} />
                   <Route path="/business/*" element={<BusinessDashboard />} />
                   <Route path="/government/*" element={<GovernmentDashboard />} />
                 </Routes>

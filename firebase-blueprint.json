@@ -10,10 +10,10 @@
         "touristName": { "type": "string" },
         "serviceId": { "type": "string" },
         "serviceName": { "type": "string" },
-        "serviceType": { "type": "string", "enum": ["STAY", "TRANSPORT", "TOUR"] },
+        "serviceType": { "type": "string", "enum": ["stay", "transport", "tour"] },
         "businessId": { "type": "string" },
         "date": { "type": "string", "format": "date-time" },
-        "status": { "type": "string", "enum": ["PENDING", "CONFIRMED", "CANCELLED"] },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"] },
         "amount": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" }
       },

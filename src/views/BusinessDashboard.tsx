@@ -26,7 +26,7 @@ import {
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from '../App';
 import BookingsModule from '../components/business/BookingsModule';
 import InventoryModule from '../components/business/InventoryModule';
@@ -47,7 +47,7 @@ const chartData = [
 
 interface Booking {
   id: string;
-  guestName: string;
+  touristName: string;
   serviceName: string;
   date: string;
   status: 'pending' | 'confirmed' | 'cancelled';
@@ -85,8 +85,8 @@ export default function BusinessDashboard() {
       setUnconfirmedCount(bookingsData.filter(b => b.status === 'pending').length);
       setLoading(false);
     }, (error) => {
-      console.error("Error fetching dashboard data:", error);
       setLoading(false);
+      handleFirestoreError(error, OperationType.LIST, 'bookings');
     });
 
     return () => unsubscribe();
@@ -244,7 +244,7 @@ export default function BusinessDashboard() {
                   bookings.slice(0, 5).map((booking) => (
                     <tr key={booking.id} className="group hover:bg-slate-50/50 transition-all">
                       <td className="py-6 text-sm font-bold text-island-green">BK-{booking.id.slice(0, 4).toUpperCase()}</td>
-                      <td className="py-6 text-sm text-slate-600 font-medium">{booking.guestName}</td>
+                      <td className="py-6 text-sm text-slate-600 font-medium">{booking.touristName}</td>
                       <td className="py-6 text-sm text-slate-600 font-medium">{booking.serviceName}</td>
                       <td className="py-6 text-sm text-slate-600 font-medium">{booking.date}</td>
                       <td className="py-6">

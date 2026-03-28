@@ -32,7 +32,7 @@ import {
 } from 'recharts';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, handleFirestoreError, OperationType } from '../firebase';
 import LocationsView from './LocationsView';
 import RegistryModule from '../components/lgu/RegistryModule';
 import PortModule from '../components/lgu/PortModule';
@@ -85,8 +85,8 @@ export default function GovernmentDashboard() {
       setBookings(bookingsData);
       setLoading(false);
     }, (error) => {
-      console.error("Error fetching government analytics:", error);
       setLoading(false);
+      handleFirestoreError(error, OperationType.LIST, 'bookings');
     });
 
     return () => unsubscribe();
