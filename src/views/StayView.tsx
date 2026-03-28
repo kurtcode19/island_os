@@ -1,50 +1,92 @@
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Hotel, Star, MapPin, Wifi, Coffee, Wind, Waves, ArrowRight, Search, Filter } from 'lucide-react';
+import { Hotel, Star, MapPin, Wifi, Coffee, Wind, Waves, ArrowRight, Search, Filter, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../App';
+import { db, handleFirestoreError, OperationType } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const accommodations = [
   {
-    id: 1,
+    id: 'stay-1',
     name: 'Blue Lagoon Resort & Spa',
     type: 'Luxury Resort',
     rating: 4.9,
     reviews: 128,
-    price: '₱8,500',
+    price: 8500,
     image: 'https://image.kkday.com/v2/image/get/w_960%2Cc_fit%2Cq_55%2Ct_webp/s1.kkday.com/dyhotel_175987/20250918203629_zYO9b/jpg',
     tags: ['Beachfront', 'Pool', 'Spa'],
+    businessId: 'biz-resort-1'
   },
   {
-    id: 2,
+    id: 'stay-2',
     name: 'Volcanic Eco-Lodge',
     type: 'Eco-Stay',
     rating: 4.7,
     reviews: 85,
-    price: '₱3,200',
+    price: 3200,
     image: 'https://images.trvl-media.com/lodging/12000000/11610000/11607200/11607107/a51d0cd1.jpg?impolicy=resizecrop&rw=575&rh=575&ra=fill',
     tags: ['Mountain View', 'Sustainable', 'Quiet'],
+    businessId: 'biz-lodge-1'
   },
   {
-    id: 3,
+    id: 'stay-3',
     name: 'White Island Homestay',
     type: 'Homestay',
     rating: 4.8,
     reviews: 56,
-    price: '₱1,500',
+    price: 1500,
     image: 'https://pix6.agoda.net/hotelImages/870/870032/870032_15071314040032171296.jpg?s=1024x768',
     tags: ['Local Experience', 'Budget', 'Near Port'],
+    businessId: 'biz-homestay-1'
   },
   {
-    id: 4,
+    id: 'stay-4',
     name: 'Hibok-Hibok Glamping',
     type: 'Glamping',
     rating: 4.6,
     reviews: 42,
-    price: '₱4,500',
+    price: 4500,
     image: 'https://static.wixstatic.com/media/47e390_6412453b496c43e2ae3659aa4e10c4f2~mv2.jpg/v1/fill/w_980,h_735,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/47e390_6412453b496c43e2ae3659aa4e10c4f2~mv2.jpg',
     tags: ['Adventure', 'Star Gazing', 'Nature'],
+    businessId: 'biz-glamping-1'
   },
 ];
 
 export default function StayView() {
+  const { user, login } = useAuth();
+  const [bookingStatus, setBookingStatus] = useState<{[key: string]: 'idle' | 'loading' | 'success'}>({});
+
+  const handleBook = async (hotel: typeof accommodations[0]) => {
+    if (!user) {
+      login();
+      return;
+    }
+
+    setBookingStatus(prev => ({ ...prev, [hotel.id]: 'loading' }));
+
+    try {
+      await addDoc(collection(db, 'bookings'), {
+        touristUid: user.uid,
+        touristName: user.displayName || 'Anonymous',
+        serviceId: hotel.id,
+        serviceName: hotel.name,
+        serviceType: 'STAY',
+        businessId: hotel.businessId,
+        date: new Date().toISOString(),
+        status: 'PENDING',
+        amount: hotel.price,
+        createdAt: serverTimestamp()
+      });
+      setBookingStatus(prev => ({ ...prev, [hotel.id]: 'success' }));
+      setTimeout(() => {
+        setBookingStatus(prev => ({ ...prev, [hotel.id]: 'idle' }));
+      }, 3000);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'bookings');
+      setBookingStatus(prev => ({ ...prev, [hotel.id]: 'idle' }));
+    }
+  };
+
   return (
     <div className="bg-island-cream min-h-screen pb-20">
       {/* Header */}
@@ -142,7 +184,7 @@ export default function StayView() {
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Per Night</p>
-                    <p className="text-2xl font-bold text-island-green">{hotel.price}</p>
+                    <p className="text-2xl font-bold text-island-green">₱{hotel.price.toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-6 mb-8 py-6 border-y border-slate-50">
@@ -156,8 +198,29 @@ export default function StayView() {
                     <Wind size={18} className="text-island-emerald" /> AC
                   </div>
                 </div>
-                <button className="w-full py-5 island-gradient text-white rounded-2xl font-bold flex items-center justify-center gap-3 group">
-                  Book This Stay <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                <button 
+                  onClick={() => handleBook(hotel)}
+                  disabled={bookingStatus[hotel.id] === 'loading' || bookingStatus[hotel.id] === 'success'}
+                  className={`w-full py-5 rounded-2xl font-bold flex items-center justify-center gap-3 group transition-all ${
+                    bookingStatus[hotel.id] === 'success'
+                      ? 'bg-green-500 text-white'
+                      : bookingStatus[hotel.id] === 'loading'
+                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                        : 'island-gradient text-white shadow-lg shadow-island-emerald/20 hover:scale-[1.02] active:scale-[0.98]'
+                  }`}
+                >
+                  {bookingStatus[hotel.id] === 'success' ? (
+                    <>
+                      <CheckCircle2 size={20} />
+                      Booking Confirmed
+                    </>
+                  ) : bookingStatus[hotel.id] === 'loading' ? (
+                    <div className="w-6 h-6 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <>
+                      Book This Stay <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>

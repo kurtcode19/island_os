@@ -1,8 +1,9 @@
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { Search, MapPin, Calendar, Compass, Hotel, Ship, Utensils, Map as MapIcon, ArrowRight, Star, ShieldCheck, Waves, Mountain, Palmtree } from 'lucide-react';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { Search, MapPin, Calendar, Compass, Hotel, Ship, Utensils, Map as MapIcon, ArrowRight, Star, ShieldCheck, Waves, Mountain, Palmtree, ShoppingBag, Users, Building2 } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
+import { locations } from '../data/locations';
 
 // Fix for default marker icon issue in Leaflet with React
 const customIcon = new L.Icon({
@@ -131,6 +132,65 @@ export default function LandingView() {
         </div>
       </section>
 
+      {/* Quick Navigation Section */}
+      <section className="py-20 bg-white relative z-20 -mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <Link to="/transport" className="group">
+              <motion.div 
+                whileHover={{ y: -10 }}
+                className="p-8 rounded-[3rem] bg-island-cream border border-slate-100 flex flex-col items-center text-center transition-all hover:shadow-xl hover:shadow-island-emerald/10"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-island-emerald/10 flex items-center justify-center text-island-emerald mb-6 group-hover:scale-110 transition-transform">
+                  <Ship size={32} />
+                </div>
+                <h3 className="text-lg font-bold text-island-green mb-2">Book a Trip</h3>
+                <p className="text-xs text-slate-400 font-light">Ferry & Tours</p>
+              </motion.div>
+            </Link>
+
+            <Link to="/locations" className="group">
+              <motion.div 
+                whileHover={{ y: -10 }}
+                className="p-8 rounded-[3rem] bg-island-cream border border-slate-100 flex flex-col items-center text-center transition-all hover:shadow-xl hover:shadow-island-coral/10"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-island-coral/10 flex items-center justify-center text-island-coral mb-6 group-hover:scale-110 transition-transform">
+                  <MapPin size={32} />
+                </div>
+                <h3 className="text-lg font-bold text-island-green mb-2">Browse Locations</h3>
+                <p className="text-xs text-slate-400 font-light">Discover Spots</p>
+              </motion.div>
+            </Link>
+
+            <Link to="/shops" className="group">
+              <motion.div 
+                whileHover={{ y: -10 }}
+                className="p-8 rounded-[3rem] bg-island-cream border border-slate-100 flex flex-col items-center text-center transition-all hover:shadow-xl hover:shadow-island-sunset/10"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-island-sunset/10 flex items-center justify-center text-island-sunset mb-6 group-hover:scale-110 transition-transform">
+                  <ShoppingBag size={32} />
+                </div>
+                <h3 className="text-lg font-bold text-island-green mb-2">Buy from Shop</h3>
+                <p className="text-xs text-slate-400 font-light">Local Souvenirs</p>
+              </motion.div>
+            </Link>
+
+            <Link to="/locations" className="group">
+              <motion.div 
+                whileHover={{ y: -10 }}
+                className="p-8 rounded-[3rem] bg-island-cream border border-slate-100 flex flex-col items-center text-center transition-all hover:shadow-xl hover:shadow-island-ocean/10"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-island-ocean/10 flex items-center justify-center text-island-ocean mb-6 group-hover:scale-110 transition-transform">
+                  <MapIcon size={32} />
+                </div>
+                <h3 className="text-lg font-bold text-island-green mb-2">Island Map</h3>
+                <p className="text-xs text-slate-400 font-light">Interactive Guide</p>
+              </motion.div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-32 bg-island-cream relative">
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-transparent to-island-cream -translate-y-full"></div>
@@ -151,17 +211,22 @@ export default function LandingView() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, idx) => (
-              <motion.div 
+              <Link 
                 key={idx}
-                whileHover={{ y: -10 }}
-                className="p-10 rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all group"
+                to={idx === 0 ? "/pass" : idx === 1 ? "/stay" : idx === 2 ? "/transport" : "/pass"}
+                className="group"
               >
-                <div className={`w-14 h-14 ${feature.color} rounded-2xl flex items-center justify-center text-white mb-8 shadow-lg group-hover:scale-110 transition-transform`}>
-                  <feature.icon size={28} />
-                </div>
-                <h3 className="text-2xl font-serif font-bold text-island-green mb-4">{feature.title}</h3>
-                <p className="text-slate-500 leading-relaxed font-light">{feature.description}</p>
-              </motion.div>
+                <motion.div 
+                  whileHover={{ y: -10 }}
+                  className="p-10 h-full rounded-[2.5rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all"
+                >
+                  <div className={`w-14 h-14 ${feature.color} rounded-2xl flex items-center justify-center text-white mb-8 shadow-lg group-hover:scale-110 transition-transform`}>
+                    <feature.icon size={28} />
+                  </div>
+                  <h3 className="text-2xl font-serif font-bold text-island-green mb-4">{feature.title}</h3>
+                  <p className="text-slate-500 leading-relaxed font-light">{feature.description}</p>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>
@@ -180,47 +245,52 @@ export default function LandingView() {
               <h2 className="text-5xl md:text-6xl font-serif font-bold mb-6 italic">Island <span className="not-italic text-island-emerald">Experiences</span></h2>
               <p className="text-emerald-100/60 font-light text-lg">Curated adventures that capture the soul of Camiguin.</p>
             </div>
-            <button className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full font-bold flex items-center gap-3 transition-all">
+            <Link to="/transport" className="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full font-bold flex items-center gap-3 transition-all">
               Explore All <ArrowRight size={20} />
-            </button>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {experiences.map((exp) => (
-              <motion.div 
+              <Link 
                 key={exp.id}
-                whileHover={{ y: -15 }}
-                className="group bg-white/5 backdrop-blur-sm rounded-[3rem] overflow-hidden border border-white/10 hover:bg-white/10 transition-all"
+                to={exp.type === 'Adventure' || exp.type === 'Diving' || exp.type === 'Island Hopping' ? "/transport" : "/locations"}
+                className="group"
               >
-                <div className="relative h-72 overflow-hidden">
-                  <img 
-                    src={exp.image} 
-                    alt={exp.title} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute top-6 right-6 px-4 py-2 glass rounded-full text-xs font-bold flex items-center gap-2 text-island-green">
-                    <Star size={14} className="text-island-sunset fill-island-sunset" /> {exp.rating}
-                  </div>
-                  <div className="absolute bottom-6 left-6">
-                    <span className="px-3 py-1 bg-island-coral text-white text-[10px] font-bold rounded-full uppercase tracking-widest">
-                      {exp.type}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-8">
-                  <h3 className="text-2xl font-serif font-bold mb-4">{exp.title}</h3>
-                  <div className="flex justify-between items-center">
-                    <div className="flex flex-col">
-                      <span className="text-xs text-emerald-100/50 uppercase font-bold tracking-wider">Starts at</span>
-                      <span className="text-xl font-bold">{exp.price}</span>
+                <motion.div 
+                  whileHover={{ y: -15 }}
+                  className="h-full bg-white/5 backdrop-blur-sm rounded-[3rem] overflow-hidden border border-white/10 hover:bg-white/10 transition-all"
+                >
+                  <div className="relative h-72 overflow-hidden">
+                    <img 
+                      src={exp.image} 
+                      alt={exp.title} 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute top-6 right-6 px-4 py-2 glass rounded-full text-xs font-bold flex items-center gap-2 text-island-green">
+                      <Star size={14} className="text-island-sunset fill-island-sunset" /> {exp.rating}
                     </div>
-                    <button className="w-12 h-12 island-gradient rounded-2xl flex items-center justify-center text-white shadow-lg shadow-island-emerald/20">
-                      <ArrowRight size={20} />
-                    </button>
+                    <div className="absolute bottom-6 left-6">
+                      <span className="px-3 py-1 bg-island-coral text-white text-[10px] font-bold rounded-full uppercase tracking-widest">
+                        {exp.type}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
+                  <div className="p-8">
+                    <h3 className="text-2xl font-serif font-bold mb-4">{exp.title}</h3>
+                    <div className="flex justify-between items-center">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-emerald-100/50 uppercase font-bold tracking-wider">Starts at</span>
+                        <span className="text-xl font-bold">{exp.price}</span>
+                      </div>
+                      <div className="w-12 h-12 island-gradient rounded-2xl flex items-center justify-center text-white shadow-lg shadow-island-emerald/20 group-hover:scale-110 transition-transform">
+                        <ArrowRight size={20} />
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>
@@ -238,15 +308,28 @@ export default function LandingView() {
                   style={{ height: '100%', width: '100%' }}
                   scrollWheelZoom={false}
                   zoomControl={false}
-                  dragging={false}
-                  doubleClickZoom={false}
                 >
                   <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
-                  <Marker position={[9.2014, 124.6675]} icon={customIcon} />
-                  <Marker position={[9.2500, 124.6500]} icon={customIcon} />
+                  {locations.map((loc) => (
+                    <Marker 
+                      key={loc.id} 
+                      position={[loc.lat, loc.lng]} 
+                      icon={customIcon}
+                    >
+                      <Popup>
+                        <div className="p-1 min-w-[120px]">
+                          <h4 className="font-bold text-island-green m-0 text-sm">{loc.name}</h4>
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-island-emerald mt-1">
+                            <Users size={10} />
+                            {loc.visitors} visitors
+                          </div>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
                 </MapContainer>
                 <div className="absolute inset-0 bg-island-green/10 pointer-events-none"></div>
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -304,7 +387,7 @@ export default function LandingView() {
       <footer className="bg-island-volcanic text-white py-32 relative overflow-hidden">
         <div className="absolute bottom-0 left-0 w-full h-1 bg-island-emerald"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-24">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 mb-24">
             <div className="col-span-1 md:col-span-1">
               <div className="flex items-center gap-3 mb-8">
                 <img src="/logo.png" alt="IsleGO Logo" className="w-12 h-12 object-contain rounded-xl" referrerPolicy="no-referrer" />
@@ -321,15 +404,6 @@ export default function LandingView() {
                 <li><a href="#" className="hover:text-island-emerald transition-colors">Book a Resort</a></li>
                 <li><a href="#" className="hover:text-island-emerald transition-colors">Island Experiences</a></li>
                 <li><a href="#" className="hover:text-island-emerald transition-colors">Tourist Pass</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-serif text-xl font-bold mb-8 italic text-island-emerald">For Partners</h4>
-              <ul className="space-y-4 text-slate-400 font-light">
-                <li><a href="#" className="hover:text-island-emerald transition-colors">List Your Property</a></li>
-                <li><a href="#" className="hover:text-island-emerald transition-colors">Operator Dashboard</a></li>
-                <li><a href="#" className="hover:text-island-emerald transition-colors">Guide Portal</a></li>
-                <li><a href="#" className="hover:text-island-emerald transition-colors">Partner Support</a></li>
               </ul>
             </div>
             <div>

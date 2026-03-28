@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
   Users, 
@@ -13,13 +14,30 @@ import {
   Filter,
   Download,
   Mountain,
-  Waves
+  Waves,
+  ShieldCheck,
+  Ship,
+  FileText,
+  Settings,
+  Search,
+  Bell,
+  ChevronRight,
+  BarChart3,
+  X
 } from 'lucide-react';
 import { 
   PieChart, Pie, Cell, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line
 } from 'recharts';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
+import LocationsView from './LocationsView';
+import RegistryModule from '../components/lgu/RegistryModule';
+import PortModule from '../components/lgu/PortModule';
+import SafetyModule from '../components/lgu/SafetyModule';
+import ReportsModule from '../components/lgu/ReportsModule';
 
 const visitorData = [
   { name: 'Jan', visitors: 4500 },
@@ -46,41 +64,49 @@ const destinationData = [
   { name: 'Hibok-Hibok', value: 900 },
 ];
 
-export default function GovernmentDashboard() {
-  return (
-    <div className="p-10 bg-island-cream min-h-[calc(100vh-64px)]">
-      <header className="flex flex-wrap justify-between items-end gap-6 mb-12">
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="px-3 py-1 bg-island-emerald/10 text-island-emerald text-[10px] font-bold rounded-full uppercase tracking-[0.2em]">Official LGU Portal</span>
-          </div>
-          <h1 className="text-4xl font-serif font-bold text-island-green mb-2 italic">Camiguin <span className="not-italic text-island-emerald">Tourism Analytics</span></h1>
-          <p className="text-slate-500 font-light">Real-time insights into the island's tourism ecosystem.</p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <button className="px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 font-bold text-sm flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm">
-            <Filter size={18} /> Filter
-          </button>
-          <button className="px-6 py-3 bg-island-green text-white rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-island-green/90 transition-all shadow-lg shadow-island-green/20">
-            <Download size={18} /> Export Report
-          </button>
-        </div>
-      </header>
+const COLORS = ['#5E8C71', '#7BA9B8', '#D9A066', '#E67E6E'];
 
+export default function GovernmentDashboard() {
+  const location = useLocation();
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(
+      collection(db, 'bookings'),
+      where('status', '==', 'confirmed')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const bookingsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setBookings(bookingsData);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching government analytics:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const AnalyticsHome = () => (
+    <>
       {/* High Level Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
         <StatCard 
-          label="Total Visitors Today" 
-          value="1,284" 
+          label="Total Visitors" 
+          value={bookings.length.toLocaleString()} 
           change="+12.5%" 
           isPositive={true} 
           icon={Users} 
           color="emerald" 
         />
         <StatCard 
-          label="Hotel Occupancy" 
-          value="78.2%" 
+          label="Active Bookings" 
+          value={bookings.length.toString()} 
           change="+4.3%" 
           isPositive={true} 
           icon={Hotel} 
@@ -88,7 +114,7 @@ export default function GovernmentDashboard() {
         />
         <StatCard 
           label="Tourism Revenue" 
-          value="₱2.4M" 
+          value={`₱${(bookings.reduce((acc, b) => acc + (b.amount || 0), 0) / 1000000).toFixed(1)}M`} 
           change="-2.1%" 
           isPositive={false} 
           icon={DollarSign} 
@@ -222,6 +248,96 @@ export default function GovernmentDashboard() {
           </div>
         </div>
       </div>
+    </>
+  );
+
+  const ModulePlaceholder = ({ title, icon: Icon = BarChart3 }: { title: string, icon?: any }) => (
+    <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+      <div className="w-20 h-20 bg-island-emerald/10 text-island-emerald rounded-3xl flex items-center justify-center mb-6">
+        <Icon size={40} />
+      </div>
+      <h2 className="text-3xl font-serif font-bold text-island-green mb-2 italic">{title} <span className="not-italic text-island-emerald">Module</span></h2>
+      <p className="text-slate-500 font-light max-w-md">The {title} administrative system is currently being optimized for government use. Check back soon for full functionality.</p>
+      <Link 
+        to="/government"
+        className="mt-8 px-8 py-4 island-gradient text-white rounded-2xl font-bold shadow-lg shadow-island-emerald/20"
+      >
+        Back to Analytics
+      </Link>
+    </div>
+  );
+
+  return (
+    <div className="flex min-h-[calc(100vh-80px)] bg-island-cream">
+      {/* Sidebar */}
+      <aside className="w-72 bg-white border-r border-slate-100 hidden lg:flex flex-col">
+        <div className="p-8">
+          <div className="flex items-center gap-4 mb-12">
+            <div className="w-12 h-12 rounded-2xl island-gradient flex items-center justify-center text-white shadow-lg shadow-island-emerald/20">
+              <ShieldCheck size={24} />
+            </div>
+            <div>
+              <h3 className="font-serif font-bold text-island-green text-lg leading-none">Camiguin</h3>
+              <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">LGU Dashboard</span>
+            </div>
+          </div>
+
+          <nav className="space-y-2">
+            <SidebarItem icon={BarChart3} label="Analytics" to="/government" active={location.pathname === '/government'} />
+            <SidebarItem icon={MapPin} label="Island Map" to="/government/map" active={location.pathname.startsWith('/government/map')} />
+            <SidebarItem icon={Users} label="Tourist Registry" to="/government/registry" active={location.pathname.startsWith('/government/registry')} />
+            <SidebarItem icon={Ship} label="Port Authority" to="/government/port" active={location.pathname.startsWith('/government/port')} />
+            <SidebarItem icon={Activity} label="Health & Safety" to="/government/health" active={location.pathname.startsWith('/government/health')} />
+            <SidebarItem icon={FileText} label="Reports" to="/government/reports" active={location.pathname.startsWith('/government/reports')} />
+          </nav>
+        </div>
+        
+        <div className="mt-auto p-8 border-t border-slate-50 space-y-2">
+          <SidebarItem icon={Settings} label="Settings" to="/government/settings" active={location.pathname.startsWith('/government/settings')} />
+          <Link 
+            to="/"
+            className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold text-slate-400 hover:bg-island-coral/5 hover:text-island-coral transition-all"
+          >
+            <X size={22} />
+            Exit Portal
+          </Link>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto p-10">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+          <div>
+            <h1 className="text-4xl font-serif font-bold text-island-green mb-2 italic">Government <span className="not-italic text-island-emerald">Control Center</span></h1>
+            <p className="text-slate-500 font-light">Real-time monitoring and administrative tools for Camiguin Island.</p>
+          </div>
+          
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="relative flex-1 md:flex-none">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input 
+                type="text" 
+                placeholder="Search records..." 
+                className="pl-12 pr-4 py-3 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all w-full md:w-72 shadow-sm"
+              />
+            </div>
+            <button className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 relative shadow-sm">
+              <Bell size={20} />
+              <span className="absolute top-3 right-3 w-2 h-2 bg-island-coral rounded-full border-2 border-white"></span>
+            </button>
+          </div>
+        </header>
+
+        <Routes>
+          <Route path="/" element={<AnalyticsHome />} />
+          <Route path="/map" element={<div className="h-[75vh] bg-white rounded-[3rem] overflow-hidden border border-slate-100 shadow-sm"><LocationsView /></div>} />
+          <Route path="/registry" element={<RegistryModule />} />
+          <Route path="/port" element={<PortModule />} />
+          <Route path="/health" element={<SafetyModule />} />
+          <Route path="/reports" element={<ReportsModule />} />
+          <Route path="/settings" element={<ModulePlaceholder title="Settings" icon={Settings} />} />
+        </Routes>
+      </main>
     </div>
   );
 }
@@ -251,5 +367,18 @@ function StatCard({ label, value, change, isPositive, icon: Icon, color }: any) 
       <h4 className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">{label}</h4>
       <p className="text-3xl font-bold text-island-green">{value}</p>
     </motion.div>
+  );
+}
+
+function SidebarItem({ icon: Icon, label, to, active = false }: { icon: any, label: string, to: string, active?: boolean }) {
+  return (
+    <Link 
+      to={to}
+      className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold transition-all ${
+      active ? 'island-gradient text-white shadow-lg shadow-island-emerald/20' : 'text-slate-400 hover:bg-slate-50 hover:text-island-green'
+    }`}>
+      <Icon size={22} />
+      {label}
+    </Link>
   );
 }
