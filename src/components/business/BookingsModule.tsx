@@ -41,8 +41,7 @@ export default function BookingsModule() {
 
     const q = query(
       collection(db, 'bookings'),
-      where('businessId', '==', profile.businessId),
-      orderBy('createdAt', 'desc')
+      where('businessId', '==', profile.businessId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {

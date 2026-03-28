@@ -12,8 +12,7 @@ export default function RegistryModule() {
   useEffect(() => {
     const q = query(
       collection(db, 'bookings'),
-      where('status', '==', 'confirmed'),
-      orderBy('createdAt', 'desc')
+      where('status', '==', 'confirmed')
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {

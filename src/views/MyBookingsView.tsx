@@ -32,8 +32,7 @@ export default function MyBookingsView() {
 
     const q = query(
       collection(db, 'bookings'),
-      where('touristUid', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('touristUid', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {

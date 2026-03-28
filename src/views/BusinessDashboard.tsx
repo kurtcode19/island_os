@@ -72,7 +72,6 @@ export default function BusinessDashboard() {
     const q = query(
       collection(db, 'bookings'),
       where('businessId', '==', profile.businessId),
-      orderBy('createdAt', 'desc'),
       limit(10)
     );
 
