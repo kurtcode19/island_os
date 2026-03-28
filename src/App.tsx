@@ -74,6 +74,7 @@ import TransportView from './views/TransportView';
 import TouristPassView from './views/TouristPassView';
 import ShopsView from './views/ShopsView';
 import LocationsView from './views/LocationsView';
+import MyBookingsView from './views/MyBookingsView';
 
 function RoleNavigator({ role, onRoleChange }: { role: UserRole, onRoleChange: (role: UserRole) => void }) {
   const navigate = useNavigate();
@@ -132,6 +133,7 @@ function Navigation({ currentRole, onRoleChange }: { currentRole: UserRole, onRo
     { path: '/shops', label: 'Shops', icon: Building2 },
     { path: '/locations', label: 'Locations', icon: MapIcon },
     { path: '/pass', label: 'Tourist Pass', icon: Ticket },
+    { path: '/my-bookings', label: 'My Bookings', icon: Calendar },
   ];
 
   const businessItems = [
@@ -418,6 +420,7 @@ function AppRoutes({ role, setRole }: { role: UserRole, setRole: (role: UserRole
                   <Route path="/shops" element={<ShopsView />} />
                   <Route path="/locations" element={<LocationsView />} />
                   <Route path="/pass" element={<TouristPassView />} />
+                  <Route path="/my-bookings" element={<MyBookingsView />} />
                   <Route path="/business/*" element={<BusinessDashboard />} />
                   <Route path="/government/*" element={<GovernmentDashboard />} />
                 </Routes>

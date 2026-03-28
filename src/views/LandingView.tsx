@@ -1,9 +1,34 @@
-import { motion } from 'motion/react';
-import { Link } from 'react-router-dom';
-import { Search, MapPin, Calendar, Compass, Hotel, Ship, Utensils, Map as MapIcon, ArrowRight, Star, ShieldCheck, Waves, Mountain, Palmtree, ShoppingBag, Users, Building2 } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Link, useNavigate } from 'react-router-dom';
+import { 
+  Search, 
+  MapPin, 
+  Calendar, 
+  Compass, 
+  Hotel, 
+  Ship, 
+  Utensils, 
+  Map as MapIcon, 
+  ArrowRight, 
+  Star, 
+  ShieldCheck, 
+  Waves, 
+  Mountain, 
+  Palmtree, 
+  ShoppingBag, 
+  Users, 
+  Building2,
+  X,
+  CheckCircle2,
+  RefreshCw
+} from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { locations } from '../data/locations';
+import { db, handleFirestoreError, OperationType } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useAuth } from '../App';
 
 // Fix for default marker icon issue in Leaflet with React
 const customIcon = new L.Icon({
@@ -15,10 +40,10 @@ const customIcon = new L.Icon({
 });
 
 const experiences = [
-  { id: 1, title: 'White Island Sandbar', type: 'Island Hopping', rating: 4.9, price: '₱1,500', image: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/61/b8/e7/white-island-is-an-uninhabited.jpg?w=700&h=-1&s=1' },
-  { id: 2, title: 'Sunken Cemetery Diving', type: 'Diving', rating: 4.8, price: '₱2,500', image: 'https://eazytraveler.net/wp-content/uploads/2013/12/11264466243_993705526b_z.jpg' },
-  { id: 3, title: 'Hibok-Hibok Volcano Hike', type: 'Adventure', rating: 4.7, price: '₱3,000', image: 'https://i.pinimg.com/564x/fe/75/c7/fe75c770631bcf5c9f1a93086ea071d3.jpg' },
-  { id: 4, title: 'Katibawasan Falls', type: 'Nature', rating: 4.9, price: '₱500', image: 'https://chrisandwrensworld.com/wp-content/uploads/2025/04/katibawasan-falls.jpeg' },
+  { id: 'exp_1', title: 'White Island Sandbar', type: 'Island Hopping', rating: 4.9, price: 1500, businessId: 'island_hopping_co', image: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/61/b8/e7/white-island-is-an-uninhabited.jpg?w=700&h=-1&s=1' },
+  { id: 'exp_2', title: 'Sunken Cemetery Diving', type: 'Diving', rating: 4.8, price: 2500, businessId: 'camiguin_divers', image: 'https://eazytraveler.net/wp-content/uploads/2013/12/11264466243_993705526b_z.jpg' },
+  { id: 'exp_3', title: 'Hibok-Hibok Volcano Hike', type: 'Adventure', rating: 4.7, price: 3000, businessId: 'mountain_guides', image: 'https://i.pinimg.com/564x/fe/75/c7/fe75c770631bcf5c9f1a93086ea071d3.jpg' },
+  { id: 'exp_4', title: 'Katibawasan Falls', type: 'Nature', rating: 4.9, price: 500, businessId: 'nature_parks', image: 'https://chrisandwrensworld.com/wp-content/uploads/2025/04/katibawasan-falls.jpeg' },
 ];
 
 const features = [
@@ -29,6 +54,47 @@ const features = [
 ];
 
 export default function LandingView() {
+  const { user, login } = useAuth();
+  const navigate = useNavigate();
+  const [selectedExp, setSelectedExp] = useState<any>(null);
+  const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+
+  const handleBookExperience = async (exp: any) => {
+    if (!user) {
+      login();
+      return;
+    }
+
+    setBookingStatus('loading');
+    try {
+      const bookingData = {
+        touristUid: user.uid,
+        touristName: user.displayName || 'Anonymous',
+        touristEmail: user.email || '',
+        serviceId: exp.id,
+        serviceName: exp.title,
+        serviceType: 'tour',
+        businessId: exp.businessId,
+        date: new Date().toLocaleDateString(),
+        amount: exp.price,
+        status: 'pending',
+        paymentStatus: 'UNPAID',
+        createdAt: serverTimestamp(),
+      };
+
+      await addDoc(collection(db, 'bookings'), bookingData);
+      setBookingStatus('success');
+      setTimeout(() => {
+        setBookingStatus('idle');
+        setSelectedExp(null);
+        navigate('/my-bookings');
+      }, 2000);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'bookings');
+      setBookingStatus('idle');
+    }
+  };
+
   return (
     <div className="relative overflow-x-hidden">
       {/* Hero Section */}
@@ -252,10 +318,10 @@ export default function LandingView() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {experiences.map((exp) => (
-              <Link 
+              <div 
                 key={exp.id}
-                to={exp.type === 'Adventure' || exp.type === 'Diving' || exp.type === 'Island Hopping' ? "/transport" : "/locations"}
-                className="group"
+                className="group cursor-pointer"
+                onClick={() => setSelectedExp(exp)}
               >
                 <motion.div 
                   whileHover={{ y: -15 }}
@@ -282,7 +348,7 @@ export default function LandingView() {
                     <div className="flex justify-between items-center">
                       <div className="flex flex-col">
                         <span className="text-xs text-emerald-100/50 uppercase font-bold tracking-wider">Starts at</span>
-                        <span className="text-xl font-bold">{exp.price}</span>
+                        <span className="text-xl font-bold">₱{exp.price.toLocaleString()}</span>
                       </div>
                       <div className="w-12 h-12 island-gradient rounded-2xl flex items-center justify-center text-white shadow-lg shadow-island-emerald/20 group-hover:scale-110 transition-transform">
                         <ArrowRight size={20} />
@@ -290,10 +356,96 @@ export default function LandingView() {
                     </div>
                   </div>
                 </motion.div>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
+
+        {/* Booking Modal */}
+        <AnimatePresence>
+          {selectedExp && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedExp(null)}
+                className="absolute inset-0 bg-island-volcanic/60 backdrop-blur-sm"
+              ></motion.div>
+              
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="relative w-full max-w-lg bg-white rounded-[3rem] overflow-hidden shadow-2xl"
+              >
+                <button 
+                  onClick={() => setSelectedExp(null)}
+                  className="absolute top-6 right-6 p-2 bg-slate-100 rounded-full text-slate-400 hover:text-island-coral transition-colors z-10"
+                >
+                  <X size={20} />
+                </button>
+
+                <div className="h-48 relative">
+                  <img src={selectedExp.image} alt={selectedExp.title} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
+                </div>
+
+                <div className="p-8 pt-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="px-3 py-1 bg-island-emerald/10 text-island-emerald text-[10px] font-bold rounded-full uppercase tracking-widest">
+                      {selectedExp.type}
+                    </span>
+                    <div className="flex items-center gap-1 text-xs font-bold text-island-sunset">
+                      <Star size={14} className="fill-island-sunset" />
+                      {selectedExp.rating}
+                    </div>
+                  </div>
+
+                  <h3 className="text-3xl font-serif font-bold text-island-green mb-2 italic">{selectedExp.title}</h3>
+                  <p className="text-slate-500 font-light mb-8">Experience the best of Camiguin with our professional guides and curated itineraries.</p>
+
+                  <div className="flex items-center justify-between p-6 bg-island-cream rounded-3xl mb-8">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-island-green/60 uppercase tracking-widest">Total Price</span>
+                      <span className="text-2xl font-bold text-island-green">₱{selectedExp.price.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-island-emerald">
+                      <ShieldCheck size={20} />
+                      <span className="text-xs font-bold uppercase tracking-widest">Secure Booking</span>
+                    </div>
+                  </div>
+
+                  {bookingStatus === 'success' ? (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex flex-col items-center gap-3 py-4"
+                    >
+                      <div className="w-12 h-12 bg-island-emerald rounded-full flex items-center justify-center text-white">
+                        <CheckCircle2 size={24} />
+                      </div>
+                      <p className="text-island-emerald font-bold uppercase tracking-widest text-xs">Booking Successful!</p>
+                    </motion.div>
+                  ) : (
+                    <button 
+                      onClick={() => handleBookExperience(selectedExp)}
+                      disabled={bookingStatus === 'loading'}
+                      className="w-full py-5 island-gradient text-white rounded-2xl font-bold text-sm uppercase tracking-widest shadow-lg shadow-island-emerald/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                      {bookingStatus === 'loading' ? (
+                        <RefreshCw size={20} className="animate-spin" />
+                      ) : (
+                        <Compass size={20} />
+                      )}
+                      Book Experience
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </section>
 
       {/* Interactive Map Teaser */}

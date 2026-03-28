@@ -45,11 +45,23 @@ const chartData = [
   { name: 'Sun', revenue: 3490, bookings: 32 },
 ];
 
+interface Booking {
+  id: string;
+  guestName: string;
+  serviceName: string;
+  date: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  amount: number;
+  businessId: string;
+  createdAt: any;
+}
+
 export default function BusinessDashboard() {
   const location = useLocation();
   const { profile } = useAuth();
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unconfirmedCount, setUnconfirmedCount] = useState(0);
 
   useEffect(() => {
     if (!profile?.businessId) {
@@ -68,8 +80,9 @@ export default function BusinessDashboard() {
       const bookingsData = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }));
+      })) as Booking[];
       setBookings(bookingsData);
+      setUnconfirmedCount(bookingsData.filter(b => b.status === 'pending').length);
       setLoading(false);
     }, (error) => {
       console.error("Error fetching dashboard data:", error);
@@ -288,7 +301,7 @@ export default function BusinessDashboard() {
 
           <nav className="space-y-2">
             <SidebarItem icon={LayoutDashboard} label="Dashboard" to="/business" active={location.pathname === '/business'} />
-            <SidebarItem icon={Calendar} label="Bookings" to="/business/bookings" active={location.pathname.startsWith('/business/bookings')} />
+            <SidebarItem icon={Calendar} label="Bookings" to="/business/bookings" active={location.pathname.startsWith('/business/bookings')} badge={unconfirmedCount} />
             <SidebarItem icon={Package} label="Inventory" to="/business/inventory" active={location.pathname.startsWith('/business/inventory')} />
             <SidebarItem icon={Compass} label="Tours" to="/business/tours" active={location.pathname.startsWith('/business/tours')} />
             <SidebarItem icon={BarChart3} label="Analytics" to="/business/analytics" active={location.pathname.startsWith('/business/analytics')} />
@@ -351,15 +364,22 @@ export default function BusinessDashboard() {
   );
 }
 
-function SidebarItem({ icon: Icon, label, to, active = false }: { icon: any, label: string, to: string, active?: boolean }) {
+function SidebarItem({ icon: Icon, label, to, active = false, badge }: { icon: any, label: string, to: string, active?: boolean, badge?: number }) {
   return (
     <Link 
       to={to}
-      className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold transition-all ${
+      className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl text-sm font-bold transition-all ${
       active ? 'island-gradient text-white shadow-lg shadow-island-emerald/20' : 'text-slate-400 hover:bg-slate-50 hover:text-island-green'
     }`}>
-      <Icon size={22} />
-      {label}
+      <div className="flex items-center gap-4">
+        <Icon size={22} />
+        {label}
+      </div>
+      {badge !== undefined && badge > 0 && (
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${active ? 'bg-white text-island-emerald' : 'bg-island-coral text-white'}`}>
+          {badge}
+        </span>
+      )}
     </Link>
   );
 }
