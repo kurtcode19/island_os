@@ -74,6 +74,7 @@ export default function StayView() {
         businessId: hotel.businessId,
         date: new Date().toISOString(),
         status: 'pending',
+        paymentStatus: 'UNPAID',
         amount: hotel.price,
         createdAt: serverTimestamp()
       });

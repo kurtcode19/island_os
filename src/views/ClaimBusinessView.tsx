@@ -10,10 +10,14 @@ const demoBusinesses = [
   { id: 'biz-resort-1', name: 'Blue Lagoon Resort & Spa', type: 'Stay' },
   { id: 'biz-lodge-1', name: 'Volcanic Eco-Lodge', type: 'Stay' },
   { id: 'biz-homestay-1', name: 'White Island Homestay', type: 'Stay' },
+  { id: 'biz-glamping-1', name: 'Hibok-Hibok Glamping', type: 'Stay' },
   { id: 'island_hopping_co', name: 'White Island Sandbar', type: 'Experience' },
   { id: 'camiguin_divers', name: 'Sunken Cemetery Diving', type: 'Experience' },
+  { id: 'mountain_guides', name: 'Hibok-Hibok Volcano Hike', type: 'Experience' },
+  { id: 'nature_parks', name: 'Katibawasan Falls', type: 'Experience' },
   { id: 'ferry_co', name: 'Fast Craft Ferry', type: 'Transport' },
   { id: 'van_rentals_inc', name: 'Private Van Rental', type: 'Transport' },
+  { id: 'local_bikes', name: 'Scooter Rental', type: 'Transport' },
 ];
 
 export default function ClaimBusinessView() {

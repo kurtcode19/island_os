@@ -81,7 +81,8 @@ service cloud.firestore {
              data.date is string &&
              data.status.lower() in ['pending', 'confirmed', 'cancelled'] &&
              data.amount is number && data.amount >= 0 &&
-             data.createdAt is timestamp;
+             data.createdAt is timestamp &&
+             (!('paymentStatus' in data) || data.paymentStatus in ['UNPAID', 'PAID']);
     }
 
     // ===============================================================
@@ -102,7 +103,10 @@ service cloud.firestore {
       );
       allow create: if isAuthenticated() && isValidBooking(request.resource.data) && request.resource.data.touristUid == request.auth.uid;
       allow update: if isAuthenticated() && isValidBooking(request.resource.data) && (
-        (request.auth.uid == resource.data.touristUid && request.resource.data.status.lower() == 'cancelled') ||
+        (request.auth.uid == resource.data.touristUid && (
+          request.resource.data.status.lower() == 'cancelled' || 
+          (request.resource.data.status.lower() == 'confirmed' && request.resource.data.get('paymentStatus', '') == 'PAID')
+        )) ||
         (hasRole('BUSINESS') && getUserData().get('businessId', '') == resource.data.businessId) ||
         isAdmin()
       );
