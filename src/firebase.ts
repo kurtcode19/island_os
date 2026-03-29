@@ -17,10 +17,13 @@ const firebaseConfig = {
 };
 
 const firestoreDatabaseId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || firebaseConfigData.firestoreDatabaseId;
+console.log('🔥 Firebase Initialized with Database ID:', firestoreDatabaseId || '(default)');
 
 // Initialize Firebase SDK
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firestoreDatabaseId);
+export const db = firestoreDatabaseId && firestoreDatabaseId !== '(default)' 
+  ? getFirestore(app, firestoreDatabaseId) 
+  : getFirestore(app);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
