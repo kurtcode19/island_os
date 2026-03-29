@@ -51,7 +51,17 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return hasRole('LGU') || (request.auth.token.email == "kurtmier123@gmail.com" && request.auth.token.email_verified == true);
+      return hasRole('LGU') || (
+        request.auth != null && 
+        request.auth.token != null && 
+        request.auth.token.get('email', '') == "kurtmier123@gmail.com" && 
+        request.auth.token.get('email_verified', false) == true
+      );
+    }
+
+    function isBusinessOwner(businessId) {
+      let data = getUserData();
+      return data != null && data.get('role', '') == 'BUSINESS' && data.get('businessId', '') == businessId;
     }
 
     function isValidEmail(email) {
@@ -71,7 +81,8 @@ service cloud.firestore {
     }
 
     function isValidBooking(data) {
-      return data.touristUid is string &&
+      return data.keys().hasAll(['touristUid', 'serviceId', 'businessId', 'status', 'amount']) &&
+             data.touristUid is string &&
              data.serviceId is string &&
              data.businessId is string &&
              data.status is string &&
@@ -94,14 +105,18 @@ service cloud.firestore {
 
     match /bookings/{bookingId} {
       allow read: if isAuthenticated() && (
-        request.auth.uid == resource.data.touristUid || 
-        (hasRole('BUSINESS') && getUserData().get('businessId', '') == resource.data.businessId) || 
-        hasRole('LGU')
+        request.auth.uid == resource.data.get('touristUid', '') || 
+        isBusinessOwner(resource.data.get('businessId', '')) || 
+        isAdmin()
       );
       allow create: if isAuthenticated() && isValidBooking(request.resource.data) && request.resource.data.touristUid == request.auth.uid;
       allow update: if isAuthenticated() && (
-        request.auth.uid == resource.data.touristUid ||
-        (hasRole('BUSINESS') && getUserData().get('businessId', '') == resource.data.businessId) ||
+        request.auth.uid == resource.data.get('touristUid', '') ||
+        isBusinessOwner(resource.data.get('businessId', '')) ||
+        isAdmin()
+      );
+      allow delete: if isAuthenticated() && (
+        request.auth.uid == resource.data.get('touristUid', '') ||
         isAdmin()
       );
     }
