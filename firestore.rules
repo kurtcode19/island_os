@@ -51,15 +51,15 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return hasRole('LGU') || (
-        isAuthenticated() && 
-        request.auth.token.email == "kurtmier123@gmail.com" && 
-        request.auth.token.email_verified == true
+      return isAuthenticated() && (
+        request.auth.token.email == "kurtmier123@gmail.com" || 
+        getUserData().get('role', '') == 'LGU'
       );
     }
 
     function isBusinessOwner(businessId) {
-      return hasRole('BUSINESS') && getUserData().get('businessId', '') == businessId;
+      let data = getUserData();
+      return isAuthenticated() && data.get('role', '') == 'BUSINESS' && data.get('businessId', '') == businessId;
     }
 
     function isValidEmail(email) {
@@ -72,21 +72,27 @@ service cloud.firestore {
 
     function isValidUser(data) {
       return data.keys().hasAll(['uid', 'name', 'email', 'role']) &&
-             data.uid == request.auth.uid &&
-             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.uid is string &&
+             data.name is string &&
              isValidEmail(data.email) &&
-             data.role in ['TOURIST', 'BUSINESS', 'LGU'];
+             data.role in ['TOURIST', 'BUSINESS', 'LGU'] &&
+             (!('businessId' in data) || data.businessId is string || data.businessId == null) &&
+             (!('createdAt' in data) || data.createdAt is timestamp);
     }
 
     function isValidBooking(data) {
-      return data.keys().hasAll(['touristUid', 'serviceId', 'businessId', 'status', 'amount']) &&
+      // Basic existence check for required fields
+      let required = ['touristUid', 'serviceId', 'businessId', 'status', 'amount'];
+      return data.keys().hasAll(required) &&
              data.touristUid is string &&
              data.serviceId is string &&
              data.businessId is string &&
-             data.status in ['pending', 'confirmed', 'cancelled'] &&
              data.amount is number &&
+             // Enums with fallback for updates
+             (!('status' in data) || data.status in ['pending', 'confirmed', 'cancelled', 'completed']) &&
              (!('serviceType' in data) || data.serviceType in ['stay', 'transport', 'tour']) &&
-             (!('paymentStatus' in data) || data.paymentStatus in ['UNPAID', 'PAID']);
+             (!('paymentStatus' in data) || data.paymentStatus in ['UNPAID', 'PAID', 'REFUNDED']) &&
+             (!('createdAt' in data) || data.createdAt is timestamp);
     }
 
     // ===============================================================
@@ -96,25 +102,28 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow create: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role != 'LGU' || isAdmin());
-      allow update: if isOwner(userId) && isValidUser(request.resource.data) && (
-        request.resource.data.role == resource.data.role || 
-        (resource.data.role == 'TOURIST' && request.resource.data.role == 'BUSINESS') ||
-        isAdmin()
-      );
+      allow update: if (isOwner(userId) || isAdmin()) && (
+        isAdmin() ||
+        (
+          request.resource.data.role == resource.data.role || 
+          (resource.data.role == 'TOURIST' && request.resource.data.role == 'BUSINESS')
+        )
+      ) && isValidUser(request.resource.data);
     }
 
     match /bookings/{bookingId} {
       allow read: if isAuthenticated() && (
         request.auth.uid == resource.data.touristUid || 
-        getUserData().get('businessId', '') == resource.data.businessId || 
-        hasRole('LGU')
-      );
-      allow create: if isAuthenticated() && isValidBooking(request.resource.data) && request.resource.data.touristUid == request.auth.uid;
-      allow update: if isAuthenticated() && isValidBooking(request.resource.data) && (
-        (request.auth.uid == resource.data.touristUid && (request.resource.data.status == 'cancelled' || request.resource.data.status == 'confirmed')) ||
-        (getUserData().get('businessId', '') == resource.data.businessId) ||
+        isBusinessOwner(resource.data.businessId) || 
+        hasRole('LGU') ||
         isAdmin()
       );
+      allow create: if isAuthenticated() && isValidBooking(request.resource.data) && request.resource.data.touristUid == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        request.auth.uid == resource.data.touristUid || 
+        isBusinessOwner(resource.data.businessId) || 
+        isAdmin()
+      ) && isValidBooking(request.resource.data);
     }
   }
 }
