@@ -16,8 +16,14 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || firebaseConfigData.measurementId,
 };
 
-const firestoreDatabaseId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || firebaseConfigData.firestoreDatabaseId;
-console.log('🔥 Firebase Initialized with Database ID:', firestoreDatabaseId || '(default)');
+const envDatabaseId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID;
+const configDatabaseId = firebaseConfigData.firestoreDatabaseId;
+const firestoreDatabaseId = envDatabaseId || configDatabaseId;
+
+console.log('🔥 Firebase Initialization Debug:');
+console.log('   - From Environment:', envDatabaseId || 'Not Set');
+console.log('   - From Config File:', configDatabaseId);
+console.log('   - Final ID Used:', firestoreDatabaseId || '(default)');
 
 // Initialize Firebase SDK
 const app = initializeApp(firebaseConfig);
