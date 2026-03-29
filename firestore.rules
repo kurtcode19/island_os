@@ -42,7 +42,7 @@ service cloud.firestore {
     }
 
     function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data : null;
     }
 
     function hasRole(role) {
@@ -55,7 +55,7 @@ service cloud.firestore {
     }
 
     function isValidEmail(email) {
-      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+      return email is string && (email == "" || email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"));
     }
 
     // ===============================================================
@@ -71,18 +71,11 @@ service cloud.firestore {
     }
 
     function isValidBooking(data) {
-      return data.keys().hasAll(['touristUid', 'touristName', 'serviceId', 'serviceName', 'serviceType', 'businessId', 'date', 'status', 'amount', 'createdAt']) &&
-             data.touristUid is string &&
-             data.touristName is string && data.touristName.size() > 0 && data.touristName.size() < 100 &&
+      return data.touristUid is string &&
              data.serviceId is string &&
-             data.serviceName is string && data.serviceName.size() > 0 && data.serviceName.size() < 100 &&
-             data.serviceType.lower() in ['stay', 'transport', 'tour'] &&
              data.businessId is string &&
-             data.date is string &&
-             data.status.lower() in ['pending', 'confirmed', 'cancelled'] &&
-             data.amount is number && data.amount >= 0 &&
-             data.createdAt is timestamp &&
-             (!('paymentStatus' in data) || data.paymentStatus in ['UNPAID', 'PAID']);
+             data.status is string &&
+             data.amount is number;
     }
 
     // ===============================================================
@@ -94,7 +87,7 @@ service cloud.firestore {
       allow create: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role != 'LGU' || isAdmin());
       allow update: if isOwner(userId) && isValidUser(request.resource.data) && (
         request.resource.data.role == resource.data.role || 
-        (resource.data.role == 'TOURIST' && request.resource.data.role == 'BUSINESS') ||
+        (resource.data.role in ['TOURIST', 'BUSINESS'] && request.resource.data.role in ['TOURIST', 'BUSINESS']) ||
         isAdmin()
       );
     }
@@ -107,19 +100,8 @@ service cloud.firestore {
       );
       allow create: if isAuthenticated() && isValidBooking(request.resource.data) && request.resource.data.touristUid == request.auth.uid;
       allow update: if isAuthenticated() && (
-        // Tourist can cancel or pay for their own booking
-        (request.auth.uid == resource.data.touristUid && (
-          // Cancellation
-          (request.resource.data.status.lower() == 'cancelled' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])) ||
-          // Payment
-          (request.resource.data.status.lower() == 'confirmed' && 
-           request.resource.data.get('paymentStatus', '') == 'PAID' && 
-           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'paymentStatus']))
-        )) ||
-        // Business can update status of their own bookings
-        (hasRole('BUSINESS') && getUserData().get('businessId', '') == resource.data.businessId && 
-         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) && 
-          request.resource.data.status.lower() in ['confirmed', 'cancelled', 'pending'])) ||
+        request.auth.uid == resource.data.touristUid ||
+        (hasRole('BUSINESS') && getUserData().get('businessId', '') == resource.data.businessId) ||
         isAdmin()
       );
     }

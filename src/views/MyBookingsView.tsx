@@ -26,6 +26,7 @@ export default function MyBookingsView() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [testError, setTestError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -52,6 +53,7 @@ export default function MyBookingsView() {
 
   const handleSimulatePayment = async (bookingId: string) => {
     setProcessingId(bookingId);
+    setTestError(null);
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     
@@ -61,8 +63,14 @@ export default function MyBookingsView() {
         paymentStatus: 'PAID',
         status: 'confirmed' // Auto-confirm for demo purposes if paid
       });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
+    } catch (error: any) {
+      console.error("Payment error:", error);
+      setTestError(error.message || String(error));
+      try {
+        handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
+      } catch (e) {
+        // Ignore the thrown error from handleFirestoreError
+      }
     } finally {
       setProcessingId(null);
     }
@@ -122,6 +130,11 @@ export default function MyBookingsView() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+        {testError && (
+          <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-2xl border border-red-200 break-all">
+            <strong>Error:</strong> {testError}
+          </div>
+        )}
         {bookings.length === 0 ? (
           <div className="bg-white rounded-[2.5rem] p-12 text-center border border-slate-100 shadow-sm">
             <div className="w-20 h-20 bg-island-cream rounded-full flex items-center justify-center text-island-emerald mx-auto mb-6">

@@ -482,13 +482,13 @@ export default function App() {
               await setDoc(userRef, newProfile);
               // onSnapshot will trigger again with the new data
             } catch (error) {
-              handleFirestoreError(error, OperationType.CREATE, `users/${firebaseUser.uid}`);
               setLoading(false);
+              handleFirestoreError(error, OperationType.CREATE, `users/${firebaseUser.uid}`);
             }
           }
         }, (error) => {
-          handleFirestoreError(error, OperationType.GET, `users/${firebaseUser.uid}`);
           setLoading(false);
+          handleFirestoreError(error, OperationType.GET, `users/${firebaseUser.uid}`);
         });
       } else {
         setProfile(null);

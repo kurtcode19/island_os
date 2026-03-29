@@ -55,6 +55,7 @@ const accommodations = [
 export default function StayView() {
   const { user, login } = useAuth();
   const [bookingStatus, setBookingStatus] = useState<{[key: string]: 'idle' | 'loading' | 'success'}>({});
+  const [testError, setTestError] = useState<string | null>(null);
 
   const handleBook = async (hotel: typeof accommodations[0]) => {
     if (!user) {
@@ -63,6 +64,7 @@ export default function StayView() {
     }
 
     setBookingStatus(prev => ({ ...prev, [hotel.id]: 'loading' }));
+    setTestError(null);
 
     try {
       await addDoc(collection(db, 'bookings'), {
@@ -82,9 +84,15 @@ export default function StayView() {
       setTimeout(() => {
         setBookingStatus(prev => ({ ...prev, [hotel.id]: 'idle' }));
       }, 3000);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Booking error:", error);
+      setTestError(error.message || String(error));
       setBookingStatus(prev => ({ ...prev, [hotel.id]: 'idle' }));
-      handleFirestoreError(error, OperationType.CREATE, 'bookings');
+      try {
+        handleFirestoreError(error, OperationType.CREATE, 'bookings');
+      } catch (e) {
+        // Ignore the thrown error from handleFirestoreError
+      }
     }
   };
 
@@ -132,6 +140,11 @@ export default function StayView() {
             Search
           </button>
         </div>
+        {testError && (
+          <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-2xl border border-red-200 break-all">
+            <strong>Error:</strong> {testError}
+          </div>
+        )}
       </div>
 
       {/* Listings */}
