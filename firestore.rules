@@ -83,16 +83,38 @@ service cloud.firestore {
              data.touristUid is string &&
              data.serviceId is string &&
              data.businessId is string &&
-             data.status is string &&
-             data.amount is number;
+             data.status in ['pending', 'confirmed', 'cancelled'] &&
+             data.amount is number &&
+             (!('serviceType' in data) || data.serviceType in ['stay', 'transport', 'tour']) &&
+             (!('paymentStatus' in data) || data.paymentStatus in ['UNPAID', 'PAID']);
     }
 
     // ===============================================================
     // Match Rules
     // ===============================================================
 
-    match /{path=**} {
-      allow read, write: if true;
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role != 'LGU' || isAdmin());
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && (
+        request.resource.data.role == resource.data.role || 
+        (resource.data.role == 'TOURIST' && request.resource.data.role == 'BUSINESS') ||
+        isAdmin()
+      );
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.touristUid || 
+        getUserData().get('businessId', '') == resource.data.businessId || 
+        hasRole('LGU')
+      );
+      allow create: if isAuthenticated() && isValidBooking(request.resource.data) && request.resource.data.touristUid == request.auth.uid;
+      allow update: if isAuthenticated() && isValidBooking(request.resource.data) && (
+        (request.auth.uid == resource.data.touristUid && (request.resource.data.status == 'cancelled' || request.resource.data.status == 'confirmed')) ||
+        (getUserData().get('businessId', '') == resource.data.businessId) ||
+        isAdmin()
+      );
     }
   }
 }
