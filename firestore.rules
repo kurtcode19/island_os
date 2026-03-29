@@ -91,17 +91,7 @@ service cloud.firestore {
     // Match Rules
     // ===============================================================
 
-    match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow create: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role != 'LGU' || isAdmin());
-      allow update: if isOwner(userId) && isValidUser(request.resource.data) && (
-        request.resource.data.role == resource.data.role || 
-        (resource.data.role in ['TOURIST', 'BUSINESS'] && request.resource.data.role in ['TOURIST', 'BUSINESS']) ||
-        isAdmin()
-      );
-    }
-
-    match /bookings/{bookingId} {
+    match /{path=**} {
       allow read, write: if true;
     }
   }
