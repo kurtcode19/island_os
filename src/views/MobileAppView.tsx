@@ -45,6 +45,7 @@ import { collection, addDoc, serverTimestamp, onSnapshot, query, where, orderBy,
 import { accommodations } from '../data/accommodations';
 import { transportOptions } from '../data/transport';
 import { Link, useNavigate } from 'react-router-dom';
+import IslandMap from '../components/IslandMap';
 
 // Fix for default marker icon issue in Leaflet with React
 const customIcon = new L.Icon({
@@ -583,67 +584,9 @@ export default function MobileAppView() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="h-full flex flex-col px-6"
+            className="h-full w-full"
           >
-            <header className="mb-6">
-              <p className="text-[10px] font-bold text-island-emerald uppercase tracking-[0.2em] mb-1">Interactive Guide</p>
-              <h2 className="text-3xl font-serif font-bold text-island-green italic">Island <span className="not-italic">Map</span></h2>
-            </header>
-            
-            <div className="flex-1 min-h-[400px] rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl relative z-0 mb-6">
-              <MapContainer 
-                center={center} 
-                zoom={12} 
-                style={{ height: '100%', width: '100%' }}
-                zoomControl={false}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <MarkerClusterGroup
-                  chunkedLoading
-                  spiderfyOnMaxZoom={true}
-                  showCoverageOnHover={false}
-                >
-                  {mapLocations.map((loc) => (
-                    <Marker 
-                      key={loc.id} 
-                      position={[loc.lat, loc.lng]} 
-                      icon={customIcon}
-                    >
-                      <Popup>
-                        <div className="p-1 min-w-[150px]">
-                          <h4 className="font-bold text-island-green m-0 text-sm">{loc.name}</h4>
-                          <div className="flex items-center gap-1 text-[10px] font-bold text-island-emerald mt-1">
-                            <Users size={10} />
-                            {loc.visitors} visitors
-                          </div>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  ))}
-                </MarkerClusterGroup>
-              </MapContainer>
-              
-              {/* Map Controls Overlay */}
-              <div className="absolute bottom-6 right-6 flex flex-col gap-3 z-[1000]">
-                <button className="w-12 h-12 bg-white rounded-2xl shadow-lg flex items-center justify-center text-island-green">
-                  <Navigation size={20} />
-                </button>
-                <button className="w-12 h-12 bg-white rounded-2xl shadow-lg flex items-center justify-center text-island-green">
-                  <Compass size={20} />
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-slate-50 p-6 rounded-[2rem] mb-6">
-              <div className="flex items-center gap-3 mb-2">
-                <Activity size={16} className="text-island-coral animate-pulse" />
-                <span className="text-xs font-bold text-island-green">Live Activity Monitoring</span>
-              </div>
-              <p className="text-[10px] text-slate-500">Real-time visitor density tracking is active for all major island attractions.</p>
-            </div>
+            <IslandMap />
           </motion.div>
         )}
 
