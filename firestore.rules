@@ -39,11 +39,31 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow write: if isOwner(userId) || isAdmin();
+      allow write: if isAuthenticated();
     }
 
     match /bookings/{bookingId} {
       allow read, write: if isAuthenticated();
+    }
+
+    match /accommodations/{id} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /experiences/{id} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /transport/{id} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /restaurants/{id} {
+      allow read: if true;
+      allow write: if isAuthenticated();
     }
 
     match /test/connection {

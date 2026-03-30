@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, 
@@ -26,12 +26,24 @@ import {
   X,
   Building2,
   Utensils,
-  Camera
+  Camera,
+  CheckCircle2,
+  CreditCard,
+  LogOut,
+  LogIn,
+  ShieldCheck,
+  RefreshCw
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import { locations } from '../data/locations';
+import { useAuth } from '../App';
+import { db, handleFirestoreError, OperationType } from '../firebase';
+import { collection, addDoc, serverTimestamp, onSnapshot, query, where, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { accommodations } from '../data/accommodations';
+import { transportOptions } from '../data/transport';
+import { Link, useNavigate } from 'react-router-dom';
 
 // Fix for default marker icon issue in Leaflet with React
 const customIcon = new L.Icon({
@@ -42,7 +54,7 @@ const customIcon = new L.Icon({
   popupAnchor: [1, -34],
 });
 
-const categories = ['All', 'Beaches', 'Hiking', 'Waterfalls', 'Dining', 'Shops', 'Transport'];
+const categories = ['All', 'Beaches', 'Hiking', 'Waterfalls', 'Stay', 'Transport', 'Dining', 'Shops'];
 
 const spots = [
   {
@@ -72,12 +84,42 @@ const spots = [
 ];
 
 export default function MobileAppView() {
+  const { user, profile, login, logout } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('explore');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSpot, setSelectedSpot] = useState<any>(null);
   const [mapLocations, setMapLocations] = useState(locations);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookingStatus, setBookingStatus] = useState<{[key: string]: 'idle' | 'loading' | 'success'}>({});
 
   const isDesktop = window.innerWidth >= 768;
+
+  // Real-time bookings listener
+  useEffect(() => {
+    if (!user) {
+      setBookings([]);
+      return;
+    }
+
+    const q = query(
+      collection(db, 'bookings'),
+      where('touristUid', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const bookingsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setBookings(bookingsData);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'bookings');
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   // Simulate real-time visitor updates for map
   useEffect(() => {
@@ -92,6 +134,62 @@ export default function MobileAppView() {
   }, []);
 
   const center: [number, number] = [9.22, 124.68];
+
+  const handleBook = async (item: any, type: 'stay' | 'transport') => {
+    if (!user) {
+      login();
+      return;
+    }
+
+    const itemId = item.id;
+    setBookingStatus(prev => ({ ...prev, [itemId]: 'loading' }));
+
+    try {
+      await addDoc(collection(db, 'bookings'), {
+        touristUid: user.uid,
+        touristName: user.displayName || 'Anonymous',
+        touristEmail: user.email || '',
+        serviceId: item.id,
+        serviceName: item.name || item.title,
+        serviceType: type,
+        businessId: item.businessId,
+        date: new Date().toLocaleDateString(),
+        status: 'pending',
+        paymentStatus: 'UNPAID',
+        amount: item.price,
+        createdAt: serverTimestamp()
+      });
+      
+      setBookingStatus(prev => ({ ...prev, [itemId]: 'success' }));
+      setTimeout(() => {
+        setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
+        setSelectedSpot(null);
+        setActiveTab('profile'); // Go to profile to see bookings
+      }, 2000);
+    } catch (error) {
+      setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
+      handleFirestoreError(error, OperationType.CREATE, 'bookings');
+    }
+  };
+
+  const handlePay = async (bookingId: string) => {
+    try {
+      await updateDoc(doc(db, 'bookings', bookingId), {
+        paymentStatus: 'PAID',
+        status: 'confirmed'
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
+    }
+  };
+
+  const filteredStays = useMemo(() => {
+    return accommodations.filter(s => selectedCategory === 'All' || selectedCategory === 'Stay');
+  }, [selectedCategory]);
+
+  const filteredTransport = useMemo(() => {
+    return transportOptions.filter(t => selectedCategory === 'All' || selectedCategory === 'Transport');
+  }, [selectedCategory]);
 
   const content = (
     <div className={`h-full flex flex-col pt-10 pb-20 overflow-y-auto no-scrollbar bg-white ${!isDesktop ? 'min-h-screen' : ''}`}>
@@ -116,21 +214,44 @@ export default function MobileAppView() {
             <div className="p-8 flex-1">
               <div className="flex justify-between items-start mb-4">
                 <span className="px-3 py-1 bg-island-emerald/10 text-island-emerald rounded-full text-[10px] font-bold uppercase tracking-widest">
-                  {selectedSpot.category}
+                  {selectedSpot.category || selectedSpot.type}
                 </span>
                 <div className="flex items-center gap-1 text-island-sunset">
                   <Star size={14} fill="currentColor" />
-                  <span className="text-xs font-bold">{selectedSpot.rating}</span>
+                  <span className="text-xs font-bold">{selectedSpot.rating || '4.5'}</span>
                 </div>
               </div>
               <h2 className="text-3xl font-serif font-bold text-island-green mb-4 italic">{selectedSpot.name}</h2>
               <p className="text-slate-500 text-sm font-light leading-relaxed mb-8">
-                Experience the breathtaking beauty of {selectedSpot.name}. This destination offers unique insights into Camiguin's rich natural and historical heritage.
+                {selectedSpot.type === 'stay' ? `Book your stay at ${selectedSpot.name} for a comfortable island experience.` : 
+                 selectedSpot.type === 'transport' ? `Reliable transport provided by ${selectedSpot.provider}. Route: ${selectedSpot.route}` :
+                 `Experience the breathtaking beauty of ${selectedSpot.name}. This destination offers unique insights into Camiguin's rich natural and historical heritage.`}
               </p>
-              <button className="w-full py-4 island-gradient text-white rounded-2xl font-bold shadow-lg shadow-island-emerald/20 flex items-center justify-center gap-2">
-                <Navigation size={18} />
-                Get Directions
-              </button>
+              
+              {selectedSpot.type === 'spot' ? (
+                <button className="w-full py-4 island-gradient text-white rounded-2xl font-bold shadow-lg shadow-island-emerald/20 flex items-center justify-center gap-2">
+                  <Navigation size={18} />
+                  Get Directions
+                </button>
+              ) : (
+                <button 
+                  onClick={() => handleBook(selectedSpot, selectedSpot.type)}
+                  disabled={bookingStatus[selectedSpot.id] === 'loading' || bookingStatus[selectedSpot.id] === 'success'}
+                  className={`w-full py-4 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 transition-all ${
+                    bookingStatus[selectedSpot.id] === 'success' ? 'bg-green-500 text-white' :
+                    bookingStatus[selectedSpot.id] === 'loading' ? 'bg-slate-100 text-slate-400' :
+                    'island-gradient text-white shadow-island-emerald/20'
+                  }`}
+                >
+                  {bookingStatus[selectedSpot.id] === 'success' ? (
+                    <><CheckCircle2 size={18} /> Confirmed</>
+                  ) : bookingStatus[selectedSpot.id] === 'loading' ? (
+                    <RefreshCw size={18} className="animate-spin" />
+                  ) : (
+                    <>Book Now - ₱{selectedSpot.price.toLocaleString()}</>
+                  )}
+                </button>
+              )}
             </div>
           </motion.div>
         ) : null}
@@ -215,35 +336,95 @@ export default function MobileAppView() {
             {/* Featured Section */}
             <div className="mb-8">
               <div className="flex justify-between items-end mb-6">
-                <h3 className="text-xl font-serif font-bold text-island-green">Must Visit</h3>
+                <h3 className="text-xl font-serif font-bold text-island-green">
+                  {selectedCategory === 'All' ? 'Must Visit' : selectedCategory}
+                </h3>
                 <button className="text-xs font-bold text-island-emerald uppercase tracking-widest">See All</button>
               </div>
               <div className="space-y-6">
-                {spots.filter(s => selectedCategory === 'All' || s.category === selectedCategory).map((spot) => (
-                  <motion.div 
-                    key={spot.id}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedSpot(spot)}
-                    className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm flex gap-4 p-3 cursor-pointer"
-                  >
-                    <div className="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0">
-                      <img src={spot.image} alt={spot.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    </div>
-                    <div className="flex flex-col justify-center flex-grow py-1">
-                      <div className="flex justify-between items-start mb-1">
-                        <h4 className="font-bold text-island-green">{spot.name}</h4>
-                        <div className="flex items-center gap-1 text-[10px] font-bold text-island-emerald">
-                          <Star size={12} fill="currentColor" />
-                          {spot.rating}
+                {/* Hardcoded spots */}
+                {(selectedCategory === 'All' || ['Beaches', 'Hiking', 'Waterfalls'].includes(selectedCategory)) && 
+                  spots.filter(s => selectedCategory === 'All' || s.category === selectedCategory).map((spot) => (
+                    <motion.div 
+                      key={`spot-${spot.id}`}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedSpot({ ...spot, type: 'spot' })}
+                      className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm flex gap-4 p-3 cursor-pointer"
+                    >
+                      <div className="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0">
+                        <img src={spot.image} alt={spot.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      </div>
+                      <div className="flex flex-col justify-center flex-grow py-1">
+                        <div className="flex justify-between items-start mb-1">
+                          <h4 className="font-bold text-island-green">{spot.name}</h4>
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-island-emerald">
+                            <Star size={12} fill="currentColor" />
+                            {spot.rating}
+                          </div>
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">{spot.category}</p>
+                        <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500">
+                          <Navigation size={10} />
+                          {spot.distance} away
                         </div>
                       </div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">{spot.category}</p>
-                      <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500">
-                        <Navigation size={10} />
-                        {spot.distance} away
+                    </motion.div>
+                ))}
+
+                {/* Real Stays */}
+                {(selectedCategory === 'All' || selectedCategory === 'Stay') && 
+                  accommodations.map((stay) => (
+                    <motion.div 
+                      key={`stay-${stay.id}`}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedSpot({ ...stay, type: 'stay' })}
+                      className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm flex gap-4 p-3 cursor-pointer"
+                    >
+                      <div className="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0">
+                        <img src={stay.image} alt={stay.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       </div>
-                    </div>
-                  </motion.div>
+                      <div className="flex flex-col justify-center flex-grow py-1">
+                        <div className="flex justify-between items-start mb-1">
+                          <h4 className="font-bold text-island-green">{stay.name}</h4>
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-island-emerald">
+                            <Star size={12} fill="currentColor" />
+                            {stay.rating}
+                          </div>
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">{stay.type}</p>
+                        <div className="flex items-center gap-1 text-[10px] font-bold text-island-emerald">
+                          ₱{stay.price.toLocaleString()} / night
+                        </div>
+                      </div>
+                    </motion.div>
+                ))}
+
+                {/* Real Transport */}
+                {(selectedCategory === 'All' || selectedCategory === 'Transport') && 
+                  transportOptions.map((trans) => (
+                    <motion.div 
+                      key={`trans-${trans.id}`}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedSpot({ ...trans, type: 'transport', name: trans.title })}
+                      className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm flex gap-4 p-3 cursor-pointer"
+                    >
+                      <div className={`w-24 h-24 rounded-2xl ${trans.color}/10 flex items-center justify-center text-island-green flex-shrink-0`}>
+                        <trans.icon size={32} className={trans.color.replace('bg-', 'text-')} />
+                      </div>
+                      <div className="flex flex-col justify-center flex-grow py-1">
+                        <div className="flex justify-between items-start mb-1">
+                          <h4 className="font-bold text-island-green">{trans.title}</h4>
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-island-emerald">
+                            ₱{trans.price.toLocaleString()}
+                          </div>
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">{trans.provider}</p>
+                        <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500">
+                          <Clock size={10} />
+                          {trans.duration}
+                        </div>
+                      </div>
+                    </motion.div>
                 ))}
               </div>
             </div>
@@ -345,7 +526,7 @@ export default function MobileAppView() {
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <p className="text-[10px] font-bold opacity-60 uppercase tracking-widest mb-1">Tourist Name</p>
-                  <p className="font-bold">Kurt Mier</p>
+                  <p className="font-bold">{user?.displayName || 'Guest'}</p>
                 </div>
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                   <Compass size={20} />
@@ -356,7 +537,9 @@ export default function MobileAppView() {
                   <p className="text-[10px] font-bold opacity-60 uppercase tracking-widest mb-1">Valid Until</p>
                   <p className="font-bold">Mar 25, 2026</p>
                 </div>
-                <div className="px-3 py-1 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-widest">Active</div>
+                <div className="px-3 py-1 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                  {user ? 'Active' : 'Inactive'}
+                </div>
               </div>
             </div>
           </motion.div>
@@ -440,26 +623,94 @@ export default function MobileAppView() {
             className="px-6"
           >
             <header className="mb-10 flex flex-col items-center text-center pt-8">
-              <div className="w-24 h-24 rounded-[2rem] bg-island-emerald/10 border-4 border-white shadow-xl flex items-center justify-center text-island-emerald mb-6 relative">
-                <User size={48} />
+              <div className="w-24 h-24 rounded-[2rem] bg-island-emerald/10 border-4 border-white shadow-xl flex items-center justify-center text-island-emerald mb-6 relative overflow-hidden">
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt={user.displayName || ''} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <User size={48} />
+                )}
                 <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-island-green text-white rounded-xl flex items-center justify-center border-4 border-white">
                   <Star size={14} fill="currentColor" />
                 </div>
               </div>
-              <h2 className="text-2xl font-serif font-bold text-island-green italic">Kurt <span className="not-italic">Mier</span></h2>
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Premium Explorer</p>
+              <h2 className="text-2xl font-serif font-bold text-island-green italic">
+                {user?.displayName?.split(' ')[0] || 'Guest'} <span className="not-italic">{user?.displayName?.split(' ')[1] || ''}</span>
+              </h2>
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
+                {profile?.role || 'TOURIST'}
+              </p>
             </header>
 
-            <div className="space-y-4">
-              <ProfileItem icon={Heart} label="My Favorites" count="12" />
-              <ProfileItem icon={Ticket} label="My Bookings" count="3" />
-              <ProfileItem icon={Clock} label="Travel History" />
-              <ProfileItem icon={User} label="Account Settings" />
-            </div>
+            {!user ? (
+              <button 
+                onClick={login}
+                className="w-full py-5 island-gradient text-white rounded-[2rem] text-xs font-bold uppercase tracking-widest shadow-lg shadow-island-emerald/20"
+              >
+                Sign In to IsleGO
+              </button>
+            ) : (
+              <div className="space-y-6">
+                {/* My Bookings Section */}
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-serif font-bold text-island-green italic">My Bookings</h3>
+                    <span className="px-3 py-1 bg-island-emerald/10 text-island-emerald rounded-full text-[10px] font-bold">
+                      {bookings.length} Total
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-4 max-h-80 overflow-y-auto no-scrollbar pr-2">
+                    {bookings.length === 0 ? (
+                      <div className="p-8 bg-slate-50 rounded-3xl text-center border border-dashed border-slate-200">
+                        <Ticket className="mx-auto text-slate-300 mb-2" size={32} />
+                        <p className="text-xs text-slate-400 font-medium">No bookings yet. Start exploring!</p>
+                      </div>
+                    ) : (
+                      bookings.map((booking) => (
+                        <div key={booking.id} className="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <h4 className="text-sm font-bold text-island-green">{booking.serviceName}</h4>
+                              <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">{booking.serviceType}</p>
+                            </div>
+                            <span className={`px-2 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${
+                              booking.paymentStatus === 'PAID' ? 'bg-green-100 text-green-600' : 'bg-island-coral/10 text-island-coral'
+                            }`}>
+                              {booking.paymentStatus}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-end">
+                            <p className="text-xs font-bold text-island-emerald">₱{booking.amount.toLocaleString()}</p>
+                            {booking.paymentStatus === 'UNPAID' && (
+                              <button 
+                                onClick={() => handlePay(booking.id)}
+                                className="px-4 py-2 bg-island-green text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-md"
+                              >
+                                Pay Now
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
 
-            <button className="w-full mt-12 py-5 bg-slate-50 text-island-coral rounded-[2rem] text-xs font-bold uppercase tracking-widest border border-slate-100 hover:bg-island-coral hover:text-white transition-all">
-              Log Out
-            </button>
+                <div className="space-y-3">
+                  <ProfileItem icon={Building2} label="Claim Business" onClick={() => navigate('/claim-business')} />
+                  <ProfileItem icon={LayoutDashboard} label="Business Dashboard" onClick={() => navigate('/business')} />
+                  <ProfileItem icon={ShieldCheck} label="LGU Dashboard" onClick={() => navigate('/government')} />
+                  <ProfileItem icon={Heart} label="My Favorites" count="12" />
+                </div>
+
+                <button 
+                  onClick={logout}
+                  className="w-full mt-8 py-5 bg-slate-50 text-island-coral rounded-[2rem] text-xs font-bold uppercase tracking-widest border border-slate-100 hover:bg-island-coral hover:text-white transition-all"
+                >
+                  Log Out
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -503,9 +754,12 @@ export default function MobileAppView() {
   );
 }
 
-function ProfileItem({ icon: Icon, label, count }: any) {
+function ProfileItem({ icon: Icon, label, count, onClick }: any) {
   return (
-    <button className="w-full p-6 bg-white rounded-[2rem] border border-slate-100 flex items-center justify-between group hover:bg-slate-50 transition-all">
+    <button 
+      onClick={onClick}
+      className="w-full p-6 bg-white rounded-[2rem] border border-slate-100 flex items-center justify-between group hover:bg-slate-50 transition-all"
+    >
       <div className="flex items-center gap-4">
         <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center group-hover:bg-island-emerald/10 group-hover:text-island-emerald transition-all">
           <Icon size={20} />
