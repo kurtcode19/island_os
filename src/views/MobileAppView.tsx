@@ -32,6 +32,7 @@ import {
   LogOut,
   LogIn,
   ShieldCheck,
+  Sparkles,
   RefreshCw
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -54,7 +55,7 @@ const customIcon = new L.Icon({
   popupAnchor: [1, -34],
 });
 
-const categories = ['All', 'Beaches', 'Hiking', 'Waterfalls', 'Stay', 'Transport', 'Dining', 'Shops'];
+const categories = ['All', 'Beaches', 'Hiking', 'Waterfalls', 'Stay', 'Transport', 'Dining', 'Shops', 'Planner'];
 
 const spots = [
   {
@@ -426,6 +427,29 @@ export default function MobileAppView() {
                       </div>
                     </motion.div>
                 ))}
+
+                {/* AI Planner Teaser */}
+                {(selectedCategory === 'All' || selectedCategory === 'Planner') && (
+                  <motion.div 
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => navigate('/planner')}
+                    className="bg-island-green rounded-[2rem] border border-slate-100 overflow-hidden shadow-lg flex gap-4 p-4 cursor-pointer text-white relative"
+                  >
+                    <div className="absolute top-0 right-0 opacity-10">
+                      <Sparkles size={100} className="rotate-12" />
+                    </div>
+                    <div className="w-20 h-20 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                      <Sparkles size={32} />
+                    </div>
+                    <div className="flex flex-col justify-center flex-grow py-1 relative z-10">
+                      <h4 className="font-bold text-white">Smart Trip Planner</h4>
+                      <p className="text-[10px] font-bold text-emerald-100/70 uppercase tracking-widest mb-2">AI-Powered Itinerary</p>
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-island-emerald">
+                        Try it now <ChevronRight size={12} />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </div>
           </motion.div>
