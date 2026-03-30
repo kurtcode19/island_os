@@ -103,6 +103,8 @@ export default function MobileAppView() {
     const tab = params.get('tab');
     if (tab && ['explore', 'map', 'services', 'pass', 'profile'].includes(tab)) {
       setActiveTab(tab);
+    } else if (!tab) {
+      setActiveTab('explore');
     }
   }, [window.location.search]);
 
@@ -175,7 +177,7 @@ export default function MobileAppView() {
       setTimeout(() => {
         setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
         setSelectedSpot(null);
-        setActiveTab('profile'); // Go to profile to see bookings
+        navigate('/mobile?tab=profile'); // Go to profile to see bookings
       }, 2000);
     } catch (error) {
       setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
@@ -319,7 +321,7 @@ export default function MobileAppView() {
             <div className="grid grid-cols-4 gap-4 mb-10">
               <motion.button 
                 whileTap={{ scale: 0.9 }}
-                onClick={() => { setActiveTab('services'); setSelectedCategory('Transport'); }} 
+                onClick={() => { navigate('/mobile?tab=services'); setSelectedCategory('Transport'); }} 
                 className="flex flex-col items-center gap-2"
               >
                 <div className="w-14 h-14 bg-island-emerald/10 text-island-emerald rounded-2xl flex items-center justify-center">
@@ -329,7 +331,7 @@ export default function MobileAppView() {
               </motion.button>
               <motion.button 
                 whileTap={{ scale: 0.9 }}
-                onClick={() => setActiveTab('map')} 
+                onClick={() => navigate('/mobile?tab=map')} 
                 className="flex flex-col items-center gap-2"
               >
                 <div className="w-14 h-14 bg-island-coral/10 text-island-coral rounded-2xl flex items-center justify-center">
@@ -339,7 +341,7 @@ export default function MobileAppView() {
               </motion.button>
               <motion.button 
                 whileTap={{ scale: 0.9 }}
-                onClick={() => { setActiveTab('services'); setSelectedCategory('Shops'); }} 
+                onClick={() => { navigate('/mobile?tab=services'); setSelectedCategory('Shops'); }} 
                 className="flex flex-col items-center gap-2"
               >
                 <div className="w-14 h-14 bg-island-sunset/10 text-island-sunset rounded-2xl flex items-center justify-center">
@@ -349,7 +351,7 @@ export default function MobileAppView() {
               </motion.button>
               <motion.button 
                 whileTap={{ scale: 0.9 }}
-                onClick={() => setActiveTab('map')} 
+                onClick={() => navigate('/mobile?tab=map')} 
                 className="flex flex-col items-center gap-2"
               >
                 <div className="w-14 h-14 bg-island-ocean/10 text-island-ocean rounded-2xl flex items-center justify-center">
@@ -500,7 +502,7 @@ export default function MobileAppView() {
                 subtitle="Buses, Vans, Boats"
                 color="bg-blue-500"
                 onClick={() => {
-                  setActiveTab('explore');
+                  navigate('/mobile?tab=explore');
                   setSelectedCategory('Transport');
                 }}
               />
@@ -510,7 +512,7 @@ export default function MobileAppView() {
                 subtitle="Local Markets & Malls"
                 color="bg-island-coral"
                 onClick={() => {
-                  setActiveTab('explore');
+                  navigate('/mobile?tab=explore');
                   setSelectedCategory('Shops');
                 }}
               />
@@ -519,7 +521,7 @@ export default function MobileAppView() {
                 title="Locations" 
                 subtitle="Points of Interest"
                 color="bg-island-emerald"
-                onClick={() => setActiveTab('map')}
+                onClick={() => navigate('/mobile?tab=map')}
               />
               <ServiceCard 
                 icon={Store} 
@@ -527,7 +529,7 @@ export default function MobileAppView() {
                 subtitle="Restaurants & Cafes"
                 color="bg-orange-500"
                 onClick={() => {
-                  setActiveTab('explore');
+                  navigate('/mobile?tab=explore');
                   setSelectedCategory('Dining');
                 }}
               />

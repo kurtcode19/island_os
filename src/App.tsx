@@ -14,6 +14,7 @@ import {
   Hotel,
   Ship,
   Ticket,
+  CreditCard,
   Map as MapIcon,
   BarChart3,
   ShieldCheck,
@@ -119,12 +120,12 @@ function MobileHeader() {
   const { user } = useAuth();
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100/50 h-16 flex items-center justify-between px-6 md:hidden">
-      <div className="flex items-center gap-2">
+      <Link to="/mobile?tab=explore" className="flex items-center gap-2">
         <Compass className="text-island-emerald" size={24} />
         <span className="text-xl font-serif font-bold text-island-green tracking-tight italic">
           Isle<span className="not-italic text-island-emerald">GO</span>
         </span>
-      </div>
+      </Link>
       <div className="flex items-center gap-4">
         <button className="relative p-2 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">
           <Bell size={20} />
@@ -146,18 +147,24 @@ function MobileHeader() {
 
 function MobileBottomNav() {
   const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const currentTab = searchParams.get('tab') || 'explore';
   
   const navItems = [
-    { path: '/mobile', label: 'Home', icon: Compass },
+    { path: '/mobile?tab=explore', label: 'Home', icon: Compass },
+    { path: '/mobile?tab=map', label: 'Map', icon: MapIcon },
     { path: '/planner', label: 'Planner', icon: Sparkles },
-    { path: '/locations', label: 'Map', icon: MapIcon },
-    { path: '/my-bookings', label: 'Cart', icon: ShoppingBag },
+    { path: '/mobile?tab=pass', label: 'Pass', icon: CreditCard },
+    { path: '/mobile?tab=profile', label: 'Profile', icon: UserIcon },
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-t border-slate-100/50 px-4 pb-safe-offset-4 pt-3 flex items-center justify-around md:hidden">
       {navItems.map((item) => {
-        const isActive = location.pathname === item.path;
+        const itemPath = item.path.split('?')[0];
+        const itemTab = new URLSearchParams(item.path.split('?')[1]).get('tab');
+        
+        const isActive = location.pathname === itemPath && (itemTab ? currentTab === itemTab : location.pathname === item.path);
         
         return (
           <Link
