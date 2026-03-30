@@ -20,7 +20,8 @@ import {
   LogOut,
   LogIn,
   Sparkles,
-  ShoppingBag
+  ShoppingBag,
+  Bell
 } from 'lucide-react';
 import React, { useState, useEffect, useLayoutEffect, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -114,34 +115,76 @@ function RoleNavigator({ role, onRoleChange, isMobile }: { role: UserRole, onRol
   return null;
 }
 
+function MobileHeader() {
+  const { user } = useAuth();
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100/50 h-16 flex items-center justify-between px-6 md:hidden">
+      <div className="flex items-center gap-2">
+        <Compass className="text-island-emerald" size={24} />
+        <span className="text-xl font-serif font-bold text-island-green tracking-tight italic">
+          Isle<span className="not-italic text-island-emerald">GO</span>
+        </span>
+      </div>
+      <div className="flex items-center gap-4">
+        <button className="relative p-2 text-slate-600 hover:bg-slate-50 rounded-xl transition-colors">
+          <Bell size={20} />
+          <span className="absolute top-2 right-2 w-2 h-2 bg-island-coral rounded-full border-2 border-white"></span>
+        </button>
+        <Link to="/mobile?tab=profile" className="w-8 h-8 rounded-full overflow-hidden border-2 border-island-emerald/20">
+          {user?.photoURL ? (
+            <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+          ) : (
+            <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
+              <UserIcon size={16} />
+            </div>
+          )}
+        </Link>
+      </div>
+    </header>
+  );
+}
+
 function MobileBottomNav() {
   const location = useLocation();
-  const { user } = useAuth();
   
   const navItems = [
     { path: '/mobile', label: 'Home', icon: Compass },
     { path: '/planner', label: 'Planner', icon: Sparkles },
-    { path: '/my-bookings', label: 'Bookings', icon: ShoppingBag },
-    { path: '/mobile?tab=profile', label: 'Profile', icon: UserIcon },
+    { path: '/locations', label: 'Map', icon: MapIcon },
+    { path: '/my-bookings', label: 'Cart', icon: ShoppingBag },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-t border-slate-100 px-6 pb-6 pt-3 flex items-center justify-between md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-t border-slate-100/50 px-4 pb-safe-offset-4 pt-3 flex items-center justify-around md:hidden">
       {navItems.map((item) => {
-        const isActive = item.path === '/mobile' 
-          ? (location.pathname === '/mobile' && !location.search.includes('tab=profile'))
-          : (location.pathname === item.path || (item.path.includes('tab=profile') && location.search.includes('tab=profile')));
+        const isActive = location.pathname === item.path;
         
         return (
           <Link
             key={item.path}
             to={item.path}
-            className={`flex flex-col items-center gap-1 transition-all ${
-              isActive ? 'text-island-emerald' : 'text-slate-400'
-            }`}
+            className="relative flex flex-col items-center gap-1 min-w-[64px]"
           >
-            <item.icon size={24} className={isActive ? 'scale-110' : ''} />
-            <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
+            <motion.div
+              whileTap={{ scale: 0.9 }}
+              className={`p-2 rounded-2xl transition-colors ${
+                isActive ? 'text-island-emerald' : 'text-slate-400'
+              }`}
+            >
+              <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+              {isActive && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-island-emerald rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)]"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+              )}
+            </motion.div>
+            <span className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${
+              isActive ? 'text-island-emerald' : 'text-slate-400'
+            }`}>
+              {item.label}
+            </span>
           </Link>
         );
       })}
@@ -442,11 +485,23 @@ function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole: (role
 
   return (
     <Routes>
-      <Route path="/mobile" element={<MobileAppView />} />
+      <Route path="/mobile" element={
+        <>
+          <MobileHeader />
+          <main className="pt-16 pb-24">
+            <MobileAppView />
+          </main>
+          <MobileBottomNav />
+        </>
+      } />
       <Route path="*" element={
         <>
-          {!isMobile && <Navigation currentRole={role} onRoleChange={setRole} />}
-          <main className={!isMobile ? "pt-20" : "pb-24"}>
+          {!isMobile ? (
+            <Navigation currentRole={role} onRoleChange={setRole} />
+          ) : (
+            <MobileHeader />
+          )}
+          <main className={!isMobile ? "pt-20" : "pt-16 pb-24"}>
             <AnimatePresence mode="wait">
               <motion.div 
                 key={location.pathname}

@@ -203,7 +203,7 @@ export default function MobileAppView() {
   }, [selectedCategory]);
 
   const content = (
-    <div className={`h-full flex flex-col pt-10 pb-10 overflow-y-auto no-scrollbar bg-island-cream ${!isDesktop ? 'min-h-screen' : ''}`}>
+    <div className={`h-full flex flex-col pt-4 pb-4 overflow-y-auto no-scrollbar bg-island-cream ${!isDesktop ? 'min-h-screen' : ''}`}>
       <AnimatePresence mode="wait">
         {selectedSpot ? (
           <motion.div 
@@ -215,12 +215,13 @@ export default function MobileAppView() {
           >
             <div className="relative h-80">
               <img src={selectedSpot.image} alt={selectedSpot.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-              <button 
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
                 onClick={() => setSelectedSpot(null)}
                 className="absolute top-6 left-6 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white"
               >
                 <ArrowLeft size={20} />
-              </button>
+              </motion.button>
             </div>
             <div className="p-8 flex-1">
               <div className="flex justify-between items-start mb-4">
@@ -240,12 +241,16 @@ export default function MobileAppView() {
               </p>
               
               {selectedSpot.type === 'spot' ? (
-                <button className="w-full py-4 island-gradient text-white rounded-2xl font-bold shadow-lg shadow-island-emerald/20 flex items-center justify-center gap-2">
+                <motion.button 
+                  whileTap={{ scale: 0.95 }}
+                  className="w-full py-4 island-gradient text-white rounded-2xl font-bold shadow-lg shadow-island-emerald/20 flex items-center justify-center gap-2"
+                >
                   <Navigation size={18} />
                   Get Directions
-                </button>
+                </motion.button>
               ) : (
-                <button 
+                <motion.button 
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => handleBook(selectedSpot, selectedSpot.type)}
                   disabled={bookingStatus[selectedSpot.id] === 'loading' || bookingStatus[selectedSpot.id] === 'success'}
                   className={`w-full py-4 rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 transition-all ${
@@ -261,7 +266,7 @@ export default function MobileAppView() {
                   ) : (
                     <>Book Now - ₱{selectedSpot.price.toLocaleString()}</>
                   )}
-                </button>
+                </motion.button>
               )}
             </div>
           </motion.div>
@@ -275,15 +280,9 @@ export default function MobileAppView() {
             exit={{ opacity: 0, x: -20 }}
             className="px-6"
           >
-            <header className="flex justify-between items-center mb-8">
-              <div>
-                <p className="text-[10px] font-bold text-island-emerald uppercase tracking-[0.2em] mb-1">Welcome to</p>
-                <h2 className="text-3xl font-serif font-bold text-island-green italic">Camiguin</h2>
-              </div>
-              <button className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-island-green shadow-sm relative">
-                <Bell size={20} />
-                <span className="absolute top-3 right-3 w-2 h-2 bg-island-coral rounded-full border-2 border-white"></span>
-              </button>
+            <header className="mb-8">
+              <p className="text-[10px] font-bold text-island-emerald uppercase tracking-[0.2em] mb-1">Welcome to</p>
+              <h2 className="text-3xl font-serif font-bold text-island-green italic">Camiguin</h2>
             </header>
 
             {/* Search */}
@@ -318,30 +317,46 @@ export default function MobileAppView() {
 
             {/* Quick Actions Grid */}
             <div className="grid grid-cols-4 gap-4 mb-10">
-              <button onClick={() => { setActiveTab('services'); setSelectedCategory('Transport'); }} className="flex flex-col items-center gap-2">
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
+                onClick={() => { setActiveTab('services'); setSelectedCategory('Transport'); }} 
+                className="flex flex-col items-center gap-2"
+              >
                 <div className="w-14 h-14 bg-island-emerald/10 text-island-emerald rounded-2xl flex items-center justify-center">
                   <Ship size={24} />
                 </div>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Book</span>
-              </button>
-              <button onClick={() => setActiveTab('map')} className="flex flex-col items-center gap-2">
+              </motion.button>
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setActiveTab('map')} 
+                className="flex flex-col items-center gap-2"
+              >
                 <div className="w-14 h-14 bg-island-coral/10 text-island-coral rounded-2xl flex items-center justify-center">
                   <MapPin size={24} />
                 </div>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Spots</span>
-              </button>
-              <button onClick={() => { setActiveTab('services'); setSelectedCategory('Shops'); }} className="flex flex-col items-center gap-2">
+              </motion.button>
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
+                onClick={() => { setActiveTab('services'); setSelectedCategory('Shops'); }} 
+                className="flex flex-col items-center gap-2"
+              >
                 <div className="w-14 h-14 bg-island-sunset/10 text-island-sunset rounded-2xl flex items-center justify-center">
                   <ShoppingBag size={24} />
                 </div>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Shop</span>
-              </button>
-              <button onClick={() => setActiveTab('map')} className="flex flex-col items-center gap-2">
+              </motion.button>
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setActiveTab('map')} 
+                className="flex flex-col items-center gap-2"
+              >
                 <div className="w-14 h-14 bg-island-ocean/10 text-island-ocean rounded-2xl flex items-center justify-center">
                   <MapIcon size={24} />
                 </div>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Map</span>
-              </button>
+              </motion.button>
             </div>
 
             {/* Featured Section */}
