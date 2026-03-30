@@ -122,18 +122,18 @@ export default function LandingView() {
                 <span className="w-2 h-2 rounded-full bg-island-coral animate-pulse"></span>
                 The Island Born of Fire
               </div>
-              <h1 className="text-6xl md:text-8xl font-serif font-bold text-white leading-[0.9] mb-8 italic drop-shadow-2xl">
+              <h1 className="text-6xl md:text-8xl font-serif font-bold text-white leading-[0.9] mb-8 italic drop-shadow-2xl text-balance">
                 Explore <br />
-                <span className="text-island-sunset not-italic">Camiguin</span> <br />
+                <span className="text-island-emerald not-italic">Camiguin</span> <br />
                 Smarter.
               </h1>
-              <p className="text-xl text-white/80 mb-10 leading-relaxed font-light max-w-lg drop-shadow-md">
+              <p className="text-xl text-white/80 mb-10 leading-relaxed font-light max-w-lg drop-shadow-md text-balance">
                 Discover the mystical beauty of the Philippines' most volcanic island through a seamless digital experience.
               </p>
               
               <div className="flex flex-wrap gap-4">
-                <Link to="/pass" className="px-10 py-5 island-gradient text-white rounded-full font-bold transition-all shadow-xl shadow-island-emerald/20 flex items-center gap-3 group">
-                  Start Your Journey <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                <Link to="/planner" className="px-10 py-5 bg-island-emerald text-white rounded-full font-bold transition-all shadow-xl shadow-island-emerald/20 flex items-center gap-3 group">
+                  AI Trip Planner <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link to="/stay" className="px-10 py-5 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 rounded-full font-bold transition-all">
                   Book a Stay

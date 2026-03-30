@@ -19,7 +19,8 @@ import {
   ShieldCheck,
   LogOut,
   LogIn,
-  Sparkles
+  Sparkles,
+  ShoppingBag
 } from 'lucide-react';
 import React, { useState, useEffect, useLayoutEffect, createContext, useContext } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -113,6 +114,41 @@ function RoleNavigator({ role, onRoleChange, isMobile }: { role: UserRole, onRol
   return null;
 }
 
+function MobileBottomNav() {
+  const location = useLocation();
+  const { user } = useAuth();
+  
+  const navItems = [
+    { path: '/mobile', label: 'Home', icon: Compass },
+    { path: '/planner', label: 'Planner', icon: Sparkles },
+    { path: '/my-bookings', label: 'Bookings', icon: ShoppingBag },
+    { path: '/mobile?tab=profile', label: 'Profile', icon: UserIcon },
+  ];
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-t border-slate-100 px-6 pb-6 pt-3 flex items-center justify-between md:hidden">
+      {navItems.map((item) => {
+        const isActive = item.path === '/mobile' 
+          ? (location.pathname === '/mobile' && !location.search.includes('tab=profile'))
+          : (location.pathname === item.path || (item.path.includes('tab=profile') && location.search.includes('tab=profile')));
+        
+        return (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`flex flex-col items-center gap-1 transition-all ${
+              isActive ? 'text-island-emerald' : 'text-slate-400'
+            }`}
+          >
+            <item.icon size={24} className={isActive ? 'scale-110' : ''} />
+            <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 function Navigation({ currentRole, onRoleChange }: { currentRole: UserRole, onRoleChange: (role: UserRole) => void }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -180,9 +216,11 @@ function Navigation({ currentRole, onRoleChange }: { currentRole: UserRole, onRo
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="IsleGO Logo" className="w-10 h-10 object-contain rounded-xl shadow-lg shadow-island-green/10" referrerPolicy="no-referrer" />
-            <span className="text-2xl font-serif font-bold tracking-tight text-island-green italic">Isle<span className="not-italic text-island-emerald">GO</span></span>
+          <div className="flex items-center gap-2">
+            <Compass className="text-island-green" size={32} />
+            <span className="text-2xl font-serif font-bold text-island-green tracking-tight italic">
+              Isle<span className="not-italic text-island-emerald">GO</span>
+            </span>
           </div>
 
           {/* Desktop Nav */}
@@ -408,7 +446,7 @@ function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole: (role
       <Route path="*" element={
         <>
           {!isMobile && <Navigation currentRole={role} onRoleChange={setRole} />}
-          <main className={!isMobile ? "pt-20" : ""}>
+          <main className={!isMobile ? "pt-20" : "pb-24"}>
             <AnimatePresence mode="wait">
               <motion.div 
                 key={location.pathname}
@@ -433,6 +471,7 @@ function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole: (role
               </motion.div>
             </AnimatePresence>
           </main>
+          {isMobile && <MobileBottomNav />}
         </>
       } />
     </Routes>

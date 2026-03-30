@@ -96,6 +96,15 @@ export default function MobileAppView() {
 
   const isDesktop = window.innerWidth >= 768;
 
+  // Sync activeTab with query param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab && ['explore', 'map', 'services', 'pass', 'profile'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [window.location.search]);
+
   // Real-time bookings listener
   useEffect(() => {
     if (!user) {
@@ -193,7 +202,7 @@ export default function MobileAppView() {
   }, [selectedCategory]);
 
   const content = (
-    <div className={`h-full flex flex-col pt-10 pb-20 overflow-y-auto no-scrollbar bg-white ${!isDesktop ? 'min-h-screen' : ''}`}>
+    <div className={`h-full flex flex-col pt-10 pb-10 overflow-y-auto no-scrollbar bg-island-cream ${!isDesktop ? 'min-h-screen' : ''}`}>
       <AnimatePresence mode="wait">
         {selectedSpot ? (
           <motion.div 
@@ -738,24 +747,6 @@ export default function MobileAppView() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Bottom Nav */}
-      <div className={`absolute bottom-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-xl border-t border-slate-100 px-6 flex items-center justify-between z-50 ${!isDesktop ? 'fixed' : ''}`}>
-        <NavButton active={activeTab === 'explore'} onClick={() => setActiveTab('explore')} icon={Compass} label="Explore" />
-        <NavButton active={activeTab === 'map'} onClick={() => setActiveTab('map')} icon={MapIcon} label="Map" />
-        <div className="relative -top-6">
-          <button 
-            onClick={() => setActiveTab('pass')}
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all ${
-              activeTab === 'pass' ? 'bg-island-green text-white scale-110 shadow-island-green/30' : 'bg-island-emerald text-white hover:scale-105'
-            }`}
-          >
-            <QrCode size={24} />
-          </button>
-        </div>
-        <NavButton active={activeTab === 'services'} onClick={() => setActiveTab('services')} icon={LayoutDashboard} label="Services" />
-        <NavButton active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} icon={User} label="Profile" />
-      </div>
     </div>
   );
 
