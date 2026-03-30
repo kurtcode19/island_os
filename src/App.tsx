@@ -79,23 +79,15 @@ import MyBookingsView from './views/MyBookingsView';
 import ClaimBusinessView from './views/ClaimBusinessView';
 import TripPlannerView from './views/TripPlannerView';
 
-function RoleNavigator({ role, onRoleChange }: { role: UserRole, onRoleChange: (role: UserRole) => void }) {
+function RoleNavigator({ role, onRoleChange, isMobile }: { role: UserRole, onRoleChange: (role: UserRole) => void, isMobile: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     const currentPath = location.pathname;
 
-    // If on mobile and not already on the mobile view, redirect to /mobile
-    if (isMobile && currentPath !== '/mobile') {
+    // If on mobile and not already on the mobile view or planner, redirect to /mobile
+    if (isMobile && currentPath !== '/mobile' && currentPath !== '/planner') {
       navigate('/mobile');
       return;
     }
@@ -407,7 +399,7 @@ function Navigation({ currentRole, onRoleChange }: { currentRole: UserRole, onRo
   );
 }
 
-function AppRoutes({ role, setRole }: { role: UserRole, setRole: (role: UserRole) => void }) {
+function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole: (role: UserRole) => void, isMobile: boolean }) {
   const location = useLocation();
 
   return (
@@ -415,8 +407,8 @@ function AppRoutes({ role, setRole }: { role: UserRole, setRole: (role: UserRole
       <Route path="/mobile" element={<MobileAppView />} />
       <Route path="*" element={
         <>
-          <Navigation currentRole={role} onRoleChange={setRole} />
-          <main className="pt-20">
+          {!isMobile && <Navigation currentRole={role} onRoleChange={setRole} />}
+          <main className={!isMobile ? "pt-20" : ""}>
             <AnimatePresence mode="wait">
               <motion.div 
                 key={location.pathname}
@@ -452,6 +444,13 @@ export default function App() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     let unsubscribeProfile: (() => void) | null = null;
@@ -538,9 +537,9 @@ export default function App() {
     <AuthContext.Provider value={{ user, profile, loading, login, logout }}>
       <Router>
         <ScrollToTop />
-        <RoleNavigator role={role} onRoleChange={setRole} />
+        <RoleNavigator role={role} onRoleChange={setRole} isMobile={isMobile} />
         <div className="min-h-screen bg-island-cream font-sans text-island-volcanic selection:bg-island-emerald/20">
-          <AppRoutes role={role} setRole={setRole} />
+          <AppRoutes role={role} setRole={setRole} isMobile={isMobile} />
         </div>
       </Router>
     </AuthContext.Provider>

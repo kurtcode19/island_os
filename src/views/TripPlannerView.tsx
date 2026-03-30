@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, 
   Calendar, 
@@ -13,7 +14,8 @@ import {
   Info,
   Waves,
   Palmtree,
-  Anchor
+  Anchor,
+  ArrowLeft
 } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { db, handleFirestoreError, OperationType } from '../firebase';
@@ -37,12 +39,20 @@ interface DayPlan {
 
 export default function TripPlannerView() {
   const { user, login } = useAuth();
+  const navigate = useNavigate();
   const [days, setDays] = useState(3);
   const [style, setStyle] = useState('Adventure');
   const [budget, setBudget] = useState('Moderate');
   const [loading, setLoading] = useState(false);
   const [itinerary, setItinerary] = useState<DayPlan[] | null>(null);
   const [bookingStatus, setBookingStatus] = useState<{[key: string]: 'idle' | 'loading' | 'success'}>({});
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const generateTrip = async () => {
     setLoading(true);
@@ -133,6 +143,16 @@ export default function TripPlannerView() {
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-cyan-800 to-teal-600 pb-20 selection:bg-teal-400 selection:text-blue-900">
       {/* Header */}
       <section className="relative h-[35vh] md:h-[45vh] flex items-center overflow-hidden">
+        {/* Mobile Back Button */}
+        {isMobile && (
+          <button 
+            onClick={() => navigate('/mobile')}
+            className="absolute top-6 left-6 z-50 w-12 h-12 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl flex items-center justify-center text-white shadow-2xl"
+          >
+            <ArrowLeft size={24} />
+          </button>
+        )}
+        
         <div className="absolute inset-0 z-0">
           <img 
             src="https://picsum.photos/seed/camiguin-paradise/2000/1000" 
