@@ -2,10 +2,10 @@ import { motion } from 'motion/react';
 import { Compass, Plus, Search, Filter, ChevronRight, Users, Clock, MapPin, Star, ArrowRight } from 'lucide-react';
 
 const tours = [
-  { id: 'TR-101', name: 'Sunken Cemetery Dive', category: 'Diving', duration: '3h', guests: 4, maxGuests: 8, price: '₱2,500', rating: 4.9, status: 'Active', image: 'https://eazytraveler.net/wp-content/uploads/2013/12/11264466243_993705526b_z.jpg' },
-  { id: 'TR-102', name: 'White Island Hopping', category: 'Island Hopping', duration: '4h', guests: 8, maxGuests: 12, price: '₱1,500', rating: 4.8, status: 'Active', image: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/61/b8/e7/white-island-is-an-uninhabited.jpg?w=700&h=-1&s=1' },
+  { id: 'TR-101', name: 'Sunken Cemetery Dive', category: 'Diving', duration: '3h', guests: 4, maxGuests: 8, price: '₱2,500', rating: 4.9, status: 'Active', image: 'https://img.atlasobscura.com/CmlPBCqrdngS4DE4q_DDyDdVYBjhcSTHrsI9PUEbvkQ/rs:fill:780:520:1/g:ce/q:81/sm:1/scp:1/ar:1/aHR0cHM6Ly9hdGxh/cy1kZXYuczMuYW1h/em9uYXdzLmNvbS91/cGxvYWRzL3BsYWNl/X2ltYWdlcy85OTA0/ZjhlMDJiMGM0ODM5/NWJfU3Vua2VuX0Nl/bWV0ZXJ5LF9DYXRh/cm1hbixfQ2FtaWd1/aW4uanBn.jpg' },
+  { id: 'TR-102', name: 'White Island Hopping', category: 'Island Hopping', duration: '4h', guests: 8, maxGuests: 12, price: '₱1,500', rating: 4.8, status: 'Active', image: 'https://www.thepoortraveler.net/wp-content/uploads/2012/04/white-island-white-sand-beach-camiguin.jpg' },
   { id: 'TR-103', name: 'Hibok-Hibok Volcano Hike', category: 'Adventure', duration: '6h', guests: 2, maxGuests: 6, price: '₱3,000', rating: 4.7, status: 'Active', image: 'https://i.pinimg.com/564x/fe/75/c7/fe75c770631bcf5c9f1a93086ea071d3.jpg' },
-  { id: 'TR-104', name: 'Katibawasan Falls Tour', category: 'Nature', duration: '2h', guests: 0, maxGuests: 10, price: '₱500', rating: 4.9, status: 'Draft', image: 'https://chrisandwrensworld.com/wp-content/uploads/2025/04/katibawasan-falls.jpeg' },
+  { id: 'TR-104', name: 'Katibawasan Falls Tour', category: 'Nature', duration: '2h', guests: 0, maxGuests: 10, price: '₱500', rating: 4.9, status: 'Draft', image: 'https://thefroggyadventures.com/wp-content/uploads/2024/10/katibawasan-falls-camiguin.jpg' },
 ];
 
 export default function ToursModule() {
