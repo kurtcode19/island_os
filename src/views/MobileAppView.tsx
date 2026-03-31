@@ -64,7 +64,7 @@ const spots = [
     name: 'White Island',
     category: 'Beaches',
     rating: 4.9,
-    image: 'https://picsum.photos/seed/tropical-island-sand/800/800',
+    image: 'https://www.thepoortraveler.net/wp-content/uploads/2012/04/white-island-white-sand-beach-camiguin.jpg',
     distance: '2.4 km'
   },
   {
@@ -72,16 +72,32 @@ const spots = [
     name: 'Katibawasan Falls',
     category: 'Waterfalls',
     rating: 4.8,
-    image: 'https://picsum.photos/seed/jungle-waterfall/800/800',
+    image: 'https://thefroggyadventures.com/wp-content/uploads/2024/10/katibawasan-falls-camiguin.jpg',
     distance: '5.1 km'
   },
   {
     id: 3,
-    name: 'Hibok-Hibok Volcano',
-    category: 'Hiking',
+    name: 'Sunken Cemetery',
+    category: 'Historical',
+    rating: 4.9,
+    image: 'https://img.atlasobscura.com/CmlPBCqrdngS4DE4q_DDyDdVYBjhcSTHrsI9PUEbvkQ/rs:fill:780:520:1/g:ce/q:81/sm:1/scp:1/ar:1/aHR0cHM6Ly9hdGxh/cy1kZXYuczMuYW1h/em9uYXdzLmNvbS91/cGxvYWRzL3BsYWNl/X2ltYWdlcy85OTA0/ZjhlMDJiMGM0ODM5/NWJfU3Vua2VuX0Nl/bWV0ZXJ5LF9DYXRh/cm1hbixfQ2FtaWd1/aW4uanBn.jpg',
+    distance: '3.8 km'
+  },
+  {
+    id: 4,
+    name: 'Ardent Hot Springs',
+    category: 'Nature',
     rating: 4.7,
-    image: 'https://picsum.photos/seed/volcano-mountain-peak/800/800',
-    distance: '8.2 km'
+    image: 'https://www.travel-palawan.com/wp-content/uploads/2024/04/Ardent-Hot-Spring-Camiguin-Island.jpeg',
+    distance: '4.2 km'
+  },
+  {
+    id: 5,
+    name: 'Mantigue Island',
+    category: 'Beaches',
+    rating: 4.8,
+    image: 'https://www.lanzonescabana.com/custom/domain_4/image_files/sitemgr_photo_17.png',
+    distance: '6.5 km'
   }
 ];
 

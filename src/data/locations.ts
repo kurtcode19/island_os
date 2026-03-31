@@ -3,7 +3,7 @@ export const locations = [
     id: 1,
     name: "Sunken Cemetery",
     type: "Historical",
-    image: "https://eazytraveler.net/wp-content/uploads/2013/12/11264466243_993705526b_z.jpg",
+    image: "https://img.atlasobscura.com/CmlPBCqrdngS4DE4q_DDyDdVYBjhcSTHrsI9PUEbvkQ/rs:fill:780:520:1/g:ce/q:81/sm:1/scp:1/ar:1/aHR0cHM6Ly9hdGxh/cy1kZXYuczMuYW1h/em9uYXdzLmNvbS91/cGxvYWRzL3BsYWNl/X2ltYWdlcy85OTA0/ZjhlMDJiMGM0ODM5/NWJfU3Vua2VuX0Nl/bWV0ZXJ5LF9DYXRh/cm1hbixfQ2FtaWd1/aW4uanBn.jpg",
     coords: "9.2014° N, 124.6675° E",
     lat: 9.2014,
     lng: 124.6675,
@@ -23,7 +23,7 @@ export const locations = [
     id: 3,
     name: "Ardent Hot Springs",
     type: "Nature",
-    image: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiQaP43OAXTNmtHca_inwoebHilEDuksnsxWraO6nUciaZfzozMtkYgNDHrDIOvov6iDJuk5qUsCIXE00PE8JFffm2L1JePVPp9dwkmiTUgXwXkx0s8nXBavOUOKIeIpT-CKzYwowm0Tv0/w1200-h630-p-k-no-nu/geejay-travel-log-ardent-hot-spring-camiguin-09.jpg",
+    image: "https://www.travel-palawan.com/wp-content/uploads/2024/04/Ardent-Hot-Spring-Camiguin-Island.jpeg",
     coords: "9.2234° N, 124.6789° E",
     lat: 9.2234,
     lng: 124.6789,
@@ -33,7 +33,7 @@ export const locations = [
     id: 4,
     name: "White Island",
     type: "Nature",
-    image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/61/b8/e7/white-island-is-an-uninhabited.jpg?w=700&h=-1&s=1",
+    image: "https://www.thepoortraveler.net/wp-content/uploads/2012/04/white-island-white-sand-beach-camiguin.jpg",
     coords: "9.2500° N, 124.6500° E",
     lat: 9.2500,
     lng: 124.6500,
@@ -43,10 +43,20 @@ export const locations = [
     id: 5,
     name: "Katibawasan Falls",
     type: "Nature",
-    image: "https://chrisandwrensworld.com/wp-content/uploads/2025/04/katibawasan-falls.jpeg",
+    image: "https://thefroggyadventures.com/wp-content/uploads/2024/10/katibawasan-falls-camiguin.jpg",
     coords: "9.2100° N, 124.7200° E",
     lat: 9.2100,
     lng: 124.7200,
     visitors: 84
+  },
+  {
+    id: 6,
+    name: "Mantigue Island",
+    type: "Nature",
+    image: "https://www.lanzonescabana.com/custom/domain_4/image_files/sitemgr_photo_17.png",
+    coords: "9.1667° N, 124.8167° E",
+    lat: 9.1667,
+    lng: 124.8167,
+    visitors: 120
   }
 ];
