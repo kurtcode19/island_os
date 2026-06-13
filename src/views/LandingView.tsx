@@ -32,7 +32,7 @@ import L from 'leaflet';
 import { locations } from '../data/locations';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useAuth } from '../App';
+import { useAuth } from '../context/AuthContext';
 
 // Fix for default marker icon issue in Leaflet with React
 const customIcon = new L.Icon({
@@ -218,12 +218,12 @@ export default function LandingView() {
             <div className="lg:col-span-1">
               <span className="text-island-coral font-black uppercase tracking-[0.4em] text-[10px] mb-6 block">The Ecosystem</span>
               <h2 className="text-5xl md:text-7xl font-bold text-island-green leading-tight mb-8 tracking-tighter">
-                The Operating <br /> System for <br /> <span className="text-island-emerald">IsleGO.</span>
+                The Operating <br /> System for <br /> <span className="text-island-emerald">Catarman eLaag.</span>
               </h2>
             </div>
             <div className="lg:col-span-2">
               <p className="text-2xl text-island-green/70 font-medium leading-relaxed max-w-2xl">
-                IsleGO connects every touchpoint of your journey. From the moment you land to your final sunset, we ensure Catarman's magic is just a tap away.
+                Catarman eLaag connects every touchpoint of your journey. From the moment you land to your final sunset, we ensure Catarman's magic is just a tap away.
               </p>
             </div>
           </div>
@@ -515,9 +515,9 @@ export default function LandingView() {
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-5 mb-12 group cursor-pointer" onClick={() => navigate('/')}>
                 <div className="w-16 h-16 forest-gradient rounded-2xl flex items-center justify-center text-white shadow-3xl border border-emerald-100/10 group-hover:scale-105 transition-transform duration-700">
-                  <Compass size={32} strokeWidth={2} />
+                  <img src="/images/logo.png" alt="Catarman eLaag Logo" className="w-12 h-12 object-contain" referrerPolicy="no-referrer" />
                 </div>
-                <span className="text-5xl font-serif font-bold tracking-tighter italic text-white">Isle<span className="text-island-emerald not-italic">GO</span></span>
+                <span className="text-5xl font-serif font-bold tracking-tighter italic text-white">Catarman <span className="text-island-emerald not-italic">eLaag</span></span>
               </div>
               <p className="text-emerald-100/40 leading-relaxed font-medium text-2xl max-w-md">
                 Building the emerald digital infrastructure for the world's most beautiful island destinations. Starting with Catarman.
@@ -543,7 +543,7 @@ export default function LandingView() {
             </div>
           </div>
           <div className="pt-24 border-t border-emerald-900/30 flex flex-col md:flex-row justify-between items-center gap-10 text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/20">
-            <p>© 2026 IsleGO • Catarman Emerald Node v1.0.5</p>
+            <p>© 2026 Catarman eLaag • Catarman Emerald Node v1.0.5</p>
             <div className="flex gap-12">
               <a href="#" className="hover:text-white transition-colors">Instagram</a>
               <a href="#" className="hover:text-white transition-colors">Facebook</a>
@@ -555,3 +555,4 @@ export default function LandingView() {
     </div>
   );
 }
+5

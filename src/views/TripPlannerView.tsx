@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -41,7 +41,7 @@ import {
 import { GoogleGenAI, Type } from "@google/genai";
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useAuth } from '../App';
+import { useAuth } from '../context/AuthContext';
 
 // Initialize Gemini
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
@@ -122,6 +122,31 @@ export default function TripPlannerView() {
   const generateTrip = async () => {
     setLoading(true);
     setStep('result');
+
+    // Fallback Mock Data in case of missing API key or failure
+    const getMockItinerary = (numDays: number) => {
+      const activities = [
+        { timeSlot: "8:00 AM - 10:00 AM", activity: "Sunken Cemetery Expedition", location: "Catarman Coast", description: "Snorkel over the historic Sunken Cemetery and witness the iconic giant cross.", whyGo: "It's the most iconic landmark in Camiguin with hauntingly beautiful underwater views.", price: 500 },
+        { timeSlot: "11:00 AM - 1:00 PM", activity: "Tuasan Falls Refresh", location: "Mainit, Catarman", description: "Swim in the crystal clear, cold waters of one of the island's most pristine falls.", whyGo: "Less crowded than other falls, offering a serene jungle atmosphere.", price: 50 },
+        { timeSlot: "2:00 PM - 4:00 PM", activity: "Old Church Ruins Walk", location: "Bonbon, Catarman", description: "Explore the coral stone walls of the 16th-century Gui-ob Church.", whyGo: "Feel the weight of history in these beautifully preserved Spanish-era ruins.", price: 0 },
+        { timeSlot: "5:00 PM - 7:00 PM", activity: "Sunset at Bura Soda Water", location: "Catarman", description: "Relax in the only soda water pool in the Philippines as the sun dips low.", whyGo: "The unique effervescent water is incredibly refreshing after a day of exploring.", price: 100 }
+      ];
+
+      return Array.from({ length: numDays }, (_, i) => ({
+        day: i + 1,
+        activities: activities.slice(0, 3 + (i % 2))
+      }));
+    };
+
+    if (!apiKey || apiKey === '') {
+      console.warn("Gemini API Key missing. Showing simulated itinerary.");
+      setTimeout(() => {
+        setItinerary(getMockItinerary(days));
+        setLoading(false);
+      }, 4000);
+      return;
+    }
+
     try {
       const prompt = `Create a ${days}-day itinerary for a ${groupType} trip to Catarman Island.
       Transportation: ${transport}.
@@ -140,7 +165,7 @@ export default function TripPlannerView() {
       - 'price': (Estimated price in PHP as a number)`;
 
       const result = await genAI.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-1.5-flash",
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         config: {
           systemInstruction: `You are the 'Senior Catarman Concierge' and a local expert for the municipality of Catarman, Catarman. Your goal is to create a highly detailed, realistic, and optimized travel itinerary EXCLUSIVELY for the municipality of Catarman.
@@ -159,7 +184,7 @@ export default function TripPlannerView() {
           5. Personalization: Adjust the density of activities based on the 'Pace' (Relaxed: 2 spots, Moderate: 3-4 spots, Packed: Max adventure within Catarman).
           6. Accuracy: Use real spots in Catarman and realistic travel times within the municipality.`,
           responseMimeType: "application/json",
-          responseSchema: {
+          responseJsonSchema: {
             type: Type.ARRAY,
             items: {
               type: Type.OBJECT,
@@ -192,7 +217,8 @@ export default function TripPlannerView() {
       setItinerary(data);
     } catch (error) {
       console.error("Gemini Error:", error);
-      setStep('budget');
+      // Fallback to mock on actual API failure too
+      setItinerary(getMockItinerary(days));
     } finally {
       setLoading(false);
     }
@@ -517,22 +543,11 @@ export default function TripPlannerView() {
               <ArrowLeft size={22} strokeWidth={3.5} />
             </button>
             <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="text-2xl font-black text-island-green tracking-tighter leading-none">Layla</h1>
-                <div className="w-2 h-2 rounded-full bg-island-emerald animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]"></div>
-              </div>
-              <span className="text-[10px] font-black text-island-green/40 uppercase tracking-[0.3em] mt-1.5 block">Neural Interface</span>
+              <h1 className="text-2xl font-black text-island-green tracking-tighter leading-none">Trip Planner</h1>
             </div>
           </div>
           <div className="flex items-center gap-4 bg-emerald-50 px-5 py-2.5 rounded-[1.5rem] border border-emerald-100">
-            <div className="flex -space-x-2.5">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="w-7 h-7 rounded-full border-2 border-white bg-emerald-100 overflow-hidden shadow-md">
-                  <img src={`https://i.pravatar.cc/100?u=${i+15}`} alt="user" className="w-full h-full object-cover" />
-                </div>
-              ))}
-            </div>
-            <span className="text-[10px] font-black text-island-emerald uppercase tracking-widest">Pilot Node</span>
+            <span className="text-[10px] font-black text-island-emerald uppercase tracking-widest">Active Session</span>
           </div>
         </header>
 

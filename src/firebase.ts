@@ -41,6 +41,8 @@ export enum OperationType {
   LIST = 'list',
   GET = 'get',
   WRITE = 'write',
+  READ = 'read',
+  AUTH = 'auth',
 }
 
 export interface FirestoreErrorInfo {

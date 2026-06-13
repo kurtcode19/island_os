@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { MapPin, Navigation, BookOpen, Crosshair, ExternalLink, Sparkles } from 'lucide-react';
+import { MapPin, Navigation, BookOpen, Crosshair, ExternalLink, Sparkles, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Fix for default marker icons in Leaflet with CDN links

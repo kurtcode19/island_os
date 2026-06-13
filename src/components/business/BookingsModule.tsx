@@ -24,7 +24,7 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
-import { useAuth } from '../../App';
+import { useAuth } from '../../context/AuthContext';
 
 export default function BookingsModule() {
   const { profile } = useAuth();

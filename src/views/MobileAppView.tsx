@@ -37,7 +37,7 @@ import {
   Zap
 } from 'lucide-react';
 import { locations } from '../data/locations';
-import { useAuth } from '../App';
+import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp, onSnapshot, query, where, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { accommodations } from '../data/accommodations';

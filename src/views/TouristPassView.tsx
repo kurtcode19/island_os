@@ -148,7 +148,7 @@ export default function TouristPassView() {
               <div className="flex-1 text-center md:text-left relative z-10">
                 <h3 className="text-4xl font-black mb-3 tracking-tighter leading-none">Mobile First.</h3>
                 <p className="text-white/70 font-medium text-xl mb-10 leading-relaxed">
-                  Download the IsleGO interface for offline node access and real-time protocol updates.
+                  Download the Catarman eLaag interface for offline node access and real-time protocol updates.
                 </p>
                 <div className="flex flex-wrap justify-center md:justify-start gap-5">
                   <button className="btn-volcanic px-8 py-4 rounded-2xl">App Store</button>
