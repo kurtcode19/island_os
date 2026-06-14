@@ -184,7 +184,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
               ) : (
                 <button 
                   onClick={login}
-                  className="flex items-center gap-2 px-6 py-3 island-gradient text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-island-emerald/20 hover:scale-105 transition-all"
+                  className="flex items-center gap-2 px-6 py-3 sunset-gradient text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-island-sunset/20 hover:scale-105 transition-all"
                 >
                   <LogIn size={14} />
                   Sign In
@@ -243,7 +243,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
               {!user && (
                 <button 
                   onClick={login}
-                  className="w-full flex items-center justify-center gap-4 p-4 rounded-2xl bg-island-emerald text-white text-sm font-bold uppercase tracking-widest"
+                  className="w-full flex items-center justify-center gap-4 p-4 rounded-2xl sunset-gradient text-white text-sm font-bold uppercase tracking-widest shadow-lg shadow-island-sunset/20"
                 >
                   <LogIn size={20} />
                   Sign In

@@ -1,6 +1,6 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { onAuthStateChanged, User as FirebaseUser, signInWithPopup, signInWithRedirect } from 'firebase/auth';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { auth, db, googleProvider, handleFirestoreError, OperationType } from './firebase';
 import { UserRole, UserProfile } from './types';
@@ -75,20 +75,36 @@ export default function App() {
   }, []);
 
   const login = async () => {
+    console.log('Current Origin:', window.location.origin);
     try {
-      await import('firebase/auth').then(async ({ signInWithPopup }) => {
-        await signInWithPopup(auth, googleProvider);
-      });
-    } catch (error) {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error: any) {
       console.error('Login failed:', error);
+      
+      if (error.code === 'auth/unauthorized-domain') {
+        const confirmRedirect = confirm(
+          `Domain "${window.location.hostname}" is not authorized in Firebase Console.\n\n` +
+          `Would you like to try Sign-In via Redirect instead? (This sometimes works better for local IPs)`
+        );
+        if (confirmRedirect) {
+          try {
+            await signInWithRedirect(auth, googleProvider);
+          } catch (redirectError: any) {
+            alert(`Redirect login failed: ${redirectError.message}`);
+          }
+        }
+      } else if (error.code === 'auth/popup-blocked') {
+        alert('Please allow popups for this website to sign in.');
+      } else {
+        alert(`Login failed: ${error.message}`);
+      }
     }
   };
 
   const logout = async () => {
     try {
-      await import('firebase/auth').then(async ({ signOut }) => {
-        await signOut(auth);
-      });
+      const { signOut } = await import('firebase/auth');
+      await signOut(auth);
     } catch (error) {
       console.error('Logout failed:', error);
     }

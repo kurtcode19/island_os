@@ -99,7 +99,7 @@ export default function TransportView() {
                     transition={{ delay: idx * 0.1 }}
                     className="group bg-white p-10 rounded-[3.5rem] border-2 border-slate-100 shadow-xl hover:shadow-2xl transition-all duration-500 flex flex-col md:flex-row items-center gap-10"
                   >
-                    <div className={`w-24 h-24 rounded-[2rem] ocean-gradient text-white flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform`}>
+                    <div className={`w-24 h-24 rounded-[2rem] emerald-gradient text-white flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform`}>
                       <opt.icon size={44} strokeWidth={2.5} />
                     </div>
                     <div className="flex-1 text-center md:text-left">
@@ -162,7 +162,7 @@ export default function TransportView() {
           <div className="space-y-10">
             <div className="bg-white p-12 rounded-[4rem] border-2 border-slate-100 shadow-xl">
               <div className="flex items-center gap-4 mb-10 pb-6 border-b-2 border-stone-50">
-                <div className="w-14 h-14 ocean-gradient text-white rounded-2xl flex items-center justify-center shadow-lg">
+                <div className="w-14 h-14 emerald-gradient text-white rounded-2xl flex items-center justify-center shadow-lg">
                   <Waves size={28} strokeWidth={2.5} />
                 </div>
                 <h3 className="text-3xl font-black text-island-volcanic tracking-tighter">Schedules.</h3>
@@ -230,7 +230,7 @@ export default function TransportView() {
 
               <div className="p-12">
                 <div className="flex items-center gap-6 mb-10 pb-10 border-b-2 border-stone-50">
-                  <div className={`w-20 h-20 rounded-[1.75rem] ocean-gradient text-white flex items-center justify-center shadow-2xl border border-white/10`}>
+                  <div className={`w-20 h-20 rounded-[1.75rem] emerald-gradient text-white flex items-center justify-center shadow-2xl border border-white/10`}>
                     <selectedTransport.icon size={44} strokeWidth={2.5} />
                   </div>
                   <div>

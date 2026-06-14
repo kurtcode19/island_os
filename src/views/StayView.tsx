@@ -125,7 +125,7 @@ export default function StayView() {
                 onClick={() => setSelectedTab(tab)}
                 className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
                   selectedTab === tab 
-                    ? 'volcanic-gradient text-white shadow-xl shadow-island-volcanic/20' 
+                    ? 'sunset-gradient text-white shadow-xl shadow-island-sunset/20' 
                     : 'text-slate-400 hover:text-slate-600'
                 }`}
               >

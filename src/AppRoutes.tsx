@@ -40,22 +40,19 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
       <ScrollToTop />
       <Routes>
         <Route path="/mobile" element={
-          <>
-            <MobileHeader />
-            <main className="pt-16 pb-24">
-              <MobileAppView />
-            </main>
-            <MobileBottomNav />
-          </>
+          <main className="h-screen overflow-hidden">
+            <MobileAppView />
+            {/* Bottom nav is now handled inside MobileAppView for better control */}
+          </main>
         } />
         <Route path="*" element={
           <>
             {!isMobile ? (
               <Navigation currentRole={role} onRoleChange={setRole} />
             ) : (
-              <MobileHeader />
+              location.pathname !== '/mobile' && <MobileHeader />
             )}
-            <main className={!isMobile ? "pt-20" : "pt-16 pb-24"}>
+            <main className={!isMobile ? "pt-20" : (location.pathname === '/mobile' ? "" : "pt-16 pb-24")}>
               <AnimatePresence mode="wait">
                 <motion.div 
                   key={location.pathname}
@@ -75,12 +72,12 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
                     <Route path="/my-bookings" element={<MyBookingsView />} />
                     <Route path="/claim-business" element={<ClaimBusinessView />} />
                     <Route path="/business/*" element={<BusinessDashboard />} />
-                    <Route path="/government/*" element={<GovernmentDashboard />} />
+                    {!isMobile && <Route path="/government/*" element={<GovernmentDashboard />} />}
                   </Routes>
                 </motion.div>
               </AnimatePresence>
             </main>
-            {isMobile && <MobileBottomNav />}
+            {isMobile && location.pathname !== '/mobile' && <MobileBottomNav />}
           </>
         } />
       </Routes>

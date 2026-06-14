@@ -45,7 +45,15 @@ import { transportOptions } from '../data/transport';
 import { useNavigate } from 'react-router-dom';
 import IslandMap from '../components/IslandMap';
 
-const categories = ['All', 'Heritage', 'Nature', 'Stay', 'Transport', 'Dining', 'Shops', 'Planner'];
+const categories = [
+  { name: 'All', image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=100' },
+  { name: 'Heritage', image: 'https://files01.pna.gov.ph/source/2024/05/06/camiguin-old-church-ruins-05032024jb.jpg' },
+  { name: 'Nature', image: 'https://thefroggyadventures.com/wp-content/uploads/2024/10/tuasan-falls-camiguin.jpg' },
+  { name: 'Stay', image: 'https://images.unsplash.com/photo-1540541338287-41700207def5?auto=format&fit=crop&q=80&w=100' },
+  { name: 'Transport', image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=100' },
+  { name: 'Dining', image: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=100' },
+  { name: 'Shops', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=100' },
+];
 
 const spots = [
   {
@@ -53,38 +61,47 @@ const spots = [
     name: 'Sunken Cemetery',
     category: 'Heritage',
     rating: 4.9,
+    price: 150,
     image: 'https://img.atlasobscura.com/CmlPBCqrdngS4DE4q_DDyDdVYBjhcSTHrsI9PUEbvkQ/rs:fill:780:520:1/g:ce/q:81/sm:1/scp:1/ar:1/aHR0cHM6Ly9hdGxh/cy1kZXYuczMuYW1h/em9uYXdzLmNvbS91/cGxvYWRzL3BsYWNl/X2ltYWdlcy85OTA0/ZjhlMDJiMGM0ODM5/NWJfU3Vua2VuX0Nl/bWV0ZXJ5LF9DYXRh/cm1hbixfQ2FtaWd1/aW4uanBn.jpg',
-    distance: '0.8 km'
+    distance: '0.8 km',
+    description: 'Explore the profound heritage of Sunken Cemetery. A cornerstone of the Catarman pilot experience.'
   },
   {
     id: 2,
     name: 'Old Church Ruins',
     category: 'Heritage',
     rating: 4.8,
+    price: 100,
     image: 'https://files01.pna.gov.ph/source/2024/05/06/camiguin-old-church-ruins-05032024jb.jpg',
-    distance: '1.2 km'
+    distance: '1.2 km',
+    description: 'Visit the Gui-ob Church Ruins, a historical landmark that tells the story of Camiguin\'s past.'
   },
   {
     id: 7,
     name: 'Tuasan Falls',
     category: 'Nature',
     rating: 4.9,
+    price: 300,
     image: 'https://thefroggyadventures.com/wp-content/uploads/2024/10/tuasan-falls-camiguin.jpg',
-    distance: '3.5 km'
+    distance: '3.5 km',
+    description: 'Tuasan Falls offers a refreshing escape into nature with its cool, crystal-clear waters.'
   },
   {
     id: 8,
     name: 'Soda Water Park',
     category: 'Nature',
     rating: 4.7,
+    price: 200,
     image: 'https://www.lanzonescabana.com/custom/domain_4/image_files/sitemgr_photo_21.png',
-    distance: '2.4 km'
+    distance: '2.4 km',
+    description: 'Enjoy a unique swimming experience at the Bura Soda Water Park, known for its carbonated spring water.'
   }
 ];
 
 export default function MobileAppView() {
   const { user, profile, login, logout } = useAuth();
   const navigate = useNavigate();
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const [activeTab, setActiveTab] = useState('explore');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSpot, setSelectedSpot] = useState<any>(null);
@@ -99,6 +116,7 @@ export default function MobileAppView() {
     const tab = params.get('tab');
     if (tab && ['explore', 'map', 'services', 'pass', 'profile'].includes(tab)) {
       setActiveTab(tab);
+      setShowOnboarding(false);
     } else if (!tab) {
       setActiveTab('explore');
     }
@@ -130,7 +148,7 @@ export default function MobileAppView() {
     return () => unsubscribe();
   }, [user]);
 
-  const handleBook = async (item: any, type: 'stay' | 'transport') => {
+  const handleBook = async (item: any, type: 'stay' | 'transport' | 'spot') => {
     if (!user) {
       login();
       return;
@@ -147,11 +165,11 @@ export default function MobileAppView() {
         serviceId: item.id,
         serviceName: item.name || item.title,
         serviceType: type,
-        businessId: item.businessId,
+        businessId: item.businessId || 'catarman_lgu',
         date: new Date().toLocaleDateString(),
         status: 'pending',
         paymentStatus: 'UNPAID',
-        amount: item.price,
+        amount: item.price || 150,
         createdAt: serverTimestamp()
       });
       
@@ -182,9 +200,68 @@ export default function MobileAppView() {
     return accommodations.filter(s => selectedCategory === 'All' || selectedCategory === 'Stay');
   }, [selectedCategory]);
 
+  const onboardingContent = (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="relative h-full flex flex-col justify-end p-10 overflow-hidden"
+    >
+      <div className="absolute inset-0 z-0">
+        <img 
+          src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=1000" 
+          alt="Onboarding" 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-island-volcanic via-island-volcanic/20 to-transparent"></div>
+      </div>
+      
+      <div className="relative z-10 space-y-6 mb-12">
+        <motion.h1 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-5xl font-black text-white tracking-tighter leading-[0.9]"
+        >
+          Discover Your Next Adventure
+        </motion.h1>
+        <motion.p 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="text-white/70 text-lg font-medium"
+        >
+          Plan trips, explore destinations, and book unforgettable experiences.
+        </motion.p>
+      </div>
+
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="relative z-10 flex items-center justify-between gap-4"
+      >
+        <button 
+          onClick={() => navigate('/')}
+          className="w-14 h-14 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center text-white"
+        >
+          <ArrowLeft size={24} />
+        </button>
+        <button 
+          onClick={() => setShowOnboarding(false)}
+          className="flex-1 bg-island-emerald text-island-volcanic font-black py-6 rounded-3xl text-sm shadow-2xl"
+        >
+          Get Started
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+
   const content = (
-    <div className={`h-full flex flex-col pt-6 pb-6 overflow-y-auto no-scrollbar bg-[#F0FDF4] ${!isDesktop ? 'min-h-screen' : ''}`}>
+    <div className={`h-full flex flex-col pt-6 pb-6 overflow-y-auto no-scrollbar bg-[#FDFDFB] ${!isDesktop ? 'min-h-screen' : ''}`}>
       <AnimatePresence mode="wait">
+        {showOnboarding ? onboardingContent : (
+        <>
         {selectedSpot ? (
           <motion.div 
             key="spot-detail"
@@ -194,80 +271,104 @@ export default function MobileAppView() {
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="absolute inset-0 bg-white z-[60] flex flex-col"
           >
-            <div className="relative h-[48vh]">
-              <img src={selectedSpot.image} alt={selectedSpot.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/30"></div>
-              <motion.button 
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setSelectedSpot(null)}
-                className="absolute top-8 left-8 w-14 h-14 bg-black/40 backdrop-blur-2xl rounded-full flex items-center justify-center text-white border border-white/20 shadow-2xl active:scale-90"
-              >
-                <ArrowLeft size={28} strokeWidth={3} />
-              </motion.button>
-              
-              <div className="absolute bottom-10 left-10 right-10 flex justify-between items-end">
-                <div>
-                  <span className="text-[11px] font-black uppercase tracking-[0.4em] text-white mb-3 block bg-island-emerald px-4 py-1.5 rounded-full shadow-2xl w-fit">
-                    {selectedSpot.category || selectedSpot.type}
-                  </span>
-                  <h2 className="text-5xl font-black tracking-tighter drop-shadow-2xl text-island-volcanic">{selectedSpot.name}</h2>
+            <div className="relative h-[45vh] p-6">
+              <div className="relative h-full w-full rounded-[3rem] overflow-hidden shadow-2xl">
+                <img src={selectedSpot.image} alt={selectedSpot.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                
+                <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
+                  <motion.button 
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setSelectedSpot(null)}
+                    className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20"
+                  >
+                    <ArrowLeft size={24} />
+                  </motion.button>
+                  <h2 className="text-white font-black uppercase tracking-[0.2em] text-xs">Details</h2>
+                  <motion.button 
+                    whileTap={{ scale: 0.9 }}
+                    className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20"
+                  >
+                    <X size={24} />
+                  </motion.button>
                 </div>
-                <div className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-[1.5rem] shadow-2xl border border-emerald-50">
-                  <Star size={20} fill="#D97706" className="text-island-sunset" />
-                  <span className="text-base font-black tracking-tight text-island-volcanic">{selectedSpot.rating || '4.5'}</span>
+
+                <div className="absolute bottom-8 left-8 flex items-center gap-2">
+                  <div className="flex -space-x-3">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden shadow-lg">
+                        <img src={`https://i.pravatar.cc/100?u=${i+10}`} alt="" />
+                      </div>
+                    ))}
+                    <div className="w-8 h-8 rounded-full bg-island-emerald border-2 border-white flex items-center justify-center text-[10px] font-black text-white shadow-lg">2K</div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="p-12 flex-1 flex flex-col bg-[#FDFDFB]">
-              <div className="flex gap-10 mb-12 overflow-x-auto no-scrollbar pb-4 border-b-2 border-emerald-50">
-                <div className="flex flex-col gap-1.5 shrink-0">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Estimated Entry</span>
-                  <span className="text-2xl font-black text-island-green">₱{selectedSpot.price?.toLocaleString() || '150'}</span>
+            <div className="px-8 flex-1 flex flex-col">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <div className="flex items-center gap-2 text-island-emerald font-black uppercase tracking-widest text-[10px] mb-2">
+                    <MapPin size={12} />
+                    {selectedSpot.category || 'Catarman, Camiguin'}
+                  </div>
+                  <h3 className="text-4xl font-black text-island-volcanic tracking-tighter leading-none">{selectedSpot.name}</h3>
                 </div>
-                <div className="flex flex-col gap-1.5 shrink-0">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Island Node</span>
-                  <span className="text-2xl font-black text-island-green">Active</span>
-                </div>
-                <div className="flex flex-col gap-1.5 shrink-0">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Pilot Type</span>
-                  <span className="text-2xl font-black text-island-emerald">Verified</span>
+                <div className="text-right">
+                  <div className="text-3xl font-black text-island-emerald tracking-tighter">₱{selectedSpot.price?.toLocaleString()}</div>
+                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">/ experience</div>
                 </div>
               </div>
 
-              <p className="text-island-green/70 text-lg font-medium leading-relaxed mb-12">
-                {selectedSpot.type === 'stay' ? `Secure your premium accommodation at ${selectedSpot.name}. Experience Catarman's hospitality at its finest.` : 
-                 selectedSpot.type === 'transport' ? `Efficient transit via ${selectedSpot.provider}. Direct access to municipal hubs.` :
-                 `Explore the profound heritage of ${selectedSpot.name}. A cornerstone of the Catarman pilot experience.`}
-              </p>
+              <div className="flex items-center justify-between mb-8 pb-8 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full overflow-hidden">
+                    <img src="https://i.pravatar.cc/100?u=janeeth" alt="Creator" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-black text-island-volcanic">By Catarman Guide</div>
+                    <div className="text-[10px] font-bold text-slate-400">Verified Professional</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100">
+                  <Star size={16} fill="#10B981" className="text-island-emerald" />
+                  <span className="text-xs font-black text-island-emerald">{selectedSpot.rating || '4.9'}</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mb-8">
+                {['Ticket', 'Hotel', 'Meal'].map(tag => (
+                  <div key={tag} className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100 text-slate-600 font-black text-[10px] uppercase tracking-widest">
+                    {tag === 'Ticket' && <Ticket size={14} />}
+                    {tag === 'Hotel' && <Building2 size={14} />}
+                    {tag === 'Meal' && <Utensils size={14} />}
+                    {tag}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mb-8">
+                <h4 className="text-lg font-black text-island-volcanic tracking-tight mb-3">Schedule Overview</h4>
+                <p className="text-slate-500 text-sm font-medium leading-relaxed">
+                  {selectedSpot.description || 'Experience the profound heritage of Catarman. This landmark represents the emerald soul of our municipality, offering a unique blend of nature and history.'}
+                </p>
+              </div>
               
-              <div className="mt-auto">
-                {selectedSpot.type === 'spot' ? (
-                  <motion.button 
-                    whileTap={{ scale: 0.95 }}
-                    className="btn-volcanic w-full py-7 text-sm shadow-emerald-900/20"
-                  >
-                    <Navigation size={24} strokeWidth={3} />
-                    Route Instructions
-                  </motion.button>
-                ) : (
-                  <motion.button 
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleBook(selectedSpot, selectedSpot.type)}
-                    disabled={bookingStatus[selectedSpot.id] === 'loading' || bookingStatus[selectedSpot.id] === 'success'}
-                    className={`btn-primary w-full py-7 text-sm ${
-                      bookingStatus[selectedSpot.id] === 'success' ? 'bg-green-700 shadow-none' : ''
-                    }`}
-                  >
-                    {bookingStatus[selectedSpot.id] === 'success' ? (
-                      <><CheckCircle2 size={24} strokeWidth={3} /> Booking Active</>
-                    ) : bookingStatus[selectedSpot.id] === 'loading' ? (
-                      <RefreshCw size={24} className="animate-spin" />
-                    ) : (
-                      <>Reserve Experience Now</>
-                    )}
-                  </motion.button>
-                )}
+              <div className="mt-auto pb-10 flex gap-4">
+                <button className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-island-emerald border border-emerald-100 active:scale-95 transition-all">
+                  <Sparkles size={24} />
+                </button>
+                <motion.button 
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleBook(selectedSpot, selectedSpot.type || 'spot')}
+                  disabled={bookingStatus[selectedSpot.id] === 'loading' || bookingStatus[selectedSpot.id] === 'success'}
+                  className="flex-1 btn-primary py-6 rounded-2xl text-sm shadow-2xl shadow-emerald-900/20"
+                >
+                  {bookingStatus[selectedSpot.id] === 'success' ? 'Booking Active' : 
+                   bookingStatus[selectedSpot.id] === 'loading' ? <RefreshCw className="animate-spin" /> : 
+                   'Book Now'}
+                </motion.button>
               </div>
             </div>
           </motion.div>
@@ -281,111 +382,93 @@ export default function MobileAppView() {
             exit={{ opacity: 0, y: 20 }}
             className="px-8"
           >
-            <header className="mb-12 pt-6 flex justify-between items-start">
+            <header className="mb-8 pt-6 flex justify-between items-center">
               <div>
-                <span className="text-[10px] font-black text-island-emerald uppercase tracking-[0.5em] mb-3 block">Catarman Pilot</span>
-                <h2 className="text-6xl font-bold text-island-green tracking-tighter leading-none">Discover.</h2>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-1 block">Current Location</span>
+                <button className="flex items-center gap-2 text-island-volcanic font-black tracking-tight group">
+                  Catarman, Camiguin
+                  <ChevronRight size={16} className="rotate-90 text-island-emerald" />
+                </button>
               </div>
-              <div className="w-14 h-14 rounded-2xl bg-white shadow-xl shadow-emerald-900/5 flex items-center justify-center text-island-green border border-emerald-50 active:scale-90 transition-transform">
-                <Bell size={24} strokeWidth={3} />
+              <div className="relative">
+                <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-600 shadow-sm active:scale-90 transition-transform">
+                  <Bell size={20} />
+                </div>
+                <span className="absolute top-2 right-2 w-2 h-2 bg-island-coral rounded-full border-2 border-white"></span>
               </div>
             </header>
 
-            {/* Premium Search */}
-            <div className="relative mb-12">
-              <div className="absolute left-6 top-1/2 -translate-y-1/2 text-emerald-300">
-                <Search size={24} strokeWidth={3} />
+            {/* Modern Search */}
+            <div className="relative mb-8">
+              <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300">
+                <Search size={20} strokeWidth={3} />
               </div>
               <input 
                 type="text" 
-                placeholder="Search the municipality..." 
-                className="w-full pl-16 pr-16 py-7 bg-white border-2 border-emerald-50 rounded-[2.5rem] text-base font-bold shadow-2xl focus:ring-8 focus:ring-island-emerald/5 focus:border-island-emerald/30 transition-all outline-none"
+                placeholder="Search destination..." 
+                className="w-full pl-14 pr-14 py-5 bg-slate-50 border border-slate-100 rounded-[2rem] text-sm font-bold shadow-sm focus:ring-4 focus:ring-island-emerald/5 focus:border-island-emerald/20 transition-all outline-none placeholder:text-slate-300"
               />
-              <button className="absolute right-3 top-1/2 -translate-y-1/2 w-14 h-14 forest-gradient text-white rounded-[1.75rem] flex items-center justify-center shadow-xl active:scale-90">
-                <Filter size={24} strokeWidth={3} />
+              <button className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-island-volcanic text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90">
+                <Filter size={18} strokeWidth={3} />
               </button>
             </div>
 
-            {/* Horizontal Categories */}
-            <div className="flex gap-4 overflow-x-auto no-scrollbar mb-12 -mx-6 px-6">
+            {/* Horizontal Categories with Images */}
+            <div className="flex gap-4 overflow-x-auto no-scrollbar mb-10 -mx-8 px-8">
               {categories.map((cat) => (
                 <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-8 py-4 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
-                    selectedCategory === cat 
-                      ? 'forest-gradient text-white shadow-xl' 
-                      : 'bg-white border-2 border-emerald-50 text-island-green/60 hover:border-emerald-200 hover:bg-emerald-50/30'
+                  key={cat.name}
+                  onClick={() => setSelectedCategory(cat.name)}
+                  className={`flex items-center gap-3 pl-2 pr-6 py-2 rounded-full transition-all border shrink-0 ${
+                    selectedCategory === cat.name 
+                      ? 'bg-island-emerald border-island-emerald text-island-volcanic font-black' 
+                      : 'bg-white border-slate-100 text-slate-500 font-bold'
                   }`}
                 >
-                  {cat}
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20">
+                    <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+                  </div>
+                  <span className="text-xs">{cat.name}</span>
                 </button>
               ))}
             </div>
 
-            {/* Quick Pulse Actions */}
-            <div className="grid grid-cols-4 gap-6 mb-16">
-              {[
-                { icon: Ship, label: 'Transport', gradient: 'lush-gradient', tab: 'services', cat: 'Transport' },
-                { icon: MapPin, label: 'Spots', gradient: 'emerald-gradient', tab: 'map' },
-                { icon: ShoppingBag, label: 'Market', gradient: 'lush-gradient', tab: 'services', cat: 'Shops' },
-                { icon: Zap, label: 'AI Trip', gradient: 'forest-gradient', link: '/planner' }
-              ].map((action, i) => (
-                <motion.button 
-                  key={i}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => {
-                    if (action.link) navigate(action.link);
-                    else if (action.tab) {
-                      navigate(`/mobile?tab=${action.tab}`);
-                      if (action.cat) setSelectedCategory(action.cat);
-                    }
-                  }} 
-                  className="flex flex-col items-center gap-4"
-                >
-                  <div className={`w-16 h-16 ${action.gradient} text-white rounded-[1.75rem] flex items-center justify-center shadow-2xl border border-white/10`}>
-                    <action.icon size={28} strokeWidth={3} />
-                  </div>
-                  <span className="text-[10px] font-black text-island-green/40 uppercase tracking-widest">{action.label}</span>
-                </motion.button>
-              ))}
-            </div>
-
-            {/* High-Impact Discovery Grid */}
+            {/* Popular Destinations */}
             <div className="mb-12">
-              <div className="flex justify-between items-end mb-8">
-                <h3 className="text-3xl font-black text-island-green tracking-tighter">
-                  {selectedCategory === 'All' ? 'Local Favorites' : selectedCategory}
-                </h3>
-                <button className="text-[10px] font-black text-island-emerald uppercase tracking-widest bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">Explore All</button>
+              <div className="flex justify-between items-center mb-8">
+                <h3 className="text-2xl font-black text-island-volcanic tracking-tighter">Popular Destination</h3>
+                <button className="text-[10px] font-black text-island-emerald uppercase tracking-widest">View All</button>
               </div>
               
-              <div className="space-y-10 pb-12">
+              <div className="space-y-8 pb-12">
                 {/* Spot Cards */}
                 {(selectedCategory === 'All' || ['Heritage', 'Nature'].includes(selectedCategory)) && 
                   spots.filter(s => selectedCategory === 'All' || s.category === selectedCategory).map((spot) => (
                     <motion.div 
                       key={`spot-${spot.id}`}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => setSelectedSpot({ ...spot, type: 'spot', price: 150 })}
-                      className="group relative bg-white rounded-[3.5rem] border-2 border-emerald-50 overflow-hidden shadow-2xl p-5 cursor-pointer"
+                      onClick={() => setSelectedSpot({ ...spot, type: 'spot' })}
+                      className="group relative bg-white rounded-[3rem] border border-slate-100 overflow-hidden shadow-xl p-4 cursor-pointer"
                     >
-                      <div className="relative h-72 rounded-[2.75rem] overflow-hidden mb-8">
+                      <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
                         <img src={spot.image} alt={spot.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" referrerPolicy="no-referrer" />
-                        <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-xl px-5 py-2.5 rounded-2xl flex items-center gap-2 text-island-green shadow-2xl border border-white">
-                          <Star size={18} fill="#D97706" className="text-island-sunset" />
-                          <span className="text-sm font-black">{spot.rating}</span>
+                        <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-2xl flex items-center gap-1.5 text-island-volcanic shadow-lg">
+                          <Star size={14} fill="#10B981" className="text-island-emerald" />
+                          <span className="text-xs font-black">{spot.rating}</span>
+                        </div>
+                        <button className="absolute top-5 right-5 w-10 h-10 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20">
+                          <Heart size={18} />
+                        </button>
+                        <div className="absolute bottom-5 right-5 w-12 h-12 bg-island-emerald text-island-volcanic rounded-full flex items-center justify-center shadow-2xl">
+                          <ArrowLeft className="rotate-[135deg]" size={20} strokeWidth={3} />
                         </div>
                       </div>
-                      <div className="px-5 pb-5">
-                        <div className="flex justify-between items-center mb-3">
-                          <h4 className="text-3xl font-black text-island-green tracking-tighter">{spot.name}</h4>
-                          <div className="flex items-center gap-2 text-[10px] font-black text-island-emerald uppercase tracking-widest">
-                            <MapPin size={14} strokeWidth={4} />
-                            {spot.distance}
-                          </div>
+                      <div className="px-4 pb-4">
+                        <div className="flex items-center gap-1.5 text-[10px] font-black text-island-emerald uppercase tracking-widest mb-2">
+                          <MapPin size={12} strokeWidth={3} />
+                          {spot.category}
                         </div>
-                        <p className="text-xs font-black text-emerald-900/30 uppercase tracking-[0.3em]">{spot.category}</p>
+                        <h4 className="text-3xl font-black text-island-volcanic tracking-tighter">{spot.name}</h4>
                       </div>
                     </motion.div>
                 ))}
@@ -397,25 +480,26 @@ export default function MobileAppView() {
                       key={`stay-${stay.id}`}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setSelectedSpot({ ...stay, type: 'stay' })}
-                      className="bg-white rounded-[3.5rem] border-2 border-emerald-50 overflow-hidden shadow-2xl p-5 cursor-pointer"
+                      className="bg-white rounded-[3rem] border border-slate-100 overflow-hidden shadow-xl p-4 cursor-pointer"
                     >
-                      <div className="relative h-72 rounded-[2.75rem] overflow-hidden mb-8">
+                      <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
                         <img src={stay.image} alt={stay.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-xl px-5 py-2.5 rounded-2xl flex items-center gap-2 text-island-green shadow-2xl border border-white">
-                          <Star size={18} fill="#D97706" className="text-island-sunset" />
-                          <span className="text-sm font-black">{stay.rating}</span>
+                        <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-2xl flex items-center gap-1.5 text-island-volcanic shadow-lg">
+                          <Star size={14} fill="#10B981" className="text-island-emerald" />
+                          <span className="text-xs font-black">{stay.rating}</span>
+                        </div>
+                        <div className="absolute bottom-5 right-5 w-12 h-12 bg-island-emerald text-island-volcanic rounded-full flex items-center justify-center shadow-2xl">
+                          <ArrowLeft className="rotate-[135deg]" size={20} strokeWidth={3} />
                         </div>
                       </div>
-                      <div className="px-5 pb-5">
-                        <div className="flex justify-between items-end">
-                          <div>
-                            <h4 className="text-3xl font-black text-island-green tracking-tighter mb-2">{stay.name}</h4>
-                            <p className="text-[10px] font-black text-emerald-900/30 uppercase tracking-[0.3em]">{stay.type}</p>
-                          </div>
-                          <div className="text-right">
-                            <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">From</span>
-                            <span className="text-2xl font-black text-island-emerald">₱{stay.price.toLocaleString()}</span>
-                          </div>
+                      <div className="px-4 pb-4 flex justify-between items-end">
+                        <div>
+                          <div className="text-[10px] font-black text-island-emerald uppercase tracking-widest mb-2">Resort • {stay.type}</div>
+                          <h4 className="text-3xl font-black text-island-volcanic tracking-tighter">{stay.name}</h4>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-2xl font-black text-island-emerald tracking-tighter">₱{stay.price.toLocaleString()}</span>
+                          <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">/ night</span>
                         </div>
                       </div>
                     </motion.div>
@@ -446,40 +530,40 @@ export default function MobileAppView() {
             className="px-8 flex flex-col items-center pb-12"
           >
             <header className="mb-14 text-center pt-8">
-              <div className="w-24 h-24 forest-gradient text-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-2xl border border-white/10">
-                <Ticket size={48} strokeWidth={2.5} />
+              <div className="w-20 h-20 bg-island-emerald text-island-volcanic rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl border border-white/10">
+                <Ticket size={40} strokeWidth={2.5} />
               </div>
-              <h2 className="text-5xl font-black text-island-green tracking-tighter mb-3">Municipal Pass</h2>
-              <p className="text-island-green/60 text-base font-medium tracking-tight">Catarman Pilot Identity Manifest</p>
+              <h2 className="text-4xl font-black text-island-volcanic tracking-tighter mb-2">Municipal Pass</h2>
+              <p className="text-slate-400 text-sm font-medium tracking-tight">Catarman Pilot Identity Manifest</p>
             </header>
             
-            <div className="w-full aspect-square max-w-[340px] bg-white rounded-[4.5rem] border-[16px] border-emerald-50 shadow-2xl flex items-center justify-center relative group p-12 mb-16">
-              <div className="absolute top-10 left-10 w-10 h-10 border-t-4 border-l-4 border-island-emerald rounded-tl-xl group-hover:scale-110 transition-transform"></div>
-              <div className="absolute top-10 right-10 w-10 h-10 border-t-4 border-r-4 border-island-emerald rounded-tr-xl group-hover:scale-110 transition-transform"></div>
-              <div className="absolute bottom-10 left-10 w-10 h-10 border-b-4 border-l-4 border-island-emerald rounded-bl-xl group-hover:scale-110 transition-transform"></div>
-              <div className="absolute bottom-10 right-10 w-10 h-10 border-b-4 border-r-4 border-island-emerald rounded-br-xl group-hover:scale-110 transition-transform"></div>
-              <QrCode size={220} strokeWidth={1} className="text-island-volcanic" />
+            <div className="w-full aspect-square max-w-[320px] bg-white rounded-[4rem] border-8 border-slate-50 shadow-xl flex items-center justify-center relative group p-10 mb-12">
+              <div className="absolute top-8 left-8 w-8 h-8 border-t-4 border-l-4 border-island-emerald rounded-tl-xl"></div>
+              <div className="absolute top-8 right-8 w-8 h-8 border-t-4 border-r-4 border-island-emerald rounded-tr-xl"></div>
+              <div className="absolute bottom-8 left-8 w-8 h-8 border-b-4 border-l-4 border-island-emerald rounded-bl-xl"></div>
+              <div className="absolute bottom-8 right-8 w-8 h-8 border-b-4 border-r-4 border-island-emerald rounded-br-xl"></div>
+              <QrCode size={200} strokeWidth={1} className="text-island-volcanic" />
             </div>
 
-            <div className="w-full forest-gradient p-12 rounded-[4rem] text-white shadow-2xl overflow-hidden relative border border-white/10">
+            <div className="w-full bg-island-volcanic p-10 rounded-[3.5rem] text-white shadow-2xl relative border border-white/5 overflow-hidden">
               <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
-                <Sparkles size={250} className="translate-x-12 -translate-y-12 rotate-12" />
+                <Sparkles size={200} className="translate-x-12 -translate-y-12 rotate-12" />
               </div>
-              <div className="flex justify-between items-start mb-12 relative z-10">
+              <div className="flex justify-between items-start mb-10 relative z-10">
                 <div>
-                  <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em] mb-3 block">Operational Clearance</span>
-                  <p className="text-3xl font-black tracking-tighter">{user?.displayName || 'Catarman Guest'}</p>
+                  <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-2 block">Tourist Clearane</span>
+                  <p className="text-2xl font-black tracking-tighter">{user?.displayName || 'Catarman Guest'}</p>
                 </div>
-                <div className="w-16 h-16 bg-white/10 backdrop-blur-2xl rounded-2xl flex items-center justify-center border border-white/20">
-                  <ShieldCheck size={32} strokeWidth={3} className="text-island-emerald" />
+                <div className="w-12 h-12 bg-white/10 backdrop-blur-2xl rounded-xl flex items-center justify-center border border-white/20">
+                  <ShieldCheck size={24} strokeWidth={3} className="text-island-emerald" />
                 </div>
               </div>
               <div className="flex justify-between items-end relative z-10">
-                <div className="space-y-2">
-                  <span className="block text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Node Assignment</span>
-                  <span className="font-mono text-xs font-black tracking-[0.5em] text-island-emerald">CTRM-P-2026-9X</span>
+                <div className="space-y-1">
+                  <span className="block text-[10px] font-black text-white/30 uppercase tracking-[0.4em]">Node ID</span>
+                  <span className="font-mono text-xs font-black tracking-widest text-island-emerald">CTRM-P-2026-9X</span>
                 </div>
-                <div className="px-6 py-3 bg-emerald-500 text-white rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl border border-white/20">
+                <div className="px-5 py-2 bg-island-emerald text-island-volcanic rounded-full text-[10px] font-black uppercase tracking-widest">
                   SECURE
                 </div>
               </div>
@@ -495,72 +579,71 @@ export default function MobileAppView() {
             exit={{ opacity: 0, x: 20 }}
             className="px-8 pb-12"
           >
-            <header className="mb-16 flex flex-col items-center text-center pt-8">
-              <div className="w-40 h-40 rounded-[3.5rem] bg-white border-[10px] border-emerald-50 shadow-2xl flex items-center justify-center relative overflow-hidden mb-8">
+            <header className="mb-12 flex flex-col items-center text-center pt-8">
+              <div className="w-32 h-32 rounded-[3rem] bg-white border-8 border-slate-50 shadow-xl flex items-center justify-center relative overflow-hidden mb-6">
                 {user?.photoURL ? (
                   <img src={user.photoURL} alt={user.displayName || ''} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 ) : (
-                  <User size={80} className="text-emerald-100" />
+                  <User size={60} className="text-slate-100" />
                 )}
-                <div className="absolute -bottom-2 -right-2 w-12 h-12 emerald-gradient text-white rounded-2xl flex items-center justify-center border-4 border-white shadow-2xl">
-                  <CheckCircle2 size={20} strokeWidth={4} />
+                <div className="absolute -bottom-1 -right-1 w-10 h-10 bg-island-emerald text-island-volcanic rounded-xl flex items-center justify-center border-4 border-white shadow-lg">
+                  <CheckCircle2 size={16} strokeWidth={4} />
                 </div>
               </div>
-              <h2 className="text-4xl font-black text-island-green tracking-tighter">
+              <h2 className="text-3xl font-black text-island-volcanic tracking-tighter">
                 {user?.displayName || 'Digital Agent'}
               </h2>
-              <p className="text-island-emerald text-[11px] font-black uppercase tracking-[0.4em] mt-4 bg-emerald-50 px-6 py-2 rounded-full border border-emerald-100">
-                {profile?.role || 'TOURIST'} • PILOT MODE
+              <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mt-3">
+                {profile?.role || 'TOURIST'} • VERIFIED
               </p>
             </header>
 
             {!user ? (
               <button 
                 onClick={login}
-                className="btn-primary w-full py-7 rounded-[2.5rem] text-sm"
+                className="btn-primary w-full py-6 rounded-3xl text-sm"
               >
                 Initialize Manifest
               </button>
             ) : (
-              <div className="space-y-12">
-                {/* Real-time Journey Logs */}
+              <div className="space-y-10">
                 <div>
-                  <div className="flex justify-between items-center mb-8 px-4">
-                    <h3 className="text-2xl font-black text-island-green tracking-tighter">Active Nodes</h3>
-                    <span className="text-[11px] font-black text-island-green uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full">
+                  <div className="flex justify-between items-center mb-6 px-2">
+                    <h3 className="text-xl font-black text-island-volcanic tracking-tighter">Active Nodes</h3>
+                    <span className="text-[10px] font-black text-island-emerald uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full">
                       {bookings.length} Verified
                     </span>
                   </div>
                   
-                  <div className="space-y-6 max-h-[45vh] overflow-y-auto no-scrollbar pr-2 pb-6">
+                  <div className="space-y-4 max-h-[40vh] overflow-y-auto no-scrollbar pr-2">
                     {bookings.length === 0 ? (
-                      <div className="py-20 bg-white rounded-[3.5rem] text-center border-2 border-dashed border-emerald-50 shadow-sm">
-                        <Sparkles className="mx-auto text-emerald-100 mb-6" size={64} />
-                        <p className="text-xs font-black text-island-green/30 uppercase tracking-[0.3em]">No Active Nodes</p>
+                      <div className="py-16 bg-slate-50 rounded-[2.5rem] text-center border-2 border-dashed border-slate-200">
+                        <Sparkles className="mx-auto text-slate-200 mb-4" size={48} />
+                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">No Active Nodes</p>
                       </div>
                     ) : (
                       bookings.map((booking) => (
-                        <div key={booking.id} className="p-8 bg-white rounded-[2.5rem] border-2 border-emerald-50 shadow-2xl relative overflow-hidden group">
+                        <div key={booking.id} className="p-6 bg-white rounded-[2rem] border border-slate-100 shadow-lg relative overflow-hidden group">
                           {booking.paymentStatus === 'PAID' && (
-                             <div className="absolute top-0 right-0 w-20 h-20 emerald-gradient text-white rounded-bl-[3rem] flex items-center justify-center shadow-lg">
-                               <CheckCircle2 size={32} strokeWidth={3} />
+                             <div className="absolute top-0 right-0 w-14 h-14 bg-island-emerald text-island-volcanic rounded-bl-[2rem] flex items-center justify-center shadow-lg">
+                               <CheckCircle2 size={24} strokeWidth={3} />
                              </div>
                           )}
-                          <div className="mb-6">
-                            <span className="text-[10px] font-black text-island-emerald uppercase tracking-[0.3em] mb-2 block">{booking.serviceType}</span>
-                            <h4 className="text-2xl font-black text-island-green tracking-tighter leading-none">{booking.serviceName}</h4>
+                          <div className="mb-4">
+                            <span className="text-[10px] font-black text-island-emerald uppercase tracking-widest mb-1 block">{booking.serviceType}</span>
+                            <h4 className="text-xl font-black text-island-volcanic tracking-tighter leading-none">{booking.serviceName}</h4>
                           </div>
                           <div className="flex justify-between items-end">
                             <div className="space-y-1">
-                              <span className="block text-[10px] font-black text-island-green/40 uppercase tracking-widest">Confirmed Manifest</span>
-                              <span className="text-2xl font-black text-island-green">₱{booking.amount?.toLocaleString()}</span>
+                              <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount Paid</span>
+                              <span className="text-xl font-black text-island-volcanic">₱{booking.amount?.toLocaleString()}</span>
                             </div>
                             {booking.paymentStatus === 'UNPAID' && (
                               <button 
                                 onClick={() => handlePay(booking.id)}
-                                className="btn-volcanic px-8 py-4 rounded-2xl text-[10px]"
+                                className="bg-island-volcanic text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest"
                               >
-                                Verify & Pay
+                                Pay Now
                               </button>
                             )}
                           </div>
@@ -570,22 +653,51 @@ export default function MobileAppView() {
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <ProfileItem icon={Building2} label="Claim Business Node" onClick={() => navigate('/claim-business')} />
-                  <ProfileItem icon={LayoutDashboard} label="Operational Metrics" onClick={() => navigate('/government')} />
                 </div>
 
                 <button 
                   onClick={logout}
-                  className="w-full mt-16 py-7 bg-emerald-50 text-island-coral rounded-[2.5rem] text-xs font-black uppercase tracking-[0.3em] border-2 border-emerald-100 active:scale-95 transition-all"
+                  className="w-full mt-10 py-6 bg-slate-50 text-island-coral rounded-3xl text-[10px] font-black uppercase tracking-[0.3em] border border-slate-100 active:scale-95 transition-all"
                 >
-                  Terminate Interface Session
+                  Terminate Session
                 </button>
               </div>
             )}
           </motion.div>
         )}
+        </>
+        )}
       </AnimatePresence>
+
+      {/* Internal Bottom Nav */}
+      {!showOnboarding && (
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-t border-slate-100/50 px-8 pb-safe-offset-4 pt-4 flex items-center justify-between md:hidden">
+          {[
+            { id: 'explore', icon: Compass },
+            { id: 'map', icon: MapIcon },
+            { id: 'pass', icon: CreditCard },
+            { id: 'profile', icon: User }
+          ].map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`relative p-3 rounded-2xl transition-all ${
+                activeTab === item.id ? 'bg-island-emerald text-island-volcanic shadow-lg shadow-emerald-500/20' : 'text-slate-300'
+              }`}
+            >
+              <item.icon size={24} strokeWidth={activeTab === item.id ? 3 : 2} />
+              {activeTab === item.id && (
+                <motion.div 
+                  layoutId="activeIndicator"
+                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-island-volcanic rounded-full"
+                />
+              )}
+            </button>
+          ))}
+        </nav>
+      )}
     </div>
   );
 

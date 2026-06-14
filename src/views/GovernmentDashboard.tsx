@@ -267,9 +267,9 @@ export default function GovernmentDashboard() {
   );
 
   return (
-    <div className="flex min-h-[calc(100vh-80px)] bg-[#F4F4F1] selection:bg-island-emerald/20">
-      {/* Sidebar */}
-      <aside className="w-[320px] bg-white border-r border-emerald-50 hidden lg:flex flex-col shadow-2xl relative z-20">
+    <div className="flex h-screen bg-[#F4F4F1] selection:bg-island-emerald/20 overflow-hidden">
+      {/* Sidebar - Sticky/Fixed via h-screen and overflow-hidden parent */}
+      <aside className="w-[320px] bg-white border-r border-emerald-50 hidden lg:flex flex-col shadow-2xl shrink-0">
         <div className="p-10 flex-1 overflow-y-auto no-scrollbar">
           <div className="flex items-center gap-5 mb-16 px-4">
             <div className="w-14 h-14 rounded-2xl forest-gradient flex items-center justify-center text-white shadow-2xl border border-white/10">
@@ -303,41 +303,49 @@ export default function GovernmentDashboard() {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-12 bg-white/50 backdrop-blur-sm">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10 mb-16">
-          <div>
-            <span className="text-island-emerald font-black uppercase tracking-[0.5em] text-[10px] mb-3 block">Operational Interface v1.0.5</span>
-            <h1 className="text-5xl font-black text-island-volcanic tracking-tighter leading-none">Government <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-island-green">Command.</span></h1>
-            <p className="text-slate-500 font-semibold text-lg mt-3">Real-time municipal telemetry and administrative nodes.</p>
-          </div>
-          
-          <div className="flex items-center gap-6 w-full md:w-auto">
-            <div className="relative flex-1 md:flex-none group">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-300 group-focus-within:text-island-emerald transition-colors" size={20} strokeWidth={3} />
-              <input 
-                type="text" 
-                placeholder="Query manifests..." 
-                className="pl-14 pr-6 py-4 bg-white border-2 border-emerald-50 rounded-2xl outline-none focus:ring-8 focus:ring-island-emerald/5 focus:border-island-emerald/20 transition-all w-full md:w-80 shadow-2xl"
-              />
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Header - Fixed at top of content */}
+        <header className="bg-white/80 backdrop-blur-md border-b border-emerald-50 p-8 lg:px-12 z-30 shrink-0">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
+            <div>
+              <span className="text-island-emerald font-black uppercase tracking-[0.5em] text-[10px] mb-2 block">Operational Interface v1.0.5</span>
+              <h1 className="text-4xl lg:text-5xl font-black text-island-volcanic tracking-tighter leading-none">Government <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-island-green">Command.</span></h1>
+              <p className="text-slate-500 font-semibold text-base mt-2">Real-time municipal telemetry and administrative nodes.</p>
             </div>
-            <button className="w-14 h-14 bg-white border-2 border-emerald-50 rounded-2xl text-island-volcanic flex items-center justify-center relative shadow-2xl hover:bg-emerald-50 active:scale-90 transition-all group">
-              <Bell size={24} strokeWidth={2.5} className="group-hover:text-island-emerald transition-colors" />
-              <span className="absolute top-3.5 right-3.5 w-3 h-3 bg-island-coral rounded-full border-2 border-white ring-4 ring-rose-500/10"></span>
-            </button>
+            
+            <div className="flex items-center gap-6 w-full md:w-auto">
+              <div className="relative flex-1 md:flex-none group">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-300 group-focus-within:text-island-emerald transition-colors" size={20} strokeWidth={3} />
+                <input 
+                  type="text" 
+                  placeholder="Query manifests..." 
+                  className="pl-14 pr-6 py-4 bg-white border-2 border-emerald-50 rounded-2xl outline-none focus:ring-8 focus:ring-island-emerald/5 focus:border-island-emerald/20 transition-all w-full md:w-80 shadow-2xl"
+                />
+              </div>
+              <button className="w-14 h-14 bg-white border-2 border-emerald-50 rounded-2xl text-island-volcanic flex items-center justify-center relative shadow-2xl hover:bg-emerald-50 active:scale-90 transition-all group shrink-0">
+                <Bell size={24} strokeWidth={2.5} className="group-hover:text-island-emerald transition-colors" />
+                <span className="absolute top-3.5 right-3.5 w-3 h-3 bg-island-coral rounded-full border-2 border-white ring-4 ring-rose-500/10"></span>
+              </button>
+            </div>
           </div>
         </header>
 
-        <Routes>
-          <Route path="/" element={<AnalyticsHome />} />
-          <Route path="/map" element={<div className="h-[78vh] bg-white rounded-[4rem] overflow-hidden border-2 border-emerald-50 shadow-3xl"><LocationsView /></div>} />
-          <Route path="/registry" element={<RegistryModule />} />
-          <Route path="/port" element={<PortModule />} />
-          <Route path="/health" element={<SafetyModule />} />
-          <Route path="/reports" element={<ReportsModule />} />
-          <Route path="/settings" element={<ModulePlaceholder title="Protocols" icon={Settings} />} />
-        </Routes>
-      </main>
+        {/* Scrollable View Area */}
+        <main className="flex-1 overflow-y-auto p-8 lg:p-12 no-scrollbar scroll-smooth">
+          <div className="max-w-[1600px] mx-auto">
+            <Routes>
+              <Route path="/" element={<AnalyticsHome />} />
+              <Route path="/map" element={<div className="h-[78vh] bg-white rounded-[4rem] overflow-hidden border-2 border-emerald-50 shadow-3xl"><LocationsView /></div>} />
+              <Route path="/registry" element={<RegistryModule />} />
+              <Route path="/port" element={<PortModule />} />
+              <Route path="/health" element={<SafetyModule />} />
+              <Route path="/reports" element={<ReportsModule />} />
+              <Route path="/settings" element={<ModulePlaceholder title="Protocols" icon={Settings} />} />
+            </Routes>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
