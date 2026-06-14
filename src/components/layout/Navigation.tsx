@@ -74,19 +74,19 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
       <div className="max-w-[1440px] mx-auto px-6 md:px-12">
         <div className="flex justify-between h-20 items-center">
           
-          {/* Left Side: Logo */}
-          <div className="flex flex-1 justify-start">
+          {/* Left Side: Logo - Fixed width to balance the right side */}
+          <div className="flex flex-initial w-[250px] justify-start">
             <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
               <div className="w-10 h-10 bg-island-volcanic/5 rounded-xl flex items-center justify-center border border-island-volcanic/10 transition-transform group-hover:scale-110">
-                <img src="/images/logo.png" alt="Catarman eLaag Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+                <img src="/images/logo.png" alt="Catarman eSuroy Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
               </div>
               <span className="text-xl font-bold tracking-tighter text-island-volcanic whitespace-nowrap">
-                Catarman <span className="text-island-emerald">eLaag</span>
+                Catarman <span className="text-island-emerald">eSuroy</span>
               </span>
             </div>
           </div>
 
-          {/* Center: Navigation Links */}
+          {/* Center: Navigation Links - Will be perfectly centered between logo and auth sections */}
           <div className="hidden lg:flex flex-1 justify-center">
             <div className="flex items-center space-x-1">
               {navItems.map((item) => {
@@ -116,8 +116,8 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
             </div>
           </div>
 
-          {/* Right Side: Auth & Primary Action */}
-          <div className="hidden md:flex flex-1 justify-end items-center gap-6">
+          {/* Right Side: Auth & Primary Action - Fixed width matching the left side */}
+          <div className="hidden md:flex flex-initial w-[250px] justify-end items-center gap-6">
             {user ? (
               <div className="flex items-center gap-6">
                 {/* Role Switcher */}

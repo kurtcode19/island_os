@@ -115,7 +115,7 @@ export default function App() {
       <div className="min-h-screen flex items-center justify-center bg-island-cream">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-island-emerald border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-island-green font-bold uppercase tracking-widest text-xs">Loading Catarman eLaag...</p>
+          <p className="text-island-green font-bold uppercase tracking-widest text-xs">Loading Catarman eSuroy...</p>
         </div>
       </div>
     );

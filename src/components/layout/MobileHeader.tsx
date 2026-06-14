@@ -7,9 +7,9 @@ export function MobileHeader() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100/50 h-16 flex items-center justify-between px-6 md:hidden">
       <Link to="/mobile?tab=explore" className="flex items-center gap-3">
-        <img src="/images/logo.png" alt="Catarman eLaag Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+        <img src="/images/logo.png" alt="Catarman eSuroy Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
         <span className="text-xl font-display font-bold text-island-dark tracking-tight">
-          Catarman <span className="text-island-secondary">eLaag</span>
+          Catarman <span className="text-island-secondary">eSuroy</span>
         </span>
       </Link>
       <div className="flex items-center gap-4">

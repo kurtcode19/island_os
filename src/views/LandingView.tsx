@@ -70,11 +70,11 @@ export default function LandingView() {
   };
 
   return (
-    <div className="bg-slate-50 selection:bg-island-volcanic selection:text-white overflow-x-hidden min-h-screen pt-20">
+    <div className="bg-slate-50 selection:bg-island-volcanic selection:text-white overflow-x-hidden min-h-screen">
       
       {/* Boxed Hero Section */}
-      <section className="px-6 py-6 md:px-12 md:py-12">
-        <div className="max-w-[1600px] mx-auto bg-white rounded-[4rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100 flex flex-col lg:flex-row p-8 lg:p-16 gap-16 min-h-[80vh] relative">
+      <section className="px-6 pt-2 pb-6 md:px-12 md:pt-4 md:pb-12">
+        <div className="max-w-[1600px] mx-auto bg-white rounded-[4rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100 flex flex-col lg:flex-row pt-10 pb-8 px-8 lg:pt-12 lg:pb-16 lg:px-16 gap-16 min-h-[80vh] relative">
           
           {/* Left Content Area */}
           <div className="flex-1 flex flex-col justify-center py-10 z-10">
@@ -86,7 +86,7 @@ export default function LandingView() {
               <div className="flex items-center gap-4 mb-10 group">
                 <div className="w-12 h-[2px] bg-slate-200 group-hover:w-20 transition-all duration-500"></div>
                 <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.4em]">
-                  Welcome to Catarman eLaag
+                  Welcome to Catarman eSuroy
                 </p>
               </div>
 
@@ -363,9 +363,9 @@ export default function LandingView() {
             <div className="max-w-md">
               <div className="flex items-center gap-4 mb-10 group cursor-pointer" onClick={() => navigate('/')}>
                 <div className="w-12 h-12 bg-island-volcanic rounded-2xl flex items-center justify-center text-white">
-                  <img src="/images/logo.png" alt="Catarman eLaag Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+                  <img src="/images/logo.png" alt="Catarman eSuroy Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
                 </div>
-                <span className="text-3xl font-black tracking-tighter uppercase italic">Catarman <span className="text-island-emerald not-italic">eLaag</span></span>
+                <span className="text-3xl font-black tracking-tighter uppercase italic">Catarman <span className="text-island-emerald not-italic">eSuroy</span></span>
               </div>
               <p className="text-slate-400 text-xl font-medium leading-relaxed italic">
                 Preserving and digitizing the unique heritage of Catarman, Camiguin.
@@ -393,7 +393,7 @@ export default function LandingView() {
           </div>
           
           <div className="pt-20 border-t border-slate-50 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">
-            <p>© 2026 Catarman eLaag</p>
+            <p>© 2026 Catarman eSuroy</p>
             <div className="flex gap-10">
               <a href="#" className="hover:text-island-volcanic transition-colors">Instagram</a>
               <a href="#" className="hover:text-island-volcanic transition-colors">Facebook</a>

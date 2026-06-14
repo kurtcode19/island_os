@@ -1,6 +1,6 @@
-# Catarman eLaag - Camiguin Island Smart Tourism Platform
+# Catarman eSuroy - Camiguin Island Smart Tourism Platform
 
-Catarman eLaag is a comprehensive smart tourism platform for Camiguin Island, designed to provide a seamless experience for tourists, business owners, and local government units (LGU).
+Catarman eSuroy is a comprehensive smart tourism platform for Camiguin Island, designed to provide a seamless experience for tourists, business owners, and local government units (LGU).
 
 ## 🚀 Project Overview
 

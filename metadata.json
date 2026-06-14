@@ -1,5 +1,5 @@
 {
-  "name": "Catarman eLaag - Smart Tourism Operating System",
+  "name": "Catarman eSuroy - Smart Tourism Operating System",
   "description": "A comprehensive digital ecosystem for island destinations, connecting tourists, businesses, and local government.",
   "requestFramePermissions": [
     "geolocation"

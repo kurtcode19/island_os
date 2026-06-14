@@ -548,7 +548,7 @@ export default function TripPlannerView() {
             </button>
             <div>
               <h1 className="text-3xl font-black text-island-volcanic tracking-tighter uppercase italic italic-no leading-none">AI Planner</h1>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-2">Catarman eLaag Node</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-2">Catarman eSuroy Node</p>
             </div>
           </div>
           <div className="hidden sm:flex items-center gap-4 bg-island-volcanic px-6 py-3 rounded-full border border-white/10 shadow-xl">
