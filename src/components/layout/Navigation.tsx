@@ -16,7 +16,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const touristItems = [
-    { path: '/', label: 'Explore', icon: Compass },
+    { path: '/', label: 'Home', icon: Compass },
     { path: '/stay', label: 'Stay', icon: Hotel },
     { path: '/transport', label: 'Transport', icon: Ship },
     { path: '/shops', label: 'Shops', icon: Building2 },
@@ -58,7 +58,6 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
     setIsRoleMenuOpen(false);
     setIsMenuOpen(false);
     
-    // Navigate to the appropriate dashboard/home
     if (role === 'BUSINESS') {
       navigate('/business');
     } else if (role === 'LGU') {
@@ -71,126 +70,147 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
   const navItems = getNavItems();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-white border-b border-slate-100">
+      <div className="max-w-[1440px] mx-auto px-6 md:px-12">
         <div className="flex justify-between h-20 items-center">
-          <div className="flex items-center gap-3">
-            <img src="/images/logo.png" alt="Catarman eLaag Logo" className="w-10 h-10 object-contain" referrerPolicy="no-referrer" />
-            <span className="text-2xl font-display font-bold text-island-dark tracking-tight">
-              Catarman <span className="text-island-secondary">eLaag</span>
-            </span>
+          
+          {/* Left Side: Logo & Navigation */}
+          <div className="flex items-center gap-12">
+            <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
+              <div className="w-10 h-10 bg-island-volcanic/5 rounded-xl flex items-center justify-center border border-island-volcanic/10 transition-transform group-hover:scale-110">
+                <img src="/images/logo.png" alt="Catarman eLaag Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+              </div>
+              <span className="text-xl font-bold tracking-tighter text-island-volcanic whitespace-nowrap">
+                Catarman <span className="text-island-emerald">eLaag</span>
+              </span>
+            </div>
+
+            <div className="hidden lg:flex items-center space-x-1">
+              {navItems.map((item) => {
+                const isActive = item.path === '/' 
+                  ? location.pathname === '/' 
+                  : location.pathname.startsWith(item.path);
+                  
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`relative px-5 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] transition-all group ${
+                      isActive ? 'text-white' : 'text-slate-500 hover:text-island-green'
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="navActiveBackground"
+                        className="absolute inset-0 rounded-full bg-island-volcanic -z-10"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10 whitespace-nowrap">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => {
-              const isActive = item.path === '/' 
-                ? location.pathname === '/' 
-                : location.pathname.startsWith(item.path);
-                
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
-                    isActive ? 'text-island-emerald' : 'text-slate-500 hover:text-island-green'
-                  }`}
-                >
-                  <item.icon size={14} />
-                  {item.label}
-                </Link>
-              );
-            })}
-
-            {/* User & Role Controls */}
-            <div className="flex items-center gap-4">
-              {user ? (
-                <div className="flex items-center gap-4">
-                  {/* Role Switcher */}
-                  <div className="relative">
-                    <button 
-                      onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
-                      className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-100 transition-all border border-slate-100"
-                    >
-                      <ShieldCheck size={14} />
-                      {currentRole}
-                    </button>
-                    
-                    <AnimatePresence>
-                      {isRoleMenuOpen && (
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-xl p-2 z-50"
-                        >
-                          {(['TOURIST', 'BUSINESS', 'LGU'] as UserRole[]).map((role) => (
-                            <button
-                              key={role}
-                              onClick={() => handleRoleSwitch(role)}
-                              className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
-                                currentRole === role ? 'bg-island-emerald/10 text-island-emerald' : 'text-slate-500 hover:bg-slate-50'
-                              }`}
-                            >
-                              {role}
-                            </button>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* User Profile */}
-                  <div className="relative">
-                    <button 
-                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                      className="flex items-center gap-2"
-                    >
-                      <img src={user.photoURL || ''} alt={user.displayName || ''} className="w-10 h-10 rounded-full border-2 border-island-emerald/20" referrerPolicy="no-referrer" />
-                    </button>
-                    
-                    <AnimatePresence>
-                      {isUserMenuOpen && (
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          className="absolute right-0 mt-2 w-64 bg-white border border-slate-100 rounded-2xl shadow-xl p-4 z-50"
-                        >
-                          <div className="mb-4 pb-4 border-b border-slate-50">
-                            <p className="text-sm font-bold text-island-green">{user.displayName}</p>
-                            <p className="text-xs text-slate-400">{user.email}</p>
-                          </div>
-                          <Link
-                            to="/claim-business"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-island-emerald hover:bg-island-emerald/5 transition-all mb-2"
-                          >
-                            <Building2 size={16} />
-                            Claim Business
-                          </Link>
+          {/* Right Side: Auth & Primary Action */}
+          <div className="hidden md:flex items-center justify-end gap-6">
+            {user ? (
+              <div className="flex items-center gap-6">
+                {/* Role Switcher */}
+                <div className="relative">
+                  <button 
+                    onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border bg-slate-50 text-slate-600 border-slate-100 hover:bg-slate-100"
+                  >
+                    {currentRole}
+                  </button>
+                  
+                  <AnimatePresence>
+                    {isRoleMenuOpen && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute right-0 mt-4 w-56 bg-white border border-slate-100 rounded-3xl shadow-2xl p-2 z-50 overflow-hidden"
+                      >
+                        {(['TOURIST', 'BUSINESS', 'LGU'] as UserRole[]).map((role) => (
                           <button
-                            onClick={() => { logout(); setIsUserMenuOpen(false); }}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-island-coral hover:bg-island-coral/5 transition-all"
+                            key={role}
+                            onClick={() => handleRoleSwitch(role)}
+                            className={`w-full text-left px-5 py-3.5 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all ${
+                              currentRole === role ? 'bg-island-emerald/10 text-island-emerald' : 'text-slate-500 hover:bg-slate-50'
+                            }`}
                           >
-                            <LogOut size={16} />
-                            Sign Out
+                            {role}
                           </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              ) : (
-                <button 
-                  onClick={login}
-                  className="flex items-center gap-2 px-6 py-3 sunset-gradient text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-island-sunset/20 hover:scale-105 transition-all"
-                >
-                  <LogIn size={14} />
-                  Sign In
-                </button>
-              )}
-            </div>
+
+                {/* User Profile */}
+                <div className="relative">
+                  <button 
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center gap-2 group"
+                  >
+                    <img 
+                      src={user.photoURL || ''} 
+                      alt={user.displayName || ''} 
+                      className="w-10 h-10 rounded-full border-2 border-island-emerald/20 transition-transform group-hover:scale-105"
+                      referrerPolicy="no-referrer" 
+                    />
+                  </button>
+                  
+                  <AnimatePresence>
+                    {isUserMenuOpen && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute right-0 mt-4 w-72 bg-white border border-slate-100 rounded-[2.5rem] shadow-2xl p-6 z-50"
+                      >
+                        <div className="mb-6 pb-6 border-b border-slate-50 text-center">
+                          <p className="text-sm font-bold text-island-green mb-1">{user.displayName}</p>
+                          <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">{user.email}</p>
+                        </div>
+                        <Link
+                          to="/claim-business"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-island-emerald hover:bg-island-emerald/5 transition-all mb-2"
+                        >
+                          <Building2 size={16} />
+                          Claim Business
+                        </Link>
+                        <button
+                          onClick={() => { logout(); setIsUserMenuOpen(false); }}
+                          className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-island-coral hover:bg-island-coral/5 transition-all"
+                        >
+                          <LogOut size={16} />
+                          Sign Out
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            ) : (
+              <button 
+                onClick={login}
+                className="text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-island-volcanic transition-colors"
+              >
+                Sign In
+              </button>
+            )}
+
+            <button 
+              onClick={() => navigate('/planner')}
+              className="px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 bg-island-volcanic text-white shadow-xl shadow-island-volcanic/20"
+            >
+              Contact
+            </button>
           </div>
 
           {/* Mobile Menu Button */}

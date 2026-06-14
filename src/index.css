@@ -6,27 +6,29 @@
 
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", sans-serif;
   --font-serif: "Cormorant Garamond", serif;
   
-  --color-island-green: #2563eb; /* Vibrant Tourist Blue */
+  --color-island-green: #0a2e26; /* Deep Elegant Green */
   --color-island-emerald: #10b981; /* Fresh Emerald */
   --color-island-coral: #f472b6; /* Hot Pink/Coral */
   --color-island-sunset: #f59e0b; /* Sunny Yellow */
   --color-island-ocean: #06b6d4; /* Turquoise */
-  --color-island-volcanic: #1e293b; /* Dark Navy Text */
-  --color-island-cream: #fefce8; /* Soft Warm Sand */
-  --color-island-sand: #fef3c7; /* Pale Sunny Sand */
+  --color-island-volcanic: #0a0a0a; /* True Dark */
+  --color-island-accent: #eaff00; /* Neon Yellow */
+  --color-island-cream: #f8fafc; /* Clean Neutral Slate-50 */
+  --color-island-sand: #f1f5f9; /* Soft Slate-100 */
 }
 
 @layer base {
   body {
-    @apply font-sans text-island-green bg-island-cream antialiased selection:bg-island-emerald/20 selection:text-island-emerald;
+    @apply font-sans text-island-green bg-white antialiased selection:bg-island-emerald/20 selection:text-island-emerald;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   
   h1, h2, h3, h4 {
-    @apply tracking-tight font-bold text-island-volcanic;
+    @apply font-display tracking-tight font-bold text-island-volcanic;
   }
 }
 
@@ -70,8 +72,12 @@
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
 }
 
+@utility accent-gradient {
+  background: linear-gradient(135deg, #eaff00 0%, #d4ff00 100%);
+}
+
 .btn-primary {
-  @apply emerald-gradient text-white shadow-xl shadow-island-emerald/20 hover:shadow-island-emerald/40 active:scale-95 transition-all duration-300 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2;
+  @apply accent-gradient text-island-volcanic shadow-xl shadow-island-accent/20 hover:shadow-island-accent/40 active:scale-95 transition-all duration-300 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2;
 }
 
 .btn-secondary {

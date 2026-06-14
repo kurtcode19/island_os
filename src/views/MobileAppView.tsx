@@ -249,7 +249,7 @@ export default function MobileAppView() {
         </button>
         <button 
           onClick={() => setShowOnboarding(false)}
-          className="flex-1 bg-island-emerald text-island-volcanic font-black py-6 rounded-3xl text-sm shadow-2xl"
+          className="flex-1 bg-island-accent text-island-volcanic font-black py-6 rounded-3xl text-sm shadow-2xl"
         >
           Get Started
         </button>
@@ -258,7 +258,7 @@ export default function MobileAppView() {
   );
 
   const content = (
-    <div className={`h-full flex flex-col pt-6 pb-6 overflow-y-auto no-scrollbar bg-[#FDFDFB] ${!isDesktop ? 'min-h-screen' : ''}`}>
+    <div className={`h-full flex flex-col pt-6 pb-6 overflow-y-auto no-scrollbar bg-white ${!isDesktop ? 'min-h-screen' : ''}`}>
       <AnimatePresence mode="wait">
         {showOnboarding ? onboardingContent : (
         <>
@@ -287,6 +287,7 @@ export default function MobileAppView() {
                   <h2 className="text-white font-black uppercase tracking-[0.2em] text-xs">Details</h2>
                   <motion.button 
                     whileTap={{ scale: 0.9 }}
+                    onClick={() => setSelectedSpot(null)}
                     className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20"
                   >
                     <X size={24} />
@@ -300,7 +301,7 @@ export default function MobileAppView() {
                         <img src={`https://i.pravatar.cc/100?u=${i+10}`} alt="" />
                       </div>
                     ))}
-                    <div className="w-8 h-8 rounded-full bg-island-emerald border-2 border-white flex items-center justify-center text-[10px] font-black text-white shadow-lg">2K</div>
+                    <div className="w-8 h-8 rounded-full bg-island-accent border-2 border-white flex items-center justify-center text-[10px] font-black text-island-volcanic shadow-lg">2K</div>
                   </div>
                 </div>
               </div>
@@ -309,14 +310,14 @@ export default function MobileAppView() {
             <div className="px-8 flex-1 flex flex-col">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <div className="flex items-center gap-2 text-island-emerald font-black uppercase tracking-widest text-[10px] mb-2">
+                  <div className="flex items-center gap-2 text-island-accent font-black uppercase tracking-widest text-[10px] mb-2">
                     <MapPin size={12} />
                     {selectedSpot.category || 'Catarman, Camiguin'}
                   </div>
                   <h3 className="text-4xl font-black text-island-volcanic tracking-tighter leading-none">{selectedSpot.name}</h3>
                 </div>
                 <div className="text-right">
-                  <div className="text-3xl font-black text-island-emerald tracking-tighter">₱{selectedSpot.price?.toLocaleString()}</div>
+                  <div className="text-3xl font-black text-island-accent tracking-tighter">₱{selectedSpot.price?.toLocaleString()}</div>
                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">/ experience</div>
                 </div>
               </div>
@@ -331,9 +332,9 @@ export default function MobileAppView() {
                     <div className="text-[10px] font-bold text-slate-400">Verified Professional</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100">
-                  <Star size={16} fill="#10B981" className="text-island-emerald" />
-                  <span className="text-xs font-black text-island-emerald">{selectedSpot.rating || '4.9'}</span>
+                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                  <Star size={16} fill="#eaff00" className="text-island-accent" />
+                  <span className="text-xs font-black text-island-accent">{selectedSpot.rating || '4.9'}</span>
                 </div>
               </div>
 
@@ -356,14 +357,14 @@ export default function MobileAppView() {
               </div>
               
               <div className="mt-auto pb-10 flex gap-4">
-                <button className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-island-emerald border border-emerald-100 active:scale-95 transition-all">
+                <button className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-island-accent border border-slate-100 active:scale-95 transition-all">
                   <Sparkles size={24} />
                 </button>
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleBook(selectedSpot, selectedSpot.type || 'spot')}
                   disabled={bookingStatus[selectedSpot.id] === 'loading' || bookingStatus[selectedSpot.id] === 'success'}
-                  className="flex-1 btn-primary py-6 rounded-2xl text-sm shadow-2xl shadow-emerald-900/20"
+                  className="flex-1 btn-primary py-6 rounded-2xl text-sm shadow-2xl"
                 >
                   {bookingStatus[selectedSpot.id] === 'success' ? 'Booking Active' : 
                    bookingStatus[selectedSpot.id] === 'loading' ? <RefreshCw className="animate-spin" /> : 
@@ -387,7 +388,7 @@ export default function MobileAppView() {
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-1 block">Current Location</span>
                 <button className="flex items-center gap-2 text-island-volcanic font-black tracking-tight group">
                   Catarman, Camiguin
-                  <ChevronRight size={16} className="rotate-90 text-island-emerald" />
+                  <ChevronRight size={16} className="rotate-90 text-island-accent" />
                 </button>
               </div>
               <div className="relative">
@@ -421,7 +422,7 @@ export default function MobileAppView() {
                   onClick={() => setSelectedCategory(cat.name)}
                   className={`flex items-center gap-3 pl-2 pr-6 py-2 rounded-full transition-all border shrink-0 ${
                     selectedCategory === cat.name 
-                      ? 'bg-island-emerald border-island-emerald text-island-volcanic font-black' 
+                      ? 'bg-island-accent border-island-accent text-island-volcanic font-black' 
                       : 'bg-white border-slate-100 text-slate-500 font-bold'
                   }`}
                 >
@@ -437,7 +438,7 @@ export default function MobileAppView() {
             <div className="mb-12">
               <div className="flex justify-between items-center mb-8">
                 <h3 className="text-2xl font-black text-island-volcanic tracking-tighter">Popular Destination</h3>
-                <button className="text-[10px] font-black text-island-emerald uppercase tracking-widest">View All</button>
+                <button className="text-[10px] font-black text-island-accent uppercase tracking-widest">View All</button>
               </div>
               
               <div className="space-y-8 pb-12">
@@ -453,18 +454,18 @@ export default function MobileAppView() {
                       <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
                         <img src={spot.image} alt={spot.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" referrerPolicy="no-referrer" />
                         <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-2xl flex items-center gap-1.5 text-island-volcanic shadow-lg">
-                          <Star size={14} fill="#10B981" className="text-island-emerald" />
+                          <Star size={14} fill="#eaff00" className="text-island-accent" />
                           <span className="text-xs font-black">{spot.rating}</span>
                         </div>
                         <button className="absolute top-5 right-5 w-10 h-10 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20">
                           <Heart size={18} />
                         </button>
-                        <div className="absolute bottom-5 right-5 w-12 h-12 bg-island-emerald text-island-volcanic rounded-full flex items-center justify-center shadow-2xl">
+                        <div className="absolute bottom-5 right-5 w-12 h-12 bg-island-accent text-island-volcanic rounded-full flex items-center justify-center shadow-2xl">
                           <ArrowLeft className="rotate-[135deg]" size={20} strokeWidth={3} />
                         </div>
                       </div>
                       <div className="px-4 pb-4">
-                        <div className="flex items-center gap-1.5 text-[10px] font-black text-island-emerald uppercase tracking-widest mb-2">
+                        <div className="flex items-center gap-1.5 text-[10px] font-black text-island-accent uppercase tracking-widest mb-2">
                           <MapPin size={12} strokeWidth={3} />
                           {spot.category}
                         </div>
@@ -485,20 +486,20 @@ export default function MobileAppView() {
                       <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
                         <img src={stay.image} alt={stay.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-2xl flex items-center gap-1.5 text-island-volcanic shadow-lg">
-                          <Star size={14} fill="#10B981" className="text-island-emerald" />
+                          <Star size={14} fill="#eaff00" className="text-island-accent" />
                           <span className="text-xs font-black">{stay.rating}</span>
                         </div>
-                        <div className="absolute bottom-5 right-5 w-12 h-12 bg-island-emerald text-island-volcanic rounded-full flex items-center justify-center shadow-2xl">
+                        <div className="absolute bottom-5 right-5 w-12 h-12 bg-island-accent text-island-volcanic rounded-full flex items-center justify-center shadow-2xl">
                           <ArrowLeft className="rotate-[135deg]" size={20} strokeWidth={3} />
                         </div>
                       </div>
                       <div className="px-4 pb-4 flex justify-between items-end">
                         <div>
-                          <div className="text-[10px] font-black text-island-emerald uppercase tracking-widest mb-2">Resort • {stay.type}</div>
+                          <div className="text-[10px] font-black text-island-accent uppercase tracking-widest mb-2">Resort • {stay.type}</div>
                           <h4 className="text-3xl font-black text-island-volcanic tracking-tighter">{stay.name}</h4>
                         </div>
                         <div className="text-right">
-                          <span className="text-2xl font-black text-island-emerald tracking-tighter">₱{stay.price.toLocaleString()}</span>
+                          <span className="text-2xl font-black text-island-accent tracking-tighter">₱{stay.price.toLocaleString()}</span>
                           <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">/ night</span>
                         </div>
                       </div>
@@ -673,30 +674,52 @@ export default function MobileAppView() {
 
       {/* Internal Bottom Nav */}
       {!showOnboarding && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-t border-slate-100/50 px-8 pb-safe-offset-4 pt-4 flex items-center justify-between md:hidden">
-          {[
-            { id: 'explore', icon: Compass },
-            { id: 'map', icon: MapIcon },
-            { id: 'pass', icon: CreditCard },
-            { id: 'profile', icon: User }
-          ].map(item => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`relative p-3 rounded-2xl transition-all ${
-                activeTab === item.id ? 'bg-island-emerald text-island-volcanic shadow-lg shadow-emerald-500/20' : 'text-slate-300'
-              }`}
-            >
-              <item.icon size={24} strokeWidth={activeTab === item.id ? 3 : 2} />
-              {activeTab === item.id && (
-                <motion.div 
-                  layoutId="activeIndicator"
-                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-island-volcanic rounded-full"
-                />
-              )}
-            </button>
-          ))}
-        </nav>
+        <>
+          {/* Plan with AI Floating Button */}
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => navigate('/planner')}
+            className="fixed bottom-28 right-6 z-50 bg-island-accent text-island-volcanic px-6 py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-2 group border border-island-accent/20"
+          >
+            <Sparkles size={18} className="animate-pulse" />
+            <span>Plan with AI</span>
+          </motion.button>
+
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md">
+            <nav className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-2 flex items-center justify-around shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-slate-100">
+              {[
+                { id: 'explore', icon: Compass },
+                { id: 'map', icon: MapIcon },
+                { id: 'pass', icon: CreditCard },
+                { id: 'profile', icon: User }
+              ].map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className="relative p-4 group"
+                >
+                  {activeTab === item.id && (
+                    <motion.div
+                      layoutId="activeTabBackground"
+                      className="absolute inset-0 bg-island-accent rounded-full"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  <motion.div
+                    whileTap={{ scale: 0.9 }}
+                    className={`relative z-10 transition-colors ${
+                      activeTab === item.id ? 'text-island-volcanic' : 'text-slate-400 group-hover:text-slate-600'
+                    }`}
+                  >
+                    <item.icon size={24} strokeWidth={activeTab === item.id ? 3 : 2} />
+                  </motion.div>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </>
       )}
     </div>
   );
