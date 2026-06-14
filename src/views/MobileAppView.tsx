@@ -258,7 +258,7 @@ export default function MobileAppView() {
   );
 
   const content = (
-    <div className={`h-full flex flex-col pt-6 pb-6 overflow-y-auto no-scrollbar bg-white ${!isDesktop ? 'min-h-screen' : ''}`}>
+    <div className={`h-full flex flex-col overflow-y-auto no-scrollbar scroll-smooth bg-white ${!isDesktop ? 'min-h-screen' : ''}`}>
       <AnimatePresence mode="wait">
         {showOnboarding ? onboardingContent : (
         <>
@@ -269,9 +269,9 @@ export default function MobileAppView() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute inset-0 bg-white z-[60] flex flex-col"
+            className="absolute inset-0 bg-white z-[60] flex flex-col overflow-y-auto no-scrollbar pb-32"
           >
-            <div className="relative h-[45vh] p-6">
+            <div className="relative h-[45vh] shrink-0 p-6">
               <div className="relative h-full w-full rounded-[3rem] overflow-hidden shadow-2xl">
                 <img src={selectedSpot.image} alt={selectedSpot.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
@@ -307,17 +307,17 @@ export default function MobileAppView() {
               </div>
             </div>
 
-            <div className="px-8 flex-1 flex flex-col">
+            <div className="px-8 flex-1 flex flex-col py-6">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <div className="flex items-center gap-2 text-island-accent font-black uppercase tracking-widest text-[10px] mb-2">
+                  <div className="flex items-center gap-2 text-island-accent font-black uppercase tracking-widest text-[10px] mb-2 bg-island-volcanic px-3 py-1 rounded-full w-fit">
                     <MapPin size={12} />
                     {selectedSpot.category || 'Catarman, Camiguin'}
                   </div>
                   <h3 className="text-4xl font-black text-island-volcanic tracking-tighter leading-none">{selectedSpot.name}</h3>
                 </div>
                 <div className="text-right">
-                  <div className="text-3xl font-black text-island-accent tracking-tighter">₱{selectedSpot.price?.toLocaleString()}</div>
+                  <div className="text-3xl font-black text-island-emerald tracking-tighter">₱{selectedSpot.price?.toLocaleString()}</div>
                   <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">/ experience</div>
                 </div>
               </div>
@@ -334,7 +334,7 @@ export default function MobileAppView() {
                 </div>
                 <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
                   <Star size={16} fill="#eaff00" className="text-island-accent" />
-                  <span className="text-xs font-black text-island-accent">{selectedSpot.rating || '4.9'}</span>
+                  <span className="text-xs font-black text-island-volcanic">{selectedSpot.rating || '4.9'}</span>
                 </div>
               </div>
 
@@ -356,8 +356,8 @@ export default function MobileAppView() {
                 </p>
               </div>
               
-              <div className="mt-auto pb-10 flex gap-4">
-                <button className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-island-accent border border-slate-100 active:scale-95 transition-all">
+              <div className="flex gap-4">
+                <button className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-island-volcanic border border-slate-100 active:scale-95 transition-all">
                   <Sparkles size={24} />
                 </button>
                 <motion.button 
@@ -381,67 +381,70 @@ export default function MobileAppView() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="px-8"
+            className="flex flex-col"
           >
-            <header className="mb-8 pt-6 flex justify-between items-center">
-              <div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-1 block">Current Location</span>
-                <button className="flex items-center gap-2 text-island-volcanic font-black tracking-tight group">
-                  Catarman, Camiguin
-                  <ChevronRight size={16} className="rotate-90 text-island-accent" />
-                </button>
-              </div>
-              <div className="relative">
-                <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-600 shadow-sm active:scale-90 transition-transform">
-                  <Bell size={20} />
+            {/* Sticky Header Section */}
+            <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl px-8 pt-8 pb-4 space-y-6">
+              <header className="flex justify-between items-center">
+                <div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-1 block">Current Location</span>
+                  <button className="flex items-center gap-2 text-island-volcanic font-black tracking-tight group">
+                    Catarman, Camiguin
+                    <ChevronRight size={16} className="rotate-90 text-island-accent" />
+                  </button>
                 </div>
-                <span className="absolute top-2 right-2 w-2 h-2 bg-island-coral rounded-full border-2 border-white"></span>
-              </div>
-            </header>
-
-            {/* Modern Search */}
-            <div className="relative mb-8">
-              <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300">
-                <Search size={20} strokeWidth={3} />
-              </div>
-              <input 
-                type="text" 
-                placeholder="Search destination..." 
-                className="w-full pl-14 pr-14 py-5 bg-slate-50 border border-slate-100 rounded-[2rem] text-sm font-bold shadow-sm focus:ring-4 focus:ring-island-emerald/5 focus:border-island-emerald/20 transition-all outline-none placeholder:text-slate-300"
-              />
-              <button className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-island-volcanic text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90">
-                <Filter size={18} strokeWidth={3} />
-              </button>
-            </div>
-
-            {/* Horizontal Categories with Images */}
-            <div className="flex gap-4 overflow-x-auto no-scrollbar mb-10 -mx-8 px-8">
-              {categories.map((cat) => (
-                <button
-                  key={cat.name}
-                  onClick={() => setSelectedCategory(cat.name)}
-                  className={`flex items-center gap-3 pl-2 pr-6 py-2 rounded-full transition-all border shrink-0 ${
-                    selectedCategory === cat.name 
-                      ? 'bg-island-accent border-island-accent text-island-volcanic font-black' 
-                      : 'bg-white border-slate-100 text-slate-500 font-bold'
-                  }`}
-                >
-                  <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20">
-                    <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-600 shadow-sm active:scale-90 transition-transform">
+                    <Bell size={20} />
                   </div>
-                  <span className="text-xs">{cat.name}</span>
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-island-coral rounded-full border-2 border-white"></span>
+                </div>
+              </header>
+
+              {/* Modern Search */}
+              <div className="relative">
+                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300">
+                  <Search size={20} strokeWidth={3} />
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Search destination..." 
+                  className="w-full pl-14 pr-14 py-5 bg-slate-50 border border-slate-100 rounded-[2rem] text-sm font-bold shadow-sm focus:ring-4 focus:ring-island-emerald/5 focus:border-island-emerald/20 transition-all outline-none placeholder:text-slate-300"
+                />
+                <button className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-island-volcanic text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90">
+                  <Filter size={18} strokeWidth={3} />
                 </button>
-              ))}
+              </div>
+
+              {/* Horizontal Categories with Images */}
+              <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-8 px-8 pb-2">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.name}
+                    onClick={() => setSelectedCategory(cat.name)}
+                    className={`flex items-center gap-3 pl-2 pr-6 py-2 rounded-full transition-all border shrink-0 ${
+                      selectedCategory === cat.name 
+                        ? 'bg-island-accent border-island-accent text-island-volcanic font-black' 
+                        : 'bg-white border-slate-100 text-slate-500 font-bold'
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20">
+                      <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+                    </div>
+                    <span className="text-xs">{cat.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Popular Destinations */}
-            <div className="mb-12">
+            {/* Scrollable Popular Destinations */}
+            <div className="px-8 mt-4 mb-32">
               <div className="flex justify-between items-center mb-8">
                 <h3 className="text-2xl font-black text-island-volcanic tracking-tighter">Popular Destination</h3>
-                <button className="text-[10px] font-black text-island-accent uppercase tracking-widest">View All</button>
+                <button className="text-[10px] font-black text-island-accent uppercase tracking-widest bg-island-volcanic px-4 py-1.5 rounded-full">View All</button>
               </div>
               
-              <div className="space-y-8 pb-12">
+              <div className="space-y-8">
                 {/* Spot Cards */}
                 {(selectedCategory === 'All' || ['Heritage', 'Nature'].includes(selectedCategory)) && 
                   spots.filter(s => selectedCategory === 'All' || s.category === selectedCategory).map((spot) => (
@@ -465,7 +468,7 @@ export default function MobileAppView() {
                         </div>
                       </div>
                       <div className="px-4 pb-4">
-                        <div className="flex items-center gap-1.5 text-[10px] font-black text-island-accent uppercase tracking-widest mb-2">
+                        <div className="flex items-center gap-1.5 text-[10px] font-black text-island-emerald uppercase tracking-widest mb-2">
                           <MapPin size={12} strokeWidth={3} />
                           {spot.category}
                         </div>
@@ -495,11 +498,11 @@ export default function MobileAppView() {
                       </div>
                       <div className="px-4 pb-4 flex justify-between items-end">
                         <div>
-                          <div className="text-[10px] font-black text-island-accent uppercase tracking-widest mb-2">Resort • {stay.type}</div>
+                          <div className="text-[10px] font-black text-island-emerald uppercase tracking-widest mb-2">Resort • {stay.type}</div>
                           <h4 className="text-3xl font-black text-island-volcanic tracking-tighter">{stay.name}</h4>
                         </div>
                         <div className="text-right">
-                          <span className="text-2xl font-black text-island-accent tracking-tighter">₱{stay.price.toLocaleString()}</span>
+                          <span className="text-2xl font-black text-island-emerald tracking-tighter">₱{stay.price.toLocaleString()}</span>
                           <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">/ night</span>
                         </div>
                       </div>
