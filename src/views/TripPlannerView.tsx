@@ -36,7 +36,10 @@ import {
   Send,
   User as UserIcon,
   X,
-  CreditCard
+  CreditCard,
+  ArrowUpRight,
+  ZapOff,
+  Dna
 } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { db, handleFirestoreError, OperationType } from '../firebase';
@@ -56,6 +59,7 @@ interface DayPlan {
     description: string;
     whyGo: string;
     price: number;
+    category?: string;
   }[];
 }
 
@@ -70,10 +74,11 @@ const LOADING_QUOTES = [
 ];
 
 const CAMIGUIN_IMAGES = [
-  "https://img.atlasobscura.com/CmlPBCqrdngS4DE4q_DDyDdVYBjhcSTHrsI9PUEbvkQ/rs:fill:780:520:1/g:ce/q:81/sm:1/scp:1/ar:1/aHR0cHM6Ly9hdGxh/cy1kZXYuczMuYW1h/em9uYXdzLmNvbS91/cGxvYWRzL3BsYWNl/X2ltYWdlcy85OTA0/ZjhlMDJiMGM0ODM5/NWJfU3Vua2VuX0Nl/bWV0ZXJ5LF9DYXRh/cm1hbixfQ2FtaWd1/aW4uanBn.jpg",
+  "/images/hero-sunken.png",
   "https://files01.pna.gov.ph/source/2024/05/06/camiguin-old-church-ruins-05032024jb.jpg",
   "https://thefroggyadventures.com/wp-content/uploads/2024/10/tuasan-falls-camiguin.jpg",
   "https://www.lanzonescabana.com/custom/domain_4/image_files/sitemgr_photo_21.png",
+  "/images/explore-bg.jpg"
 ];
 
 export default function TripPlannerView() {
@@ -123,13 +128,13 @@ export default function TripPlannerView() {
     setLoading(true);
     setStep('result');
 
-    // Fallback Mock Data in case of missing API key or failure
+    // Fallback Mock Data
     const getMockItinerary = (numDays: number) => {
       const activities = [
-        { timeSlot: "8:00 AM - 10:00 AM", activity: "Sunken Cemetery Expedition", location: "Catarman Coast", description: "Snorkel over the historic Sunken Cemetery and witness the iconic giant cross.", whyGo: "It's the most iconic landmark in Camiguin with hauntingly beautiful underwater views.", price: 500 },
-        { timeSlot: "11:00 AM - 1:00 PM", activity: "Tuasan Falls Refresh", location: "Mainit, Catarman", description: "Swim in the crystal clear, cold waters of one of the island's most pristine falls.", whyGo: "Less crowded than other falls, offering a serene jungle atmosphere.", price: 50 },
-        { timeSlot: "2:00 PM - 4:00 PM", activity: "Old Church Ruins Walk", location: "Bonbon, Catarman", description: "Explore the coral stone walls of the 16th-century Gui-ob Church.", whyGo: "Feel the weight of history in these beautifully preserved Spanish-era ruins.", price: 0 },
-        { timeSlot: "5:00 PM - 7:00 PM", activity: "Sunset at Bura Soda Water", location: "Catarman", description: "Relax in the only soda water pool in the Philippines as the sun dips low.", whyGo: "The unique effervescent water is incredibly refreshing after a day of exploring.", price: 100 }
+        { timeSlot: "8:00 AM", activity: "Sunken Cemetery Expedition", location: "Catarman Coast", description: "Snorkel over the historic Sunken Cemetery and witness the iconic giant cross.", whyGo: "It's the most iconic landmark in Camiguin with hauntingly beautiful underwater views.", price: 500, category: 'Heritage' },
+        { timeSlot: "11:30 AM", activity: "Tuasan Falls Refresh", location: "Mainit, Catarman", description: "Swim in the crystal clear, cold waters of one of the island's most pristine falls.", whyGo: "Less crowded than other falls, offering a serene jungle atmosphere.", price: 50, category: 'Nature' },
+        { timeSlot: "2:30 PM", activity: "Old Church Ruins Walk", location: "Bonbon, Catarman", description: "Explore the coral stone walls of the 16th-century Gui-ob Church.", whyGo: "Feel the weight of history in these beautifully preserved Spanish-era ruins.", price: 0, category: 'Heritage' },
+        { timeSlot: "5:30 PM", activity: "Sunset at Bura Soda Water", location: "Catarman", description: "Relax in the only soda water pool in the Philippines as the sun dips low.", whyGo: "The unique effervescent water is incredibly refreshing after a day of exploring.", price: 100, category: 'Relax' }
       ];
 
       return Array.from({ length: numDays }, (_, i) => ({
@@ -139,7 +144,6 @@ export default function TripPlannerView() {
     };
 
     if (!apiKey || apiKey === '') {
-      console.warn("Gemini API Key missing. Showing simulated itinerary.");
       setTimeout(() => {
         setItinerary(getMockItinerary(days));
         setLoading(false);
@@ -157,12 +161,13 @@ export default function TripPlannerView() {
       
       Return the response as a JSON array of objects, where each object represents a day and has a 'day' number and an 'activities' array. 
       Each activity MUST have:
-      - 'timeSlot': (e.g., '8:00 AM - 10:00 AM')
+      - 'timeSlot': (e.g., '8:30 AM')
       - 'activity': (Name of the activity)
       - 'location': (Specific spot name)
       - 'description': (Brief details)
       - 'whyGo': (A single compelling sentence explaining why this spot is a must-visit for this specific user)
-      - 'price': (Estimated price in PHP as a number)`;
+      - 'price': (Estimated price in PHP as a number)
+      - 'category': (One of: Heritage, Nature, Relax, Adventure)`;
 
       const result = await genAI.models.generateContent({
         model: "gemini-1.5-flash",
@@ -172,17 +177,9 @@ export default function TripPlannerView() {
           
           CRITICAL LOGIC:
           1. Strictly Catarman: Only suggest activities, spots, and experiences located within Catarman. Do not suggest spots in Mambajao, Mahinog, Sagay, or Guinsiliban.
-          2. Mandatory Spots: Always try to include:
-             - Sunken Cemetery (best for sunset/snorkeling)
-             - Gui-ob Church Ruins (Old Spanish Church)
-             - Tuasan Falls
-             - Bura Soda Water Park
-             - Sto. Niño Cold Spring
-             - Walkway to the Old Volcano (Stations of the Cross)
-          3. Timing: Suggest 'Sunken Cemetery' for sunset views. Suggest 'Tuasan Falls' for midday to enjoy the cool water.
-          4. Local MSME Integration: Include specific Catarman experiences like eating at local eateries near the Church Ruins or buying souvenirs in the Catarman town center.
-          5. Personalization: Adjust the density of activities based on the 'Pace' (Relaxed: 2 spots, Moderate: 3-4 spots, Packed: Max adventure within Catarman).
-          6. Accuracy: Use real spots in Catarman and realistic travel times within the municipality.`,
+          2. Mandatory Spots: Always try to include Sunken Cemetery, Gui-ob Church Ruins, Tuasan Falls, Bura Soda Water Park, Sto. Niño Cold Spring.
+          3. Timing: Suggest 'Sunken Cemetery' for sunset views. 
+          4. Local MSME Integration: Include specific local eateries.`,
           responseMimeType: "application/json",
           responseJsonSchema: {
             type: Type.ARRAY,
@@ -200,7 +197,8 @@ export default function TripPlannerView() {
                       location: { type: Type.STRING },
                       description: { type: Type.STRING },
                       whyGo: { type: Type.STRING },
-                      price: { type: Type.NUMBER }
+                      price: { type: Type.NUMBER },
+                      category: { type: Type.STRING }
                     },
                     required: ["timeSlot", "activity", "location", "description", "whyGo", "price"]
                   }
@@ -217,7 +215,6 @@ export default function TripPlannerView() {
       setItinerary(data);
     } catch (error) {
       console.error("Gemini Error:", error);
-      // Fallback to mock on actual API failure too
       setItinerary(getMockItinerary(days));
     } finally {
       setLoading(false);
@@ -268,51 +265,55 @@ export default function TripPlannerView() {
 
   const ChatBubble = ({ role, children }: { role: 'ai' | 'user', children: React.ReactNode }) => (
     <motion.div
-      initial={{ opacity: 0, y: 15, scale: 0.98 }}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      className={`flex gap-5 ${role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+      className={`flex gap-6 ${role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
     >
-      <div className={`w-12 h-12 rounded-[1.25rem] flex items-center justify-center shrink-0 shadow-2xl ${
-        role === 'ai' ? 'forest-gradient text-white border border-white/10' : 'bg-white text-island-green border border-emerald-100'
+      <div className={`w-14 h-14 rounded-3xl flex items-center justify-center shrink-0 shadow-2xl border-4 ${
+        role === 'ai' ? 'bg-island-volcanic text-white border-island-emerald/20' : 'bg-white text-island-emerald border-slate-50'
       }`}>
-        {role === 'ai' ? <Sparkles size={22} strokeWidth={2.5} /> : <UserIcon size={22} strokeWidth={2.5} />}
+        {role === 'ai' ? <Sparkles size={26} strokeWidth={2.5} /> : <UserIcon size={26} strokeWidth={2.5} />}
       </div>
-      <div className={`max-w-[85%] p-6 rounded-[2rem] text-sm font-bold leading-relaxed shadow-xl ${
+      <div className={`max-w-[80%] p-8 rounded-[3rem] text-sm font-bold leading-relaxed shadow-2xl relative ${
         role === 'ai' 
-          ? 'bg-white text-island-green border border-emerald-50' 
-          : 'emerald-gradient text-white shadow-island-emerald/20'
+          ? 'bg-white text-island-volcanic border border-slate-100 rounded-tl-none' 
+          : 'bg-island-volcanic text-white rounded-tr-none'
       }`}>
         {children}
       </div>
     </motion.div>
   );
 
-  const SelectionGrid = ({ children }: { children: React.ReactNode }) => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 w-full md:px-14">
-      {children}
+  const SelectionGrid = ({ children, title }: { children: React.ReactNode, title?: string }) => (
+    <div className="mt-8 space-y-6 md:px-14">
+      {title && <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-4">{title}</h5>}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {children}
+      </div>
     </div>
   );
 
   const ChoiceButton = ({ onClick, active, label, icon: Icon, description }: any) => (
     <motion.button
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className={`p-6 rounded-[2rem] border-2 text-left transition-all flex flex-col gap-4 ${
+      className={`p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border-4 text-left transition-all duration-500 group relative overflow-hidden ${
         active 
-          ? 'border-island-emerald bg-emerald-50 shadow-xl' 
-          : 'border-emerald-100 bg-white hover:border-island-emerald/40 hover:bg-emerald-50/50'
+          ? 'border-island-emerald bg-emerald-50/50 shadow-[0_30px_60px_-15px_rgba(16,185,129,0.2)]' 
+          : 'border-slate-100 bg-white hover:border-slate-200 shadow-xl'
       }`}
     >
-      <div className="flex items-center gap-4">
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${
-          active ? 'emerald-gradient text-white shadow-lg' : 'bg-emerald-50 text-island-green'
+      {active && <div className="absolute top-0 right-0 w-24 h-24 bg-island-emerald/5 rounded-bl-full animate-pulse" />}
+      <div className="flex flex-col gap-4 md:gap-6 relative z-10">
+        <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-500 ${
+          active ? 'bg-island-emerald text-white scale-110 shadow-lg' : 'bg-slate-50 text-slate-400 group-hover:bg-island-volcanic group-hover:text-white'
         }`}>
-          {Icon && <Icon size={28} strokeWidth={3} />}
+          {Icon && <Icon className="w-6 h-6 md:w-8 md:h-8" strokeWidth={2.5} />}
         </div>
         <div>
-          <span className={`block font-black text-xs uppercase tracking-widest ${active ? 'text-island-emerald' : 'text-island-green'}`}>{label}</span>
-          {description && <p className="text-[10px] text-island-green/60 font-bold uppercase tracking-wider mt-1">{description}</p>}
+          <span className={`block font-black text-[10px] md:text-xs uppercase tracking-[0.2em] mb-1 md:mb-2 transition-colors ${active ? 'text-island-emerald' : 'text-island-volcanic'}`}>{label}</span>
+          {description && <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-relaxed">{description}</p>}
         </div>
       </div>
     </motion.button>
@@ -323,16 +324,17 @@ export default function TripPlannerView() {
 
     // Duration Step
     steps_rendered.push(
-      <div key="q-duration" className="space-y-4">
-        <ChatBubble role="ai">Welcome to Catarman. I'm your AI travel concierge. To begin crafting your journey, how many days will you be staying with us?</ChatBubble>
+      <div key="q-duration" className="space-y-6">
+        <ChatBubble role="ai">Mabuhay! I am your Catarman Intelligence Node. To synchronize your visit, how many rotational cycles (days) will you be staying?</ChatBubble>
         {step === 'duration' && (
-          <SelectionGrid>
+          <SelectionGrid title="Select Duration">
             {[1, 2, 3, 4, 5].map(d => (
               <ChoiceButton 
                 key={d} 
                 onClick={() => { setDays(d); setStep('group'); }} 
-                label={`${d} ${d === 1 ? 'Day' : 'Days'}`}
+                label={`${d} ${d === 1 ? 'Cycle' : 'Cycles'}`}
                 icon={Calendar}
+                description={`${d} ${d === 1 ? 'Day' : 'Days'} in Catarman`}
               />
             ))}
           </SelectionGrid>
@@ -343,16 +345,16 @@ export default function TripPlannerView() {
     // Group Step
     if (steps.indexOf(step) >= steps.indexOf('group')) {
       steps_rendered.push(
-        <div key="a-duration" className="space-y-4">
-          <ChatBubble role="user">{days} days in Catarman sounds perfect.</ChatBubble>
-          <ChatBubble role="ai">Splendid. And who will be joining you on this Catarman adventure?</ChatBubble>
+        <div key="a-duration" className="space-y-6">
+          <ChatBubble role="user">{days} days sounds perfect.</ChatBubble>
+          <ChatBubble role="ai">Initializing manifest for {days} days. Who will be part of this exploration unit?</ChatBubble>
           {step === 'group' && (
-            <SelectionGrid>
+            <SelectionGrid title="Exploration Unit">
               {[
-                { id: 'Solo', icon: Compass, label: 'Solo Traveler', desc: 'Personal Discovery' },
-                { id: 'Couple', icon: Heart, label: 'Couple', desc: 'Romantic Heritage' },
-                { id: 'Family', icon: Users, label: 'Family', desc: 'Safe & Educational' },
-                { id: 'Friends', icon: Users, label: 'Friends', desc: 'Shared Adventure' }
+                { id: 'Solo', icon: Compass, label: 'Solo Node', desc: 'Personal Discovery' },
+                { id: 'Couple', icon: Heart, label: 'Dual Nodes', desc: 'Heritage Partnership' },
+                { id: 'Family', icon: Users, label: 'Collective', desc: 'Secure Group Unit' },
+                { id: 'Friends', icon: Users, label: 'Coalition', desc: 'Shared Experience' }
               ].map(g => (
                 <ChoiceButton 
                   key={g.id} 
@@ -371,15 +373,15 @@ export default function TripPlannerView() {
     // Transport Step
     if (steps.indexOf(step) >= steps.indexOf('transport')) {
       steps_rendered.push(
-        <div key="a-group" className="space-y-4">
-          <ChatBubble role="user">I'm traveling {groupType.toLowerCase()}.</ChatBubble>
-          <ChatBubble role="ai">Excellent choice for Catarman's terrain. How do you intend to navigate the municipality?</ChatBubble>
+        <div key="a-group" className="space-y-6">
+          <ChatBubble role="user">It's a {groupType.toLowerCase()} exploration.</ChatBubble>
+          <ChatBubble role="ai">Copy that. What is your preferred mobility method within the municipality?</ChatBubble>
           {step === 'transport' && (
-            <SelectionGrid>
+            <SelectionGrid title="Mobility Method">
               {[
                 { id: 'No Vehicle', icon: MapPin, label: 'Public Loop', desc: 'Local Tricycles' },
-                { id: 'Self-Drive', icon: Car, label: 'Self-Drive', desc: 'Motorbike Rental' },
-                { id: 'Private Tour', icon: ShieldCheck, label: 'VIP Tour', desc: 'Guided Experience' }
+                { id: 'Self-Drive', icon: Car, label: 'Autonomous', desc: 'Motorbike Rental' },
+                { id: 'Private Tour', icon: ShieldCheck, label: 'Guided Node', desc: 'LGU Verified Guide' }
               ].map(t => (
                 <ChoiceButton 
                   key={t.id} 
@@ -398,15 +400,15 @@ export default function TripPlannerView() {
     // Pace Step
     if (steps.indexOf(step) >= steps.indexOf('pace')) {
       steps_rendered.push(
-        <div key="a-transport" className="space-y-4">
-          <ChatBubble role="user">I'll use {transport.toLowerCase()}.</ChatBubble>
-          <ChatBubble role="ai">Understood. What is the preferred rhythm of your exploration?</ChatBubble>
+        <div key="a-transport" className="space-y-6">
+          <ChatBubble role="user">Using the {transport.toLowerCase()} mode.</ChatBubble>
+          <ChatBubble role="ai">Logistics synced. What frequency of exploration do you prefer?</ChatBubble>
           {step === 'pace' && (
-            <SelectionGrid>
+            <SelectionGrid title="Exploration Frequency">
               {[
-                { id: 'Relaxed', icon: Sun, label: 'Unchecked', desc: 'Leisurely Pace' },
-                { id: 'Moderate', icon: Clock, label: 'Balanced', desc: 'The Gold Standard' },
-                { id: 'Packed', icon: Zap, label: 'Intensive', desc: 'Full Immersion' }
+                { id: 'Relaxed', icon: Sun, label: 'Unchecked', desc: 'Leisurely Cycles' },
+                { id: 'Moderate', icon: Clock, label: 'Balanced', desc: 'Optimal Throughput' },
+                { id: 'Packed', icon: Zap, label: 'Intensive', desc: 'Maximum Immersion' }
               ].map(p => (
                 <ChoiceButton 
                   key={p.id} 
@@ -425,12 +427,12 @@ export default function TripPlannerView() {
     // Interests Step
     if (steps.indexOf(step) >= steps.indexOf('interests')) {
       steps_rendered.push(
-        <div key="a-pace" className="space-y-4">
-          <ChatBubble role="user">Let's keep it {pace.toLowerCase()}.</ChatBubble>
-          <ChatBubble role="ai">Perfect. Are there specific Catarman landmarks or interests I should prioritize?</ChatBubble>
+        <div key="a-pace" className="space-y-6">
+          <ChatBubble role="user">Setting pace to {pace.toLowerCase()}.</ChatBubble>
+          <ChatBubble role="ai">Pace locked. Are there specific Catarman nodes you wish to prioritize?</ChatBubble>
           {step === 'interests' && (
-            <div className="space-y-6 md:px-14">
-              <div className="grid grid-cols-2 gap-4 mt-6">
+            <div className="space-y-8 md:px-14">
+              <div className="grid grid-cols-2 gap-5 mt-6">
                 {[
                   { id: 'Photography', icon: Camera, label: 'Visuals' },
                   { id: 'Hidden Gems', icon: Gem, label: 'Heritage' },
@@ -450,9 +452,9 @@ export default function TripPlannerView() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setStep('style')}
-                className="btn-volcanic w-full py-6 rounded-[2rem] text-sm shadow-emerald-900/20"
+                className="w-full bg-island-volcanic text-white py-8 rounded-[3rem] font-black uppercase tracking-[0.4em] text-xs shadow-2xl flex items-center justify-center gap-5 hover:bg-island-emerald transition-all"
               >
-                Continue Exploration <ArrowRight size={20} strokeWidth={3} />
+                Proceed to Styles <ArrowRight size={22} strokeWidth={3} />
               </motion.button>
             </div>
           )}
@@ -463,15 +465,15 @@ export default function TripPlannerView() {
     // Style Step
     if (steps.indexOf(step) >= steps.indexOf('style')) {
       steps_rendered.push(
-        <div key="a-interests" className="space-y-4">
-          <ChatBubble role="user">{interests.length > 0 ? `I'm interested in ${interests.join(' and ')}.` : "Show me the heart of Catarman."}</ChatBubble>
-          <ChatBubble role="ai">Noted. What is the overarching aesthetic of your Catarman stay?</ChatBubble>
+        <div key="a-interests" className="space-y-6">
+          <ChatBubble role="user">Prioritize {interests.length > 0 ? interests.join(' and ') : "all nodes"}.</ChatBubble>
+          <ChatBubble role="ai">Priorities established. What is the overarching aesthetic of your Catarman Aufenthalt?</ChatBubble>
           {step === 'style' && (
-            <SelectionGrid>
+            <SelectionGrid title="Overarching Aesthetic">
               {[
-                { id: 'Adventure', icon: Mountain, label: 'Exploration', desc: 'Deep Discovery' },
-                { id: 'Relax', icon: Sun, label: 'Serenity', desc: 'Slow Living' },
-                { id: 'Foodie', icon: Coffee, label: 'Authentic', desc: 'Local Flavor' }
+                { id: 'Adventure', icon: Mountain, label: 'Discovery', desc: 'Deep Exploration' },
+                { id: 'Relax', icon: Sun, label: 'Serenity', desc: 'Slow Rhythms' },
+                { id: 'Foodie', icon: Coffee, label: 'Authentic', desc: 'Gastronomy Focus' }
               ].map(s => (
                 <ChoiceButton 
                   key={s.id} 
@@ -490,15 +492,15 @@ export default function TripPlannerView() {
     // Budget Step
     if (steps.indexOf(step) >= steps.indexOf('budget')) {
       steps_rendered.push(
-        <div key="a-style" className="space-y-4">
-          <ChatBubble role="user">I'm looking for {style.toLowerCase()}.</ChatBubble>
-          <ChatBubble role="ai">Final requirement. How would you like to allocate your Catarman resources?</ChatBubble>
+        <div key="a-style" className="space-y-6">
+          <ChatBubble role="user">Seeking {style.toLowerCase()}.</ChatBubble>
+          <ChatBubble role="ai">Final verification. Select your Catarman resource allocation level.</ChatBubble>
           {step === 'budget' && (
-            <SelectionGrid>
+            <SelectionGrid title="Resource Allocation">
               {[
-                { id: 'Budget', icon: Coins, label: 'Essential', desc: 'Smart Value' },
+                { id: 'Budget', icon: Coins, label: 'Essential', desc: 'Maximum Value' },
                 { id: 'Moderate', icon: Wallet, label: 'Premium', desc: 'Elevated Comfort' },
-                { id: 'Luxury', icon: Gem, label: 'Elite', desc: 'Bespoke Luxury' }
+                { id: 'Luxury', icon: Gem, label: 'Elite', desc: 'Bespoke Tiers' }
               ].map(b => (
                 <ChoiceButton 
                   key={b.id} 
@@ -512,14 +514,14 @@ export default function TripPlannerView() {
             </SelectionGrid>
           )}
           {step === 'budget' && (
-            <div className="md:px-14 mt-10">
+            <div className="md:px-14 mt-12 pb-24">
               <motion.button 
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={generateTrip}
-                className="btn-primary w-full py-7 rounded-[2.5rem] text-base"
+                className="w-full bg-island-emerald text-white py-10 rounded-[4rem] font-black uppercase tracking-[0.5em] text-sm shadow-[0_40px_80px_-20px_rgba(16,185,129,0.4)] flex items-center justify-center gap-6"
               >
-                <Sparkles size={24} strokeWidth={3} /> Build Smart Manifest
+                <Dna size={28} strokeWidth={3} className="animate-spin-slow" /> Synthesize Manifest
               </motion.button>
             </div>
           )}
@@ -533,196 +535,196 @@ export default function TripPlannerView() {
   const steps: Step[] = ['duration', 'group', 'transport', 'pace', 'interests', 'style', 'budget', 'result'];
 
   return (
-    <div className="flex h-screen bg-island-cream overflow-hidden selection:bg-island-emerald/20 selection:text-island-emerald">
-      {/* Left Panel: Chat/Flow/Itinerary */}
-      <div className={`flex flex-col ${isMobile && step === 'result' && !itinerary ? 'w-full' : isMobile ? 'w-full' : 'w-[550px] lg:w-[720px]'} border-r border-emerald-100 bg-white relative z-20 shadow-2xl`}>
-        {/* Chat Header */}
-        <header className="px-10 py-8 border-b border-emerald-100 flex items-center justify-between bg-white/95 backdrop-blur-3xl sticky top-0 z-30">
-          <div className="flex items-center gap-5">
-            <button onClick={() => navigate(isMobile ? '/mobile' : '/')} className="p-3 text-island-green bg-emerald-50 hover:bg-emerald-100 transition-all rounded-2xl shadow-sm active:scale-90">
-              <ArrowLeft size={22} strokeWidth={3.5} />
+    <div className="flex h-screen bg-slate-50 overflow-hidden selection:bg-island-emerald/20 selection:text-island-emerald font-sans">
+      
+      {/* Left Panel: Chat & Itinerary */}
+      <div className={`flex flex-col ${isMobile ? 'w-full' : 'w-[600px] lg:w-[850px]'} bg-white relative z-20 shadow-[0_0_100px_-20px_rgba(0,0,0,0.1)] border-r border-slate-100`}>
+        
+        {/* Planner Header */}
+        <header className="px-10 py-10 flex items-center justify-between bg-white/95 backdrop-blur-3xl sticky top-0 z-40">
+          <div className="flex items-center gap-6">
+            <button onClick={() => navigate(isMobile ? '/mobile' : '/')} className="w-14 h-14 bg-slate-50 hover:bg-slate-100 text-island-volcanic transition-all rounded-2xl flex items-center justify-center border-2 border-slate-100 active:scale-90">
+              <ArrowLeft size={24} strokeWidth={3} />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-island-green tracking-tighter leading-none">Trip Planner</h1>
+              <h1 className="text-3xl font-black text-island-volcanic tracking-tighter uppercase italic italic-no leading-none">AI Planner</h1>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-2">Catarman eLaag Node</p>
             </div>
           </div>
-          <div className="flex items-center gap-4 bg-emerald-50 px-5 py-2.5 rounded-[1.5rem] border border-emerald-100">
-            <span className="text-[10px] font-black text-island-emerald uppercase tracking-widest">Active Session</span>
+          <div className="hidden sm:flex items-center gap-4 bg-island-volcanic px-6 py-3 rounded-full border border-white/10 shadow-xl">
+            <div className="w-2 h-2 bg-island-emerald rounded-full animate-pulse" />
+            <span className="text-[9px] font-black text-white uppercase tracking-[0.3em]">Quantum Sync Active</span>
           </div>
         </header>
 
-        {/* Scrollable Chat/Result Area */}
-        <div className="flex-1 overflow-y-auto p-10 space-y-12 no-scrollbar bg-island-cream/30 [background-image:radial-gradient(#d1fae5_1px,transparent_1px)] [background-size:32px_32px]">
+        {/* Scrollable Area */}
+        <div className="flex-1 overflow-y-auto p-8 lg:p-14 space-y-16 no-scrollbar bg-[#FAFAFA]">
           {step !== 'result' ? (
-            <div className="space-y-12 pb-24">
+            <div className="space-y-16">
               {renderChatFlow()}
               <div ref={chatEndRef} />
             </div>
           ) : loading ? (
-            <div className="h-full flex flex-col items-center justify-center text-center space-y-10 px-12">
+            <div className="h-full flex flex-col items-center justify-center text-center space-y-12 px-12">
               <div className="relative">
-                <div className="w-28 h-24 forest-gradient text-white rounded-[3rem] flex items-center justify-center animate-bounce shadow-2xl">
-                  <Sparkles size={56} strokeWidth={2.5} />
+                <div className="w-40 h-40 bg-island-volcanic text-island-emerald rounded-[4rem] flex items-center justify-center animate-pulse shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] border-4 border-white/10">
+                  <Dna size={80} strokeWidth={2} className="animate-spin-slow" />
                 </div>
-                <motion.div 
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-0 border-4 border-dashed border-island-emerald/40 rounded-[3rem]"
-                />
+                <div className="absolute -top-4 -right-4 w-16 h-16 bg-island-emerald rounded-3xl flex items-center justify-center text-white shadow-2xl">
+                  <Sparkles size={32} />
+                </div>
               </div>
-              <div>
-                <h2 className="text-4xl font-black text-island-green tracking-tighter mb-5">Engineering your manifest...</h2>
-                <p className="text-island-green/60 text-sm font-black uppercase tracking-widest italic leading-relaxed">"{LOADING_QUOTES[quoteIndex]}"</p>
+              <div className="space-y-6">
+                <h2 className="text-5xl font-black text-island-volcanic tracking-tighter uppercase leading-none">Synthesizing <br /> Journey Data</h2>
+                <p className="text-slate-400 text-xs font-black uppercase tracking-[0.5em] italic">"{LOADING_QUOTES[quoteIndex]}"</p>
               </div>
-              <div className="w-full max-w-sm h-2.5 bg-emerald-50 rounded-full overflow-hidden shadow-inner">
+              <div className="w-full max-w-sm h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: '100%' }}
-                  transition={{ duration: 15, ease: "linear" }}
-                  className="h-full emerald-gradient shadow-[0_0_15px_rgba(16,185,129,0.6)]"
+                  transition={{ duration: 12, ease: "linear" }}
+                  className="h-full bg-island-emerald shadow-[0_0_30px_rgba(16,185,129,0.5)]"
                 />
               </div>
             </div>
           ) : itinerary ? (
-            <div className="space-y-12 pb-40 animate-in fade-in slide-in-from-bottom-12 duration-1000 ease-out">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-4xl font-black text-island-green tracking-tighter">Your Catarman Trip</h2>
-                  <div className="flex items-center gap-3 mt-4">
-                    <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] bg-island-green px-4 py-1.5 rounded-full">{days} Days</span>
-                    <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] bg-island-green px-4 py-1.5 rounded-full">{groupType}</span>
-                    <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] bg-island-emerald px-4 py-1.5 rounded-full shadow-lg shadow-island-emerald/20">{budget}</span>
+            <div className="space-y-24 pb-40 animate-in fade-in slide-in-from-bottom-20 duration-1000">
+              {/* Result Header */}
+              <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
+                <div className="space-y-6">
+                  <span className="text-[10px] font-black text-island-emerald uppercase tracking-[0.5em] block">Manifest Complete</span>
+                  <h2 className="text-6xl lg:text-8xl font-black text-island-volcanic tracking-tighter uppercase leading-[0.85] italic">Catarman <br /> <span className="not-italic text-island-emerald">Explorer</span></h2>
+                  <div className="flex flex-wrap gap-4">
+                    <div className="flex items-center gap-3 bg-island-volcanic text-white px-6 py-2.5 rounded-full border border-white/10 shadow-xl">
+                      <Calendar size={14} className="text-island-emerald" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">{days} Days</span>
+                    </div>
+                    <div className="flex items-center gap-3 bg-white text-island-volcanic px-6 py-2.5 rounded-full border border-slate-100 shadow-xl font-black text-[10px] uppercase tracking-widest">
+                      <Users size={14} /> {groupType}
+                    </div>
                   </div>
                 </div>
-                <button onClick={() => setStep('duration')} className="p-4 text-island-green bg-emerald-50 hover:bg-emerald-100 rounded-[1.5rem] transition-all border-2 border-emerald-100 shadow-md active:scale-90">
-                  <RefreshCw size={24} strokeWidth={3} />
+                <button onClick={() => setStep('duration')} className="w-20 h-20 rounded-3xl bg-slate-50 border-4 border-slate-100 flex items-center justify-center text-island-volcanic hover:bg-island-volcanic hover:text-white transition-all shadow-xl active:scale-90">
+                  <RefreshCw size={32} strokeWidth={2.5} />
                 </button>
               </div>
 
-              {itinerary.map((day, idx) => (
-                <div key={day.day} className="space-y-8">
-                  <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 rounded-2xl forest-gradient text-white flex items-center justify-center text-xl font-black shadow-2xl border border-white/10">
-                      {day.day}
-                    </div>
-                    <div>
-                      <h3 className="font-black text-island-green uppercase tracking-[0.3em] text-xs">Phase {day.day} Timeline</h3>
-                      <span className="text-[10px] text-island-green/40 font-black uppercase tracking-widest italic">Catarman Pilot Explorer</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-12 border-l-4 border-emerald-100 ml-7 pl-12 py-6 relative">
-                    {day.activities.map((act, aIdx) => (
-                      <div key={aIdx} className="relative group">
-                        <div className="absolute -left-[54px] top-2.5 w-4 h-4 rounded-full bg-white border-[5px] border-island-emerald shadow-[0_0_15px_rgba(16,185,129,0.5)] z-10 group-hover:scale-125 transition-transform" />
-                        
-                        <div className="flex items-start justify-between mb-5">
-                          <div className="flex items-center gap-4">
-                            <span className="text-[10px] font-black text-island-emerald uppercase tracking-[0.25em] bg-island-emerald/10 px-4 py-2 rounded-full border-2 border-island-emerald/10">
-                              {act.timeSlot}
-                            </span>
-                            <span className="text-[10px] font-black text-island-green/40 uppercase tracking-[0.25em]">Est. ₱{act.price}</span>
-                          </div>
-                        </div>
-                        
-                        <h4 className="text-3xl font-black text-island-green mb-3 tracking-tighter group-hover:text-island-emerald transition-colors">{act.activity}</h4>
-                        <div className="flex items-center gap-2.5 mb-8">
-                          <div className="w-7 h-7 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-island-emerald shadow-sm">
-                            <MapPin size={14} strokeWidth={4} />
-                          </div>
-                          <p className="text-[10px] text-island-green/40 font-black uppercase tracking-[0.2em] italic">{act.location}</p>
-                        </div>
-                        
-                        <div className="p-10 bg-white rounded-[3rem] border-2 border-emerald-50 shadow-2xl mb-8 transition-all hover:scale-[1.02] hover:border-island-emerald/30 group-hover:shadow-3xl">
-                          <p className="text-base text-island-green/70 font-medium leading-relaxed mb-10">{act.description}</p>
-                          
-                          <div className="flex items-center gap-5 p-6 bg-island-emerald/[0.05] rounded-[2rem] border-2 border-island-emerald/10 mb-10">
-                            <div className="w-12 h-12 rounded-2xl emerald-gradient text-white flex items-center justify-center shrink-0 shadow-lg">
-                              <Sparkles size={22} strokeWidth={3} />
-                            </div>
-                            <div>
-                              <span className="text-[9px] font-black text-island-emerald uppercase tracking-[0.3em] block mb-1">Catarman Intelligence</span>
-                              <p className="text-xs text-island-green font-black italic leading-snug">"{act.whyGo}"</p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex gap-5">
-                            <motion.button 
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => handleAction(act, day.day, 'pass')}
-                              disabled={bookingStatus[`${day.day}-${act.activity}-pass`] === 'loading' || bookingStatus[`${day.day}-${act.activity}-pass`] === 'success'}
-                              className={`btn-primary flex-1 h-16 rounded-[1.75rem] ${
-                                bookingStatus[`${day.day}-${act.activity}-pass`] === 'success' 
-                                  ? 'bg-green-700 shadow-none border border-green-800' 
-                                  : ''
-                              }`}
-                            >
-                              {bookingStatus[`${day.day}-${act.activity}-pass`] === 'success' ? <><CheckCircle2 size={22} strokeWidth={3} /> Manifested</> : <><Ticket size={22} strokeWidth={3} /> Add to Pass</>}
-                            </motion.button>
-                            <motion.button 
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => handleAction(act, day.day, 'transport')}
-                              disabled={bookingStatus[`${day.day}-${act.activity}-transport`] === 'loading' || bookingStatus[`${day.day}-${act.activity}-transport`] === 'success'}
-                              className="w-20 h-16 rounded-[1.75rem] bg-emerald-50 border-2 border-emerald-100 flex items-center justify-center text-island-green/40 hover:text-island-emerald hover:border-island-emerald/30 transition-all shadow-md active:bg-emerald-100"
-                            >
-                              {bookingStatus[`${day.day}-${act.activity}-transport`] === 'success' ? <CheckCircle2 size={28} className="text-island-emerald" strokeWidth={4} /> : <Car size={28} strokeWidth={3} />}
-                            </motion.button>
-                          </div>
-                        </div>
+              {/* Itinerary Timeline */}
+              <div className="space-y-16 md:space-y-32 relative">
+                {itinerary.map((day, idx) => (
+                  <div key={day.day} className="relative">
+                    <div className="flex items-center gap-6 md:gap-10 mb-10 md:mb-16">
+                      <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-[2.5rem] bg-island-volcanic text-white flex items-center justify-center text-2xl md:text-4xl font-black shadow-2xl border-4 md:border-8 border-slate-50 shrink-0">
+                        {day.day}
                       </div>
-                    ))}
+                      <div>
+                        <h3 className="text-2xl md:text-4xl font-black text-island-volcanic uppercase tracking-tighter leading-none italic">Day Cycle {day.day}</h3>
+                        <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-2 md:mt-3">Heritage Sync: {idx === 0 ? 'Discovery' : idx === 1 ? 'Immersion' : 'Integration'}</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-10 md:space-y-16 border-l-4 md:border-l-8 border-slate-50 ml-8 md:ml-12 pl-8 md:pl-20 relative py-2">
+                      {day.activities.map((act, aIdx) => (
+                        <div key={aIdx} className="relative group">
+                          {/* Timeline Node */}
+                          <div className="absolute -left-[42px] md:-left-[108px] top-4 w-6 h-6 md:w-14 md:h-14 bg-white border-4 md:border-8 border-island-volcanic rounded-full shadow-3xl z-10 group-hover:scale-110 group-hover:border-island-emerald transition-all" />
+                          
+                          {/* Activity Card */}
+                          <div className="flex flex-col gap-4 md:gap-6">
+                            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
+                              <span className="text-lg md:text-xl font-black text-island-volcanic tracking-tighter">{act.timeSlot}</span>
+                              <div className="hidden md:block h-px bg-slate-100 flex-1" />
+                              <span className="text-[8px] md:text-[10px] font-black text-island-emerald uppercase tracking-[0.3em] bg-emerald-50 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-island-emerald/10 italic w-fit">
+                                {act.category || 'Experience'}
+                              </span>
+                            </div>
+
+                            <div className="bg-white rounded-[2.5rem] md:rounded-[4rem] border-4 md:border-8 border-slate-50 shadow-2xl p-6 md:p-12 transition-all duration-700 hover:-translate-y-2 md:hover:-translate-y-4 group/card overflow-hidden relative">
+                              <div className="absolute top-0 right-0 w-32 h-32 md:w-64 md:h-64 bg-slate-50/50 rounded-full translate-x-16 -translate-y-16 md:translate-x-32 md:-translate-y-32 -z-10 group-hover/card:scale-150 transition-transform duration-1000" />
+                              
+                              <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-10 mb-6 md:mb-10">
+                                <div className="space-y-2 md:space-y-4">
+                                  <h4 className="text-3xl md:text-5xl font-black text-island-volcanic tracking-tighter uppercase leading-[0.9] group-hover/card:text-island-emerald transition-colors italic">{act.activity}</h4>
+                                  <div className="flex items-center gap-2 md:gap-4 text-slate-400">
+                                    <MapPin size={14} className="text-island-emerald" />
+                                    <span className="text-[9px] md:text-[11px] font-black uppercase tracking-widest leading-tight">{act.location}</span>
+                                  </div>
+                                </div>
+                                <div className="text-left md:text-right shrink-0">
+                                  <span className="text-2xl md:text-4xl font-black text-island-volcanic tracking-tighter">₱{act.price}</span>
+                                  <span className="block text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Est. Resource</span>
+                                </div>
+                              </div>
+
+                              <p className="text-sm md:text-xl text-slate-500 font-medium leading-relaxed mb-6 md:mb-12 max-w-2xl">{act.description}</p>
+
+                              {/* Intelligence Node */}
+                              <div className="bg-island-volcanic text-white p-5 md:p-8 rounded-2xl md:rounded-[3rem] mb-6 md:mb-12 flex flex-col md:flex-row gap-4 md:gap-8 md:items-center shadow-2xl relative overflow-hidden group/intel">
+                                <div className="absolute inset-0 bg-gradient-to-r from-island-emerald/20 to-transparent opacity-0 group-hover/intel:opacity-100 transition-opacity" />
+                                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.5rem] bg-island-emerald text-white flex items-center justify-center shrink-0 shadow-lg relative z-10">
+                                  <Zap size={24} strokeWidth={2.5} />
+                                </div>
+                                <div className="relative z-10">
+                                  <span className="text-[8px] md:text-[9px] font-black text-island-emerald uppercase tracking-[0.4em] mb-1 block">Catarman AI Logic</span>
+                                  <p className="text-xs md:text-lg font-black italic leading-tight text-white/90">"{act.whyGo}"</p>
+                                </div>
+                              </div>
+
+                              <div className="flex flex-col sm:flex-row gap-3 md:gap-6">
+                                <motion.button 
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  onClick={() => handleAction(act, day.day, 'pass')}
+                                  disabled={bookingStatus[`${day.day}-${act.activity}-pass`] === 'loading' || bookingStatus[`${day.day}-${act.activity}-pass`] === 'success'}
+                                  className={`flex-[2] py-5 md:py-8 rounded-2xl md:rounded-[2rem] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-xs flex items-center justify-center gap-3 md:gap-5 transition-all shadow-2xl ${
+                                    bookingStatus[`${day.day}-${act.activity}-pass`] === 'success'
+                                      ? 'bg-island-emerald text-white shadow-none'
+                                      : 'bg-island-volcanic text-white hover:bg-island-emerald'
+                                  }`}
+                                >
+                                  {bookingStatus[`${day.day}-${act.activity}-pass`] === 'success' ? <><CheckCircle2 size={18} md:size={24} /> Node Manifested</> : <><Ticket size={18} md:size={24} /> Sync to Pass</>}
+                                </motion.button>
+                                <motion.button 
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                  onClick={() => handleAction(act, day.day, 'transport')}
+                                  disabled={bookingStatus[`${day.day}-${act.activity}-transport`] === 'loading' || bookingStatus[`${day.day}-${act.activity}-transport`] === 'success'}
+                                  className="flex-1 bg-white border-2 md:border-4 border-slate-50 text-island-volcanic rounded-2xl md:rounded-[2rem] py-5 md:py-0 flex items-center justify-center gap-3 md:gap-4 hover:border-island-volcanic transition-all shadow-xl"
+                                >
+                                  {bookingStatus[`${day.day}-${act.activity}-transport`] === 'success' ? <CheckCircle2 size={20} md:size={24} className="text-island-emerald" /> : <Car size={24} md:size={28} />}
+                                  <span className="sm:hidden font-black uppercase tracking-widest text-[10px]">Transport</span>
+                                </motion.button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Final Verification Section */}
+                <div className="pt-10 md:pt-20 space-y-10">
+                  <div className="bg-island-emerald p-8 md:p-16 rounded-[3rem] md:rounded-[5rem] text-white shadow-[0_50px_100px_-20px_rgba(16,185,129,0.3)] relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-white/10 rounded-full translate-x-16 -translate-y-16 md:translate-x-32 md:-translate-y-32 animate-pulse" />
+                    <div className="relative z-10 text-center space-y-6 md:space-y-8">
+                      <ShieldCheck size={48} md:size={80} className="mx-auto text-white/40 mb-6 md:mb-10" />
+                      <h3 className="text-4xl md:text-7xl font-black uppercase tracking-tighter italic">Verify Entire <br /> Manifest</h3>
+                      <p className="text-white/80 font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[8px] md:text-xs max-w-md mx-auto">Lock in all nodes and finalize your Catarman exploration protocol.</p>
+                      <motion.button 
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-full sm:w-auto bg-white text-island-emerald px-10 md:px-16 py-6 md:py-8 rounded-full font-black uppercase tracking-[0.3em] md:tracking-[0.5em] text-[10px] md:text-sm shadow-3xl hover:bg-island-volcanic hover:text-white transition-all"
+                      >
+                        Confirm All Nodes
+                      </motion.button>
+                    </div>
                   </div>
                 </div>
-              ))}
-
-              {/* Weather Intelligence */}
-              <div className="p-10 bg-emerald-50 rounded-[3.5rem] border-2 border-emerald-100 flex gap-8 items-center shadow-xl">
-                <div className="w-16 h-16 rounded-3xl bg-island-emerald text-white flex items-center justify-center shrink-0 shadow-lg border-2 border-emerald-200">
-                  <CloudRain size={32} strokeWidth={3} />
-                </div>
-                <div>
-                  <h4 className="font-black text-island-green uppercase tracking-[0.2em] text-[10px] mb-2 block">Catarman Climate Node</h4>
-                  <p className="text-island-green/80 text-base font-black leading-relaxed italic">"Maintain waterproof containment for island transitions. The microclimate remains beautifully unpredictable."</p>
-                </div>
-              </div>
-
-              {/* Action Footer */}
-              <div className="pt-16 pb-24 space-y-5">
-                <motion.button 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="btn-volcanic w-full py-8 rounded-[2.5rem] text-sm shadow-emerald-900/40"
-                >
-                  <CreditCard size={24} strokeWidth={3} /> Finalize & Verify All Nodes
-                </motion.button>
-                <button className="btn-secondary w-full py-8 rounded-[2.5rem] text-xs">
-                  Export Journey Manifest
-                </button>
               </div>
             </div>
           ) : null}
         </div>
-
-        {/* Input Bar Placeholder */}
-        {step !== 'result' && (
-          <div className="p-10 bg-white border-t border-emerald-100 sticky bottom-0 z-40 shadow-[0_-10px_40px_-10px_rgba(6,78,59,0.05)]">
-            <div className="bg-emerald-50 rounded-[2.5rem] p-6 flex items-center gap-5 border-2 border-emerald-100 shadow-inner">
-              <div className="w-12 h-12 rounded-2xl emerald-gradient text-white flex items-center justify-center shadow-lg">
-                <Sparkles size={24} strokeWidth={3} />
-              </div>
-              <input 
-                disabled 
-                placeholder="Securely awaiting manifest nodes..." 
-                className="bg-transparent border-none flex-1 text-xs font-black uppercase tracking-[0.3em] text-emerald-900/30 focus:outline-none"
-              />
-              <button disabled className="w-12 h-12 rounded-2xl bg-emerald-100 text-white flex items-center justify-center shadow-md">
-                <Send size={22} strokeWidth={3.5} />
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Right Panel: Immersive Visuals */}
@@ -730,85 +732,87 @@ export default function TripPlannerView() {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentImageIndex}
-            initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.05 }}
-            transition={{ duration: 3, ease: [0.2, 0, 0.2, 1] }}
+            initial={{ opacity: 0, scale: 1.15, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, scale: 1.05, filter: 'blur(5px)' }}
+            transition={{ duration: 4, ease: [0.2, 0, 0.2, 1] }}
             className="absolute inset-0"
           >
             <img 
               src={CAMIGUIN_IMAGES[currentImageIndex]} 
               alt="Catarman" 
-              className="w-full h-full object-cover opacity-60 contrast-125 saturate-[0.8]"
+              className="w-full h-full object-cover opacity-50 contrast-125 saturate-[0.6]"
             />
           </motion.div>
         </AnimatePresence>
 
         {/* Cinematic Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-island-volcanic via-island-volcanic/20 to-island-volcanic/70" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,44,34,0.5)_100%)]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-island-volcanic via-transparent to-island-volcanic/60" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.6)_100%)]" />
 
-        {/* Floating Media Content */}
+        {/* Floating Content */}
         <div className="absolute inset-0 flex flex-col justify-end p-24 text-white">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.5 }}
-            className="max-w-3xl space-y-12"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1.5, delay: 0.5 }}
+            className="max-w-4xl space-y-12"
           >
-            <div className="flex items-center gap-5 bg-white/10 backdrop-blur-3xl px-8 py-4 rounded-full border-2 border-white/20 w-fit shadow-2xl">
-              <MapIcon size={22} className="text-island-emerald" strokeWidth={3} />
-              <span className="text-[11px] font-black uppercase tracking-[0.4em] text-white">Node: 9.2014° N, 124.6675° E</span>
-            </div>
-            
-            <div className="space-y-6">
-              <h2 className="text-8xl lg:text-9xl font-bold leading-[0.8] tracking-tighter">Bespoke <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-emerald-100">Catarman.</span></h2>
-              <p className="text-3xl text-emerald-100/70 font-semibold leading-relaxed max-w-xl">Advanced neural concierge meets volcanic heritage. Welcome to the pilot experience.</p>
-            </div>
-            
-            <div className="flex items-center gap-16 pt-12 border-t-2 border-white/10">
-              <div className="space-y-3">
-                <span className="block text-5xl font-serif italic text-island-emerald font-light">Heritage</span>
-                <span className="block text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Ancestral Core</span>
-              </div>
-              <div className="w-px h-16 bg-white/20" />
-              <div className="space-y-3">
-                <span className="block text-5xl font-serif italic text-island-emerald font-light">Lush</span>
-                <span className="block text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Island Energy</span>
-              </div>
-              <div className="w-px h-16 bg-white/20" />
-              <div className="space-y-3">
-                <span className="block text-5xl font-serif italic text-island-emerald font-light">Infinite</span>
-                <span className="block text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Digital Node</span>
-              </div>
+            <div className="w-1.5 h-32 bg-island-emerald/40 rounded-full" />
+            <div className="space-y-8">
+              <h2 className="text-[10rem] font-black leading-[0.75] tracking-tighter uppercase italic drop-shadow-3xl">Bespoke <br /><span className="text-island-emerald not-italic">Catarman.</span></h2>
+              <p className="text-3xl text-emerald-50/60 font-medium leading-relaxed max-w-2xl">Your journey is being computed against local heritage vectors and real-time municipality data.</p>
             </div>
           </motion.div>
         </div>
 
-        {/* Minimal Nav for Right Side */}
-        <div className="absolute top-16 right-16 flex items-center gap-6">
+        {/* Minimal Actions */}
+        <div className="absolute top-16 right-16 flex items-center gap-6 z-50">
           <motion.button 
-            whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.2)' }}
-            className="w-16 h-16 rounded-[1.75rem] bg-white/10 backdrop-blur-3xl border-2 border-white/20 flex items-center justify-center text-white shadow-3xl transition-all"
-          >
-            <Heart size={28} strokeWidth={3} />
-          </motion.button>
-          <motion.button 
-            whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.2)' }}
+            whileHover={{ scale: 1.1, backgroundColor: 'white', color: '#0a0a0a' }}
             onClick={() => navigate('/')}
-            className="w-16 h-16 rounded-[1.75rem] bg-white/10 backdrop-blur-3xl border-2 border-white/20 flex items-center justify-center text-white shadow-3xl transition-all"
+            className="w-20 h-20 rounded-3xl bg-white/10 backdrop-blur-3xl border-2 border-white/20 flex items-center justify-center text-white shadow-3xl transition-all"
           >
-            <X size={28} strokeWidth={3} />
+            <X size={32} strokeWidth={3} />
           </motion.button>
         </div>
-        
-        {/* Progress Nodes */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col gap-5 px-8">
-          {[0, 1, 2, 3].map(i => (
-            <div key={i} className={`w-1.5 h-10 rounded-full transition-all duration-1000 ${i === currentImageIndex ? 'bg-island-emerald h-24 shadow-[0_0_20px_rgba(16,185,129,1)]' : 'bg-white/20'}`} />
+
+        {/* Progress Timeline */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col gap-8 px-10">
+          {[0, 1, 2, 3, 4].map(i => (
+            <motion.div 
+              key={i} 
+              animate={{ 
+                height: i === currentImageIndex ? 64 : 16,
+                backgroundColor: i === currentImageIndex ? '#10b981' : 'rgba(255,255,255,0.2)',
+                width: i === currentImageIndex ? 6 : 4
+              }}
+              className="rounded-full shadow-2xl" 
+            />
           ))}
         </div>
       </div>
     </div>
+  );
+}
+
+function ProfileItem({ icon: Icon, label, count, onClick }: any) {
+  return (
+    <button 
+      onClick={onClick}
+      className="w-full p-8 bg-white rounded-[3rem] border-2 border-emerald-50 flex items-center justify-between group hover:bg-emerald-50/30 hover:border-island-emerald/20 transition-all shadow-sm active:scale-[0.98]"
+    >
+      <div className="flex items-center gap-6">
+        <div className="w-14 h-14 bg-emerald-50/50 text-island-green rounded-2xl flex items-center justify-center group-hover:emerald-gradient group-hover:text-white transition-all duration-500 border border-emerald-100">
+          <Icon size={26} strokeWidth={2.5} />
+        </div>
+        <span className="text-lg font-black text-island-green tracking-tighter">{label}</span>
+      </div>
+      {count ? (
+        <span className="px-4 py-1.5 bg-island-emerald text-white rounded-full text-[10px] font-black shadow-xl">{count}</span>
+      ) : (
+        <ChevronRight size={22} strokeWidth={3} className="text-emerald-100 group-hover:text-island-emerald group-hover:translate-x-1 transition-all" />
+      )}
+    </button>
   );
 }

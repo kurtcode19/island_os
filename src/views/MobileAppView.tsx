@@ -44,6 +44,7 @@ import { accommodations } from '../data/accommodations';
 import { transportOptions } from '../data/transport';
 import { useNavigate } from 'react-router-dom';
 import IslandMap from '../components/IslandMap';
+import { SearchWidget } from '../components/SearchWidget';
 
 const categories = [
   { name: 'All', image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=100' },
@@ -62,7 +63,7 @@ const spots = [
     category: 'Heritage',
     rating: 4.9,
     price: 150,
-    image: 'https://img.atlasobscura.com/CmlPBCqrdngS4DE4q_DDyDdVYBjhcSTHrsI9PUEbvkQ/rs:fill:780:520:1/g:ce/q:81/sm:1/scp:1/ar:1/aHR0cHM6Ly9hdGxh/cy1kZXYuczMuYW1h/em9uYXdzLmNvbS91/cGxvYWRzL3BsYWNl/X2ltYWdlcy85OTA0/ZjhlMDJiMGM0ODM5/NWJfU3Vua2VuX0Nl/bWV0ZXJ5LF9DYXRh/cm1hbixfQ2FtaWd1/aW4uanBn.jpg',
+    image: '/images/hero-sunken.png',
     distance: '0.8 km',
     description: 'Explore the profound heritage of Sunken Cemetery. A cornerstone of the Catarman pilot experience.'
   },
@@ -196,20 +197,16 @@ export default function MobileAppView() {
     }
   };
 
-  const filteredStays = useMemo(() => {
-    return accommodations.filter(s => selectedCategory === 'All' || selectedCategory === 'Stay');
-  }, [selectedCategory]);
-
   const onboardingContent = (
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="relative h-full flex flex-col justify-end p-10 overflow-hidden"
+      className="absolute inset-0 z-50 flex flex-col justify-end p-10 overflow-hidden"
     >
       <div className="absolute inset-0 z-0">
         <img 
-          src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=1000" 
+          src="/images/explore-bg.jpg" 
           alt="Onboarding" 
           className="w-full h-full object-cover"
         />
@@ -258,11 +255,303 @@ export default function MobileAppView() {
   );
 
   const content = (
-    <div className={`h-full flex flex-col overflow-y-auto no-scrollbar scroll-smooth bg-white ${!isDesktop ? 'min-h-screen' : ''}`}>
+    <div className="relative h-full w-full flex flex-col bg-white overflow-hidden">
       <AnimatePresence mode="wait">
-        {showOnboarding ? onboardingContent : (
-        <>
-        {selectedSpot ? (
+        {showOnboarding && onboardingContent}
+      </AnimatePresence>
+
+      {/* Main Scrollable Area */}
+      <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth">
+        <div className="flex flex-col min-h-full">
+          {/* Active Tab Content */}
+          {activeTab === 'explore' && (
+            <motion.div 
+              key="explore"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col"
+            >
+              {/* Sticky Header Section */}
+              <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-xl px-8 pt-8 pb-4 space-y-6 border-b border-slate-50">
+                <header className="flex justify-between items-center">
+                  <div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-1 block">Current Location</span>
+                    <button className="flex items-center gap-2 text-island-volcanic font-black tracking-tight group">
+                      Catarman, Camiguin
+                      <ChevronRight size={16} className="rotate-90 text-island-accent" />
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-600 shadow-sm active:scale-90 transition-transform">
+                      <Bell size={20} />
+                    </div>
+                    <span className="absolute top-2 right-2 w-2 h-2 bg-island-coral rounded-full border-2 border-white"></span>
+                  </div>
+                </header>
+              </div>
+
+              <div className="px-8 pt-8 space-y-10 pb-40">
+                {/* Functional Search Widget */}
+                <SearchWidget variant="mobile" />
+
+                {/* Horizontal Categories with Images */}
+                <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-8 px-8">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.name}
+                      onClick={() => setSelectedCategory(cat.name)}
+                      className={`flex items-center gap-3 pl-2 pr-6 py-2 rounded-full transition-all border shrink-0 ${
+                        selectedCategory === cat.name 
+                          ? 'bg-island-accent border-island-accent text-island-volcanic font-black' 
+                          : 'bg-white border-slate-100 text-slate-500 font-bold'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20">
+                        <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+                      </div>
+                      <span className="text-xs">{cat.name}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Popular Destinations Section */}
+                <div>
+                  <div className="flex justify-between items-center mb-8">
+                    <h3 className="text-2xl font-black text-island-volcanic tracking-tighter">Popular Destination</h3>
+                    <button className="text-[10px] font-black text-island-accent uppercase tracking-widest bg-island-volcanic px-4 py-1.5 rounded-full">View All</button>
+                  </div>
+                  
+                  <div className="space-y-8">
+                    {/* Spot Cards */}
+                    {(selectedCategory === 'All' || ['Heritage', 'Nature'].includes(selectedCategory)) && 
+                      spots.filter(s => selectedCategory === 'All' || s.category === selectedCategory).map((spot) => (
+                        <motion.div 
+                          key={`spot-${spot.id}`}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setSelectedSpot({ ...spot, type: 'spot' })}
+                          className="group relative bg-white rounded-[3rem] border border-slate-100 overflow-hidden shadow-xl p-4 cursor-pointer"
+                        >
+                          <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
+                            <img src={spot.image} alt={spot.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" referrerPolicy="no-referrer" />
+                            <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-2xl flex items-center gap-1.5 text-island-volcanic shadow-lg">
+                              <Star size={14} fill="#eaff00" className="text-island-accent" />
+                              <span className="text-xs font-black">{spot.rating}</span>
+                            </div>
+                            <button className="absolute top-5 right-5 w-10 h-10 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20">
+                              <Heart size={18} />
+                            </button>
+                            <div className="absolute bottom-5 right-5 w-12 h-12 bg-island-accent text-island-volcanic rounded-full flex items-center justify-center shadow-2xl">
+                              <ArrowLeft className="rotate-[135deg]" size={20} strokeWidth={3} />
+                            </div>
+                          </div>
+                          <div className="px-4 pb-4">
+                            <div className="flex items-center gap-1.5 text-[10px] font-black text-island-emerald uppercase tracking-widest mb-2">
+                              <MapPin size={12} strokeWidth={3} />
+                              {spot.category}
+                            </div>
+                            <h4 className="text-3xl font-black text-island-volcanic tracking-tighter">{spot.name}</h4>
+                          </div>
+                        </motion.div>
+                    ))}
+
+                    {/* Stay Cards */}
+                    {(selectedCategory === 'All' || selectedCategory === 'Stay') && 
+                      accommodations.map((stay) => (
+                        <motion.div 
+                          key={`stay-${stay.id}`}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setSelectedSpot({ ...stay, type: 'stay' })}
+                          className="bg-white rounded-[3rem] border border-slate-100 overflow-hidden shadow-xl p-4 cursor-pointer"
+                        >
+                          <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
+                            <img src={stay.image} alt={stay.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-2xl flex items-center gap-1.5 text-island-volcanic shadow-lg">
+                              <Star size={14} fill="#eaff00" className="text-island-accent" />
+                              <span className="text-xs font-black">{stay.rating}</span>
+                            </div>
+                            <div className="absolute bottom-5 right-5 w-12 h-12 bg-island-accent text-island-volcanic rounded-full flex items-center justify-center shadow-2xl">
+                              <ArrowLeft className="rotate-[135deg]" size={20} strokeWidth={3} />
+                            </div>
+                          </div>
+                          <div className="px-4 pb-4 flex justify-between items-end">
+                            <div>
+                              <div className="text-[10px] font-black text-island-emerald uppercase tracking-widest mb-2">Resort • {stay.type}</div>
+                              <h4 className="text-3xl font-black text-island-volcanic tracking-tighter">{stay.name}</h4>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-2xl font-black text-island-emerald tracking-tighter">₱{stay.price.toLocaleString()}</span>
+                              <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">/ night</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'map' && (
+            <motion.div 
+              key="map"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="h-[80vh] w-full"
+            >
+              <IslandMap />
+            </motion.div>
+          )}
+
+          {activeTab === 'pass' && (
+            <motion.div 
+              key="pass"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="px-8 flex flex-col items-center pb-40"
+            >
+              <header className="mb-14 text-center pt-8">
+                <div className="w-20 h-20 bg-island-emerald text-island-volcanic rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl border border-white/10">
+                  <Ticket size={40} strokeWidth={2.5} />
+                </div>
+                <h2 className="text-4xl font-black text-island-volcanic tracking-tighter mb-2">Municipal Pass</h2>
+                <p className="text-slate-400 text-sm font-medium tracking-tight">Catarman Pilot Identity Manifest</p>
+              </header>
+              
+              <div className="w-full aspect-square max-w-[320px] bg-white rounded-[4rem] border-8 border-slate-50 shadow-xl flex items-center justify-center relative group p-10 mb-12">
+                <div className="absolute top-8 left-8 w-8 h-8 border-t-4 border-l-4 border-island-emerald rounded-tl-xl"></div>
+                <div className="absolute top-8 right-8 w-8 h-8 border-t-4 border-r-4 border-island-emerald rounded-tr-xl"></div>
+                <div className="absolute bottom-8 left-8 w-8 h-8 border-b-4 border-l-4 border-island-emerald rounded-bl-xl"></div>
+                <div className="absolute bottom-8 right-8 w-8 h-8 border-b-4 border-r-4 border-island-emerald rounded-br-xl"></div>
+                <QrCode size={200} strokeWidth={1} className="text-island-volcanic" />
+              </div>
+
+              <div className="w-full bg-island-volcanic p-10 rounded-[3.5rem] text-white shadow-2xl relative border border-white/5 overflow-hidden">
+                <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
+                  <Sparkles size={200} className="translate-x-12 -translate-y-12 rotate-12" />
+                </div>
+                <div className="flex justify-between items-start mb-10 relative z-10">
+                  <div>
+                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-2 block">Tourist Clearane</span>
+                    <p className="text-2xl font-black tracking-tighter">{user?.displayName || 'Catarman Guest'}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-white/10 backdrop-blur-2xl rounded-xl flex items-center justify-center border border-white/20">
+                    <ShieldCheck size={24} strokeWidth={3} className="text-island-emerald" />
+                  </div>
+                </div>
+                <div className="flex justify-between items-end relative z-10">
+                  <div className="space-y-1">
+                    <span className="block text-[10px] font-black text-white/30 uppercase tracking-[0.4em]">Node ID</span>
+                    <span className="font-mono text-xs font-black tracking-widest text-island-emerald">CTRM-P-2026-9X</span>
+                  </div>
+                  <div className="px-5 py-2 bg-island-emerald text-island-volcanic rounded-full text-[10px] font-black uppercase tracking-widest">
+                    SECURE
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'profile' && (
+            <motion.div 
+              key="profile"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="px-8 pb-40"
+            >
+              <header className="mb-12 flex flex-col items-center text-center pt-8">
+                <div className="w-32 h-32 rounded-[3rem] bg-white border-8 border-slate-50 shadow-xl flex items-center justify-center relative overflow-hidden mb-6">
+                  {user?.photoURL ? (
+                    <img src={user.photoURL} alt={user.displayName || ''} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <User size={60} className="text-slate-100" />
+                  )}
+                  <div className="absolute -bottom-1 -right-1 w-10 h-10 bg-island-emerald text-island-volcanic rounded-xl flex items-center justify-center border-4 border-white shadow-lg">
+                    <CheckCircle2 size={16} strokeWidth={4} />
+                  </div>
+                </div>
+                <h2 className="text-3xl font-black text-island-volcanic tracking-tighter">
+                  {user?.displayName || 'Digital Agent'}
+                </h2>
+                <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mt-3">
+                  {profile?.role || 'TOURIST'} • VERIFIED
+                </p>
+              </header>
+
+              {!user ? (
+                <button 
+                  onClick={login}
+                  className="btn-primary w-full py-6 rounded-3xl text-sm"
+                >
+                  Initialize Manifest
+                </button>
+              ) : (
+                <div className="space-y-10">
+                  <div>
+                    <div className="flex justify-between items-center mb-6 px-2">
+                      <h3 className="text-xl font-black text-island-volcanic tracking-tighter">Active Nodes</h3>
+                      <span className="text-[10px] font-black text-island-emerald uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full">
+                        {bookings.length} Verified
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-4 max-h-[40vh] overflow-y-auto no-scrollbar pr-2">
+                      {bookings.length === 0 ? (
+                        <div className="py-16 bg-slate-50 rounded-[2.5rem] text-center border-2 border-dashed border-slate-200">
+                          <Sparkles className="mx-auto text-slate-200 mb-4" size={48} />
+                          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">No Active Nodes</p>
+                        </div>
+                      ) : (
+                        bookings.map((booking) => (
+                          <div key={booking.id} className="p-6 bg-white rounded-[2rem] border border-slate-100 shadow-lg relative overflow-hidden group">
+                            {booking.paymentStatus === 'PAID' && (
+                               <div className="absolute top-0 right-0 w-14 h-14 bg-island-emerald text-island-volcanic rounded-bl-[2rem] flex items-center justify-center shadow-lg">
+                                 <CheckCircle2 size={24} strokeWidth={3} />
+                               </div>
+                            )}
+                            <div className="mb-4">
+                              <span className="text-[10px] font-black text-island-emerald uppercase tracking-widest mb-1 block">{booking.serviceType}</span>
+                              <h4 className="text-xl font-black text-island-volcanic tracking-tighter leading-none">{booking.serviceName}</h4>
+                            </div>
+                            <div className="flex justify-between items-end">
+                              <div className="space-y-1">
+                                <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount Paid</span>
+                                <span className="text-xl font-black text-island-volcanic">₱{booking.amount?.toLocaleString()}</span>
+                              </div>
+                              {booking.paymentStatus === 'UNPAID' && (
+                                <button 
+                                  onClick={() => handlePay(booking.id)}
+                                  className="bg-island-volcanic text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest"
+                                >
+                                  Pay Now
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <ProfileItem icon={Building2} label="Claim Business Node" onClick={() => navigate('/claim-business')} />
+                  </div>
+
+                  <button 
+                    onClick={logout}
+                    className="w-full mt-10 py-6 bg-slate-50 text-island-coral rounded-3xl text-[10px] font-black uppercase tracking-[0.3em] border border-slate-100 active:scale-95 transition-all"
+                  >
+                    Terminate Session
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Overlays (Spot Details) */}
+      <AnimatePresence>
+        {selectedSpot && (
           <motion.div 
             key="spot-detail"
             initial={{ y: '100%' }}
@@ -373,356 +662,59 @@ export default function MobileAppView() {
               </div>
             </div>
           </motion.div>
-        ) : null}
-
-        {activeTab === 'explore' && (
-          <motion.div 
-            key="explore"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="flex flex-col"
-          >
-            {/* Sticky Header Section */}
-            <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl px-8 pt-8 pb-4 space-y-6">
-              <header className="flex justify-between items-center">
-                <div>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-1 block">Current Location</span>
-                  <button className="flex items-center gap-2 text-island-volcanic font-black tracking-tight group">
-                    Catarman, Camiguin
-                    <ChevronRight size={16} className="rotate-90 text-island-accent" />
-                  </button>
-                </div>
-                <div className="relative">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-600 shadow-sm active:scale-90 transition-transform">
-                    <Bell size={20} />
-                  </div>
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-island-coral rounded-full border-2 border-white"></span>
-                </div>
-              </header>
-
-              {/* Modern Search */}
-              <div className="relative">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300">
-                  <Search size={20} strokeWidth={3} />
-                </div>
-                <input 
-                  type="text" 
-                  placeholder="Search destination..." 
-                  className="w-full pl-14 pr-14 py-5 bg-slate-50 border border-slate-100 rounded-[2rem] text-sm font-bold shadow-sm focus:ring-4 focus:ring-island-emerald/5 focus:border-island-emerald/20 transition-all outline-none placeholder:text-slate-300"
-                />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-island-volcanic text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-90">
-                  <Filter size={18} strokeWidth={3} />
-                </button>
-              </div>
-
-              {/* Horizontal Categories with Images */}
-              <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-8 px-8 pb-2">
-                {categories.map((cat) => (
-                  <button
-                    key={cat.name}
-                    onClick={() => setSelectedCategory(cat.name)}
-                    className={`flex items-center gap-3 pl-2 pr-6 py-2 rounded-full transition-all border shrink-0 ${
-                      selectedCategory === cat.name 
-                        ? 'bg-island-accent border-island-accent text-island-volcanic font-black' 
-                        : 'bg-white border-slate-100 text-slate-500 font-bold'
-                    }`}
-                  >
-                    <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20">
-                      <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
-                    </div>
-                    <span className="text-xs">{cat.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Scrollable Popular Destinations */}
-            <div className="px-8 mt-4 mb-32">
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-2xl font-black text-island-volcanic tracking-tighter">Popular Destination</h3>
-                <button className="text-[10px] font-black text-island-accent uppercase tracking-widest bg-island-volcanic px-4 py-1.5 rounded-full">View All</button>
-              </div>
-              
-              <div className="space-y-8">
-                {/* Spot Cards */}
-                {(selectedCategory === 'All' || ['Heritage', 'Nature'].includes(selectedCategory)) && 
-                  spots.filter(s => selectedCategory === 'All' || s.category === selectedCategory).map((spot) => (
-                    <motion.div 
-                      key={`spot-${spot.id}`}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setSelectedSpot({ ...spot, type: 'spot' })}
-                      className="group relative bg-white rounded-[3rem] border border-slate-100 overflow-hidden shadow-xl p-4 cursor-pointer"
-                    >
-                      <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
-                        <img src={spot.image} alt={spot.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" referrerPolicy="no-referrer" />
-                        <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-2xl flex items-center gap-1.5 text-island-volcanic shadow-lg">
-                          <Star size={14} fill="#eaff00" className="text-island-accent" />
-                          <span className="text-xs font-black">{spot.rating}</span>
-                        </div>
-                        <button className="absolute top-5 right-5 w-10 h-10 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20">
-                          <Heart size={18} />
-                        </button>
-                        <div className="absolute bottom-5 right-5 w-12 h-12 bg-island-accent text-island-volcanic rounded-full flex items-center justify-center shadow-2xl">
-                          <ArrowLeft className="rotate-[135deg]" size={20} strokeWidth={3} />
-                        </div>
-                      </div>
-                      <div className="px-4 pb-4">
-                        <div className="flex items-center gap-1.5 text-[10px] font-black text-island-emerald uppercase tracking-widest mb-2">
-                          <MapPin size={12} strokeWidth={3} />
-                          {spot.category}
-                        </div>
-                        <h4 className="text-3xl font-black text-island-volcanic tracking-tighter">{spot.name}</h4>
-                      </div>
-                    </motion.div>
-                ))}
-
-                {/* Stay Cards */}
-                {(selectedCategory === 'All' || selectedCategory === 'Stay') && 
-                  accommodations.map((stay) => (
-                    <motion.div 
-                      key={`stay-${stay.id}`}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setSelectedSpot({ ...stay, type: 'stay' })}
-                      className="bg-white rounded-[3rem] border border-slate-100 overflow-hidden shadow-xl p-4 cursor-pointer"
-                    >
-                      <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
-                        <img src={stay.image} alt={stay.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-2xl flex items-center gap-1.5 text-island-volcanic shadow-lg">
-                          <Star size={14} fill="#eaff00" className="text-island-accent" />
-                          <span className="text-xs font-black">{stay.rating}</span>
-                        </div>
-                        <div className="absolute bottom-5 right-5 w-12 h-12 bg-island-accent text-island-volcanic rounded-full flex items-center justify-center shadow-2xl">
-                          <ArrowLeft className="rotate-[135deg]" size={20} strokeWidth={3} />
-                        </div>
-                      </div>
-                      <div className="px-4 pb-4 flex justify-between items-end">
-                        <div>
-                          <div className="text-[10px] font-black text-island-emerald uppercase tracking-widest mb-2">Resort • {stay.type}</div>
-                          <h4 className="text-3xl font-black text-island-volcanic tracking-tighter">{stay.name}</h4>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-2xl font-black text-island-emerald tracking-tighter">₱{stay.price.toLocaleString()}</span>
-                          <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">/ night</span>
-                        </div>
-                      </div>
-                    </motion.div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {activeTab === 'map' && (
-          <motion.div 
-            key="map"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="h-full w-full"
-          >
-            <IslandMap />
-          </motion.div>
-        )}
-
-        {activeTab === 'pass' && (
-          <motion.div 
-            key="pass"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="px-8 flex flex-col items-center pb-12"
-          >
-            <header className="mb-14 text-center pt-8">
-              <div className="w-20 h-20 bg-island-emerald text-island-volcanic rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl border border-white/10">
-                <Ticket size={40} strokeWidth={2.5} />
-              </div>
-              <h2 className="text-4xl font-black text-island-volcanic tracking-tighter mb-2">Municipal Pass</h2>
-              <p className="text-slate-400 text-sm font-medium tracking-tight">Catarman Pilot Identity Manifest</p>
-            </header>
-            
-            <div className="w-full aspect-square max-w-[320px] bg-white rounded-[4rem] border-8 border-slate-50 shadow-xl flex items-center justify-center relative group p-10 mb-12">
-              <div className="absolute top-8 left-8 w-8 h-8 border-t-4 border-l-4 border-island-emerald rounded-tl-xl"></div>
-              <div className="absolute top-8 right-8 w-8 h-8 border-t-4 border-r-4 border-island-emerald rounded-tr-xl"></div>
-              <div className="absolute bottom-8 left-8 w-8 h-8 border-b-4 border-l-4 border-island-emerald rounded-bl-xl"></div>
-              <div className="absolute bottom-8 right-8 w-8 h-8 border-b-4 border-r-4 border-island-emerald rounded-br-xl"></div>
-              <QrCode size={200} strokeWidth={1} className="text-island-volcanic" />
-            </div>
-
-            <div className="w-full bg-island-volcanic p-10 rounded-[3.5rem] text-white shadow-2xl relative border border-white/5 overflow-hidden">
-              <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
-                <Sparkles size={200} className="translate-x-12 -translate-y-12 rotate-12" />
-              </div>
-              <div className="flex justify-between items-start mb-10 relative z-10">
-                <div>
-                  <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-2 block">Tourist Clearane</span>
-                  <p className="text-2xl font-black tracking-tighter">{user?.displayName || 'Catarman Guest'}</p>
-                </div>
-                <div className="w-12 h-12 bg-white/10 backdrop-blur-2xl rounded-xl flex items-center justify-center border border-white/20">
-                  <ShieldCheck size={24} strokeWidth={3} className="text-island-emerald" />
-                </div>
-              </div>
-              <div className="flex justify-between items-end relative z-10">
-                <div className="space-y-1">
-                  <span className="block text-[10px] font-black text-white/30 uppercase tracking-[0.4em]">Node ID</span>
-                  <span className="font-mono text-xs font-black tracking-widest text-island-emerald">CTRM-P-2026-9X</span>
-                </div>
-                <div className="px-5 py-2 bg-island-emerald text-island-volcanic rounded-full text-[10px] font-black uppercase tracking-widest">
-                  SECURE
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {activeTab === 'profile' && (
-          <motion.div 
-            key="profile"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="px-8 pb-12"
-          >
-            <header className="mb-12 flex flex-col items-center text-center pt-8">
-              <div className="w-32 h-32 rounded-[3rem] bg-white border-8 border-slate-50 shadow-xl flex items-center justify-center relative overflow-hidden mb-6">
-                {user?.photoURL ? (
-                  <img src={user.photoURL} alt={user.displayName || ''} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                ) : (
-                  <User size={60} className="text-slate-100" />
-                )}
-                <div className="absolute -bottom-1 -right-1 w-10 h-10 bg-island-emerald text-island-volcanic rounded-xl flex items-center justify-center border-4 border-white shadow-lg">
-                  <CheckCircle2 size={16} strokeWidth={4} />
-                </div>
-              </div>
-              <h2 className="text-3xl font-black text-island-volcanic tracking-tighter">
-                {user?.displayName || 'Digital Agent'}
-              </h2>
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mt-3">
-                {profile?.role || 'TOURIST'} • VERIFIED
-              </p>
-            </header>
-
-            {!user ? (
-              <button 
-                onClick={login}
-                className="btn-primary w-full py-6 rounded-3xl text-sm"
-              >
-                Initialize Manifest
-              </button>
-            ) : (
-              <div className="space-y-10">
-                <div>
-                  <div className="flex justify-between items-center mb-6 px-2">
-                    <h3 className="text-xl font-black text-island-volcanic tracking-tighter">Active Nodes</h3>
-                    <span className="text-[10px] font-black text-island-emerald uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full">
-                      {bookings.length} Verified
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-4 max-h-[40vh] overflow-y-auto no-scrollbar pr-2">
-                    {bookings.length === 0 ? (
-                      <div className="py-16 bg-slate-50 rounded-[2.5rem] text-center border-2 border-dashed border-slate-200">
-                        <Sparkles className="mx-auto text-slate-200 mb-4" size={48} />
-                        <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">No Active Nodes</p>
-                      </div>
-                    ) : (
-                      bookings.map((booking) => (
-                        <div key={booking.id} className="p-6 bg-white rounded-[2rem] border border-slate-100 shadow-lg relative overflow-hidden group">
-                          {booking.paymentStatus === 'PAID' && (
-                             <div className="absolute top-0 right-0 w-14 h-14 bg-island-emerald text-island-volcanic rounded-bl-[2rem] flex items-center justify-center shadow-lg">
-                               <CheckCircle2 size={24} strokeWidth={3} />
-                             </div>
-                          )}
-                          <div className="mb-4">
-                            <span className="text-[10px] font-black text-island-emerald uppercase tracking-widest mb-1 block">{booking.serviceType}</span>
-                            <h4 className="text-xl font-black text-island-volcanic tracking-tighter leading-none">{booking.serviceName}</h4>
-                          </div>
-                          <div className="flex justify-between items-end">
-                            <div className="space-y-1">
-                              <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount Paid</span>
-                              <span className="text-xl font-black text-island-volcanic">₱{booking.amount?.toLocaleString()}</span>
-                            </div>
-                            {booking.paymentStatus === 'UNPAID' && (
-                              <button 
-                                onClick={() => handlePay(booking.id)}
-                                className="bg-island-volcanic text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest"
-                              >
-                                Pay Now
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <ProfileItem icon={Building2} label="Claim Business Node" onClick={() => navigate('/claim-business')} />
-                </div>
-
-                <button 
-                  onClick={logout}
-                  className="w-full mt-10 py-6 bg-slate-50 text-island-coral rounded-3xl text-[10px] font-black uppercase tracking-[0.3em] border border-slate-100 active:scale-95 transition-all"
-                >
-                  Terminate Session
-                </button>
-              </div>
-            )}
-          </motion.div>
-        )}
-        </>
         )}
       </AnimatePresence>
 
-      {/* Internal Bottom Nav */}
+      {/* Navigation & FAB */}
       {!showOnboarding && (
-        <>
-          {/* Plan with AI Floating Button */}
-          <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => navigate('/planner')}
-            className="fixed bottom-28 right-6 z-50 bg-island-accent text-island-volcanic px-6 py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-2 group border border-island-accent/20"
-          >
-            <Sparkles size={18} className="animate-pulse" />
-            <span>Plan with AI</span>
-          </motion.button>
+        <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+          <div className="relative w-full h-40 pointer-events-auto">
+             {/* Plan with AI Floating Button */}
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => navigate('/planner')}
+              className="absolute bottom-28 right-6 bg-island-accent text-island-volcanic px-6 py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-2 group border border-island-accent/20"
+            >
+              <Sparkles size={18} className="animate-pulse" />
+              <span>Plan with AI</span>
+            </motion.button>
 
-          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md">
-            <nav className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-2 flex items-center justify-around shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-slate-100">
-              {[
-                { id: 'explore', icon: Compass },
-                { id: 'map', icon: MapIcon },
-                { id: 'pass', icon: CreditCard },
-                { id: 'profile', icon: User }
-              ].map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className="relative p-4 group"
-                >
-                  {activeTab === item.id && (
-                    <motion.div
-                      layoutId="activeTabBackground"
-                      className="absolute inset-0 bg-island-accent rounded-full"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                  <motion.div
-                    whileTap={{ scale: 0.9 }}
-                    className={`relative z-10 transition-colors ${
-                      activeTab === item.id ? 'text-island-volcanic' : 'text-slate-400 group-hover:text-slate-600'
-                    }`}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-md">
+              <nav className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-2 flex items-center justify-around shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border border-slate-100">
+                {[
+                  { id: 'explore', icon: Compass },
+                  { id: 'map', icon: MapIcon },
+                  { id: 'pass', icon: CreditCard },
+                  { id: 'profile', icon: User }
+                ].map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className="relative p-4 group"
                   >
-                    <item.icon size={24} strokeWidth={activeTab === item.id ? 3 : 2} />
-                  </motion.div>
-                </button>
-              ))}
-            </nav>
+                    {activeTab === item.id && (
+                      <motion.div
+                        layoutId="activeTabBackground"
+                        className="absolute inset-0 bg-island-accent rounded-full"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <motion.div
+                      whileTap={{ scale: 0.9 }}
+                      className={`relative z-10 transition-colors ${
+                        activeTab === item.id ? 'text-island-volcanic' : 'text-slate-400 group-hover:text-slate-600'
+                      }`}
+                    >
+                      <item.icon size={24} strokeWidth={activeTab === item.id ? 3 : 2} />
+                    </motion.div>
+                  </button>
+                ))}
+              </nav>
+            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
@@ -738,7 +730,7 @@ export default function MobileAppView() {
           {content}
         </div>
       ) : (
-        <div className="w-full h-full">
+        <div className="fixed inset-0 overflow-hidden">
           {content}
         </div>
       )}

@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { SearchWidget } from '../components/SearchWidget';
 
 const experiences = [
   { id: 'exp_2', title: 'Sunken Cemetery Exploration', type: 'Heritage', rating: 4.8, price: 150, businessId: 'catarman_lgu', image: '/images/hero-sunken.png' },
@@ -23,7 +24,7 @@ const experiences = [
 
 const highlights = [
   { id: '01', title: 'Heritage Trails', description: "We don't just guide tours; we preserve the stories of Catarman, from the sunken landmarks to the colonial ruins that define our soul.", image: 'https://files01.pna.gov.ph/source/2024/05/06/camiguin-old-church-ruins-05032024jb.jpg' },
-  { id: '02', title: 'Local Partnerships', description: "Working closely with Catarman LGU and local businesses, we ensure your visit supports the community while offering authentic island life.", image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=800' },
+  { id: '02', title: 'Local Partnerships', description: "Working closely with Catarman LGU and local businesses, we ensure your visit supports the community while offering authentic island life.", image: '/images/DigiPay-1.png' },
 ];
 
 export default function LandingView() {
@@ -70,12 +71,13 @@ export default function LandingView() {
 
   return (
     <div className="bg-slate-50 selection:bg-island-volcanic selection:text-white overflow-x-hidden min-h-screen pt-20">
-      {/* Boxed Hero Section Style (Sample 2) */}
+      
+      {/* Boxed Hero Section */}
       <section className="px-6 py-6 md:px-12 md:py-12">
-        <div className="max-w-[1600px] mx-auto bg-white rounded-[4rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100 flex flex-col lg:flex-row p-8 lg:p-16 gap-16 min-h-[85vh]">
+        <div className="max-w-[1600px] mx-auto bg-white rounded-[4rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100 flex flex-col lg:flex-row p-8 lg:p-16 gap-16 min-h-[80vh] relative">
           
           {/* Left Content Area */}
-          <div className="flex-1 flex flex-col justify-center py-10">
+          <div className="flex-1 flex flex-col justify-center py-10 z-10">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -88,10 +90,10 @@ export default function LandingView() {
                 </p>
               </div>
 
-              <h1 className="text-6xl md:text-[7rem] lg:text-[8rem] font-black text-island-volcanic leading-[0.85] tracking-tighter mb-12 uppercase italic">
+              <h1 className="text-6xl md:text-[7rem] lg:text-[8rem] font-black text-island-volcanic leading-[0.8] tracking-tighter mb-12 uppercase italic">
                 Discover <br />
-                The Heart Of <br />
-                <span className="text-island-emerald not-italic">Catarman</span>
+                The Heart <br />
+                <span className="text-island-emerald not-italic">Of Catarman</span>
               </h1>
 
               <p className="text-slate-500 text-lg font-medium leading-relaxed max-w-lg mb-16">
@@ -109,32 +111,25 @@ export default function LandingView() {
                     <ArrowUpRight size={20} />
                   </div>
                 </button>
-                <button 
-                  onClick={() => navigate('/planner')}
-                  className="bg-slate-50 text-slate-500 px-12 py-6 rounded-full text-xs font-black uppercase tracking-[0.2em] flex items-center gap-4 hover:bg-slate-100 transition-all border border-slate-100"
-                >
-                  Contact Us
-                </button>
               </div>
             </motion.div>
           </div>
 
-          {/* Right Image Area (Rounded Window Style) */}
-          <div className="flex-1 relative">
+          {/* Right Image Area */}
+          <div className="flex-1 relative z-10">
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1, ease: [0.2, 0, 0.2, 1] }}
-              className="h-full w-full rounded-[3.5rem] overflow-hidden shadow-2xl relative border-8 border-slate-50"
+              className="h-full w-full rounded-[3.5rem] overflow-hidden shadow-2xl relative border-8 border-slate-50 min-h-[500px]"
             >
               <img 
-                src="/images/hero-sunken.png" 
-                alt="Sunken Cemetery" 
+                src="/images/explore-bg.jpg" 
+                alt="Sunken Cemetery Aerial" 
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
               
-              {/* Floating Stat Card (Sample 2 Style) */}
               <div className="absolute top-10 right-10 bg-white/10 backdrop-blur-2xl px-10 py-6 rounded-3xl border border-white/20">
                 <p className="text-white text-5xl font-black tracking-tighter leading-none mb-1">98%</p>
                 <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Satisfaction Rate</p>
@@ -146,7 +141,7 @@ export default function LandingView() {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 }}
-              className="absolute -bottom-8 -left-8 bg-white p-8 rounded-[2.5rem] shadow-2xl border border-slate-50 max-w-sm hidden lg:block"
+              className="absolute -bottom-8 -left-8 bg-white p-8 rounded-[2.5rem] shadow-2xl border border-slate-50 max-w-sm hidden xl:block"
             >
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-island-emerald/10 rounded-2xl flex items-center justify-center text-island-emerald">
@@ -158,11 +153,17 @@ export default function LandingView() {
                 </div>
               </div>
               <p className="text-slate-500 text-sm font-medium leading-relaxed italic">
-                "Our trusted local partners ensure every moment is unforgettable."
+                "Our trusted local partners ensure every moment in Catarman is unforgettable."
               </p>
             </motion.div>
           </div>
+        </div>
+      </section>
 
+      {/* Search Widget Section */}
+      <section className="px-6 py-12 md:px-12">
+        <div className="max-w-[1600px] mx-auto flex justify-center">
+          <SearchWidget />
         </div>
       </section>
 

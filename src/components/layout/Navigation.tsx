@@ -74,8 +74,8 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
       <div className="max-w-[1440px] mx-auto px-6 md:px-12">
         <div className="flex justify-between h-20 items-center">
           
-          {/* Left Side: Logo & Navigation */}
-          <div className="flex items-center gap-12">
+          {/* Left Side: Logo */}
+          <div className="flex flex-1 justify-start">
             <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
               <div className="w-10 h-10 bg-island-volcanic/5 rounded-xl flex items-center justify-center border border-island-volcanic/10 transition-transform group-hover:scale-110">
                 <img src="/images/logo.png" alt="Catarman eLaag Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
@@ -84,8 +84,11 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                 Catarman <span className="text-island-emerald">eLaag</span>
               </span>
             </div>
+          </div>
 
-            <div className="hidden lg:flex items-center space-x-1">
+          {/* Center: Navigation Links */}
+          <div className="hidden lg:flex flex-1 justify-center">
+            <div className="flex items-center space-x-1">
               {navItems.map((item) => {
                 const isActive = item.path === '/' 
                   ? location.pathname === '/' 
@@ -114,7 +117,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
           </div>
 
           {/* Right Side: Auth & Primary Action */}
-          <div className="hidden md:flex items-center justify-end gap-6">
+          <div className="hidden md:flex flex-1 justify-end items-center gap-6">
             {user ? (
               <div className="flex items-center gap-6">
                 {/* Role Switcher */}
