@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Bed, 
-  Plane, 
   Car, 
   Package, 
   Camera, 
@@ -18,7 +17,6 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
   
   const tabs = [
     { id: 'stays', label: 'Stays', icon: Bed },
-    { id: 'flights', label: 'Flights', icon: Plane },
     { id: 'cars', label: 'Cars', icon: Car },
     { id: 'packages', label: 'Packages', icon: Package },
     { id: 'things', label: 'Things to do', icon: Camera },
@@ -164,13 +162,6 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
           <Search size={22} />
           Search
         </button>
-      </div>
-
-      <div className="mt-8 flex items-center gap-4">
-        <label className="flex items-center gap-3 cursor-pointer group">
-          <input type="checkbox" className="w-5 h-5 rounded-lg border-2 border-slate-200 text-island-emerald focus:ring-island-emerald/20 transition-all cursor-pointer" />
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-slate-600">Add a flight</span>
-        </label>
       </div>
     </div>
   );
