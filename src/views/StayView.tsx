@@ -71,7 +71,7 @@ export default function StayView() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <span className="text-island-emerald font-black uppercase tracking-[0.4em] text-[10px] mb-4 block">Verified Accommodations</span>
+            <span className="text-island-emerald font-bold tracking-wider text-xs mb-4 block">Verified Accommodations</span>
             <h1 className="text-6xl md:text-8xl font-black text-white mb-6 tracking-tighter leading-none drop-shadow-2xl">
               Island <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-white">Habitats.</span>
             </h1>
@@ -115,7 +115,7 @@ export default function StayView() {
       <section className="max-w-7xl mx-auto px-6 mt-32">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
           <div>
-            <span className="text-island-coral font-black uppercase tracking-[0.4em] text-[10px] mb-4 block">Availability Grid</span>
+            <span className="text-island-coral font-bold tracking-wider text-xs mb-4 block">Availability Grid</span>
             <h2 className="text-5xl md:text-6xl font-black text-island-volcanic tracking-tighter">Verified Stays.</h2>
           </div>
           <div className="flex gap-3 bg-stone-100 p-2 rounded-[2rem] border border-slate-200 shadow-inner">
@@ -123,7 +123,7 @@ export default function StayView() {
               <button 
                 key={tab} 
                 onClick={() => setSelectedTab(tab)}
-                className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`px-8 py-3 rounded-full text-xs font-bold tracking-wider transition-all ${
                   selectedTab === tab 
                     ? 'sunset-gradient text-white shadow-xl shadow-island-sunset/20' 
                     : 'text-slate-400 hover:text-slate-600'
@@ -156,7 +156,7 @@ export default function StayView() {
                 </div>
                 <div className="absolute bottom-8 left-8 flex gap-3">
                   {hotel.tags.slice(0, 2).map(tag => (
-                    <span key={tag} className="px-4 py-1.5 bg-island-volcanic/60 backdrop-blur-xl text-white text-[9px] font-black rounded-full uppercase tracking-widest border border-white/20 shadow-xl">
+                    <span key={tag} className="px-4 py-1.5 bg-island-volcanic/60 backdrop-blur-xl text-white text-[10px] font-bold tracking-wider rounded-full border border-white/20 shadow-xl">
                       {tag}
                     </span>
                   ))}
@@ -165,23 +165,23 @@ export default function StayView() {
               <div className="px-5 pb-5">
                 <div className="flex justify-between items-start mb-8">
                   <div>
-                    <span className="text-[10px] font-black text-island-emerald uppercase tracking-[0.3em] mb-2 block">{hotel.type}</span>
+                    <span className="text-xs font-bold text-island-emerald tracking-wider mb-2 block">{hotel.type}</span>
                     <h3 className="text-4xl font-black text-island-volcanic tracking-tighter leading-tight">{hotel.name}</h3>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1 block">Starts At</span>
+                    <span className="text-xs text-slate-400 font-semibold tracking-tight mb-1 block">Starts at</span>
                     <p className="text-3xl font-black text-island-volcanic tracking-tighter">₱{hotel.price.toLocaleString()}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-8 mb-10 py-8 border-y-2 border-stone-50">
-                  <div className="flex items-center gap-3 text-slate-500 font-bold text-xs uppercase tracking-widest">
+                  <div className="flex items-center gap-3 text-slate-500 font-semibold text-xs tracking-tight">
                     <Wifi size={20} strokeWidth={3} className="text-island-emerald" /> Wifi
                   </div>
-                  <div className="flex items-center gap-3 text-slate-500 font-bold text-xs uppercase tracking-widest">
+                  <div className="flex items-center gap-3 text-slate-500 font-semibold text-xs tracking-tight">
                     <Coffee size={20} strokeWidth={3} className="text-island-emerald" /> Breakfast
                   </div>
-                  <div className="flex items-center gap-3 text-slate-500 font-bold text-xs uppercase tracking-widest">
+                  <div className="flex items-center gap-3 text-slate-500 font-semibold text-xs tracking-tight">
                     <Wind size={20} strokeWidth={3} className="text-island-emerald" /> Climate
                   </div>
                 </div>

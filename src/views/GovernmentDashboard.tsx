@@ -1,30 +1,28 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { 
-  Users, 
-  MapPin, 
-  TrendingUp, 
-  Hotel, 
-  Calendar, 
-  DollarSign, 
-  Globe, 
-  Activity,
-  ArrowUpRight,
-  ArrowDownRight,
-  Filter,
-  Download,
-  Mountain,
-  Waves,
-  ShieldCheck,
-  Ship,
-  FileText,
-  Settings,
-  Search,
-  Bell,
-  ChevronRight,
-  BarChart3,
-  X,
-  Sparkles
+import { toast } from 'sonner';
+import {
+   Users, 
+   MapPin, 
+   TrendingUp, 
+   Hotel, 
+   Calendar, 
+   DollarSign, 
+   Globe, 
+   Activity,
+   Filter,
+   Download,
+   Mountain,
+   Waves,
+   ShieldCheck,
+   Ship,
+   FileText,
+   Settings,
+   Search,
+   Bell,
+   ChevronRight,
+   BarChart3,
+   X
 } from 'lucide-react';
 import { 
   PieChart, Pie, Cell, 
@@ -35,6 +33,8 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import LocationsView from './LocationsView';
+import { StatCard } from '../components/shared/StatCard';
+import { SidebarItem } from '../components/shared/SidebarItem';
 import RegistryModule from '../components/lgu/RegistryModule';
 import PortModule from '../components/lgu/PortModule';
 import SafetyModule from '../components/lgu/SafetyModule';
@@ -96,7 +96,7 @@ export default function GovernmentDashboard() {
       {/* High Level Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
         <StatCard 
-          label="Total Nodes" 
+          label="Total Visitors" 
           value={bookings.length.toLocaleString()} 
           change="+12.5%" 
           isPositive={true} 
@@ -104,7 +104,7 @@ export default function GovernmentDashboard() {
           color="emerald" 
         />
         <StatCard 
-          label="Active Manifests" 
+          label="Active Bookings" 
           value={bookings.length.toString()} 
           change="+4.3%" 
           isPositive={true} 
@@ -112,7 +112,7 @@ export default function GovernmentDashboard() {
           color="ocean" 
         />
         <StatCard 
-          label="Node Revenue" 
+          label="Revenue" 
           value={`₱${(bookings.reduce((acc, b) => acc + (b.amount || 0), 0) / 1000).toFixed(1)}k`} 
           change="-2.1%" 
           isPositive={false} 
@@ -120,8 +120,8 @@ export default function GovernmentDashboard() {
           color="purple" 
         />
         <StatCard 
-          label="System Health" 
-          value="100%" 
+          label="System Status" 
+          value="Online" 
           change="Optimum" 
           isPositive={true} 
           icon={Activity} 
@@ -133,10 +133,10 @@ export default function GovernmentDashboard() {
         {/* Visitor Trend */}
         <div className="lg:col-span-2 bg-white p-12 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl">
           <div className="flex justify-between items-center mb-10">
-            <h3 className="text-3xl font-black text-island-volcanic tracking-tighter">Node Activity Trends</h3>
+            <h3 className="text-3xl font-black text-island-volcanic tracking-tighter">Visitor Trends</h3>
             <div className="flex gap-6">
-              <span className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest"><div className="w-2 h-2 rounded-full bg-island-emerald shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div> Active Nodes</span>
-              <span className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest"><div className="w-2 h-2 rounded-full bg-emerald-100"></div> Dormant</span>
+              <span className="flex items-center gap-2 text-[10px] font-semibold text-slate-400 tracking-tight"><div className="w-2 h-2 rounded-full bg-island-emerald shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div> Active</span>
+              <span className="flex items-center gap-2 text-[10px] font-semibold text-slate-400 tracking-tight"><div className="w-2 h-2 rounded-full bg-emerald-100"></div> Dormant</span>
             </div>
           </div>
           <div className="h-80 w-full">
@@ -156,7 +156,7 @@ export default function GovernmentDashboard() {
 
         {/* Origin Distribution */}
         <div className="bg-white p-12 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl">
-          <h3 className="text-3xl font-black text-island-volcanic tracking-tighter mb-10">Node Origins</h3>
+          <h3 className="text-3xl font-black text-island-volcanic tracking-tighter mb-10">Visitor Origins</h3>
           <div className="h-64 w-full relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -186,7 +186,7 @@ export default function GovernmentDashboard() {
               <div key={idx} className="flex justify-between items-center">
                 <div className="flex items-center gap-4">
                   <div className="w-3.5 h-3.5 rounded-full shadow-sm" style={{ backgroundColor: item.color }}></div>
-                  <span className="text-xs font-black text-island-green uppercase tracking-widest">{item.name}</span>
+                  <span className="text-sm font-semibold text-island-green tracking-tight">{item.name}</span>
                 </div>
                 <span className="text-sm font-black text-island-volcanic">{item.value}%</span>
               </div>
@@ -196,13 +196,13 @@ export default function GovernmentDashboard() {
 
         {/* Top Destinations */}
         <div className="lg:col-span-1 bg-white p-12 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl">
-          <h3 className="text-3xl font-black text-island-volcanic tracking-tighter mb-10">Peak Node Usage</h3>
+          <h3 className="text-3xl font-black text-island-volcanic tracking-tighter mb-10">Top Destinations</h3>
           <div className="space-y-10">
             {destinationData.map((dest, idx) => (
               <div key={idx}>
                 <div className="flex justify-between items-center mb-4">
-                  <span className="text-xs font-black text-island-green uppercase tracking-widest">{dest.name}</span>
-                  <span className="text-[10px] font-black text-island-emerald bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">{dest.value} nodes</span>
+                  <span className="text-sm font-semibold text-island-green tracking-tight">{dest.name}</span>
+                  <span className="text-[10px] font-semibold text-island-emerald bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">{dest.value}</span>
                 </div>
                 <div className="w-full h-3 bg-stone-50 rounded-full overflow-hidden border border-slate-100 shadow-inner">
                   <motion.div 
@@ -220,15 +220,15 @@ export default function GovernmentDashboard() {
         {/* Heatmap Placeholder */}
         <div className="lg:col-span-2 bg-white p-12 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl relative overflow-hidden">
           <div className="flex justify-between items-center mb-10">
-            <h3 className="text-3xl font-black text-island-volcanic tracking-tighter">Density Telemetry</h3>
+            <h3 className="text-3xl font-black text-island-volcanic tracking-tighter">Visitor Density</h3>
             <div className="flex gap-8">
               <div className="flex items-center gap-2">
                 <div className="w-3.5 h-3.5 rounded-full bg-emerald-100 border border-emerald-200"></div>
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Low Pulse</span>
+                <span className="text-[10px] font-semibold text-slate-400 tracking-tight">Light</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3.5 h-3.5 rounded-full bg-island-emerald shadow-[0_0_10px_rgba(16,185,129,0.8)]"></div>
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">High Pulse</span>
+                <span className="text-[10px] font-semibold text-slate-400 tracking-tight">Heavy</span>
               </div>
             </div>
           </div>
@@ -250,20 +250,75 @@ export default function GovernmentDashboard() {
     </>
   );
 
-  const ModulePlaceholder = ({ title, icon: Icon = BarChart3 }: { title: string, icon?: any }) => (
-    <div className="flex flex-col items-center justify-center h-[65vh] text-center px-10">
-      <div className="w-24 h-24 forest-gradient text-white rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl border border-white/10">
-        <Icon size={48} strokeWidth={2.5} />
+  const SettingsModule = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-3xl mx-auto space-y-10"
+    >
+      <div>
+        <h2 className="text-4xl font-black text-island-volcanic tracking-tighter leading-none mb-2">Settings</h2>
+        <p className="text-slate-500 font-medium">Manage municipal dashboard preferences.</p>
       </div>
-      <h2 className="text-4xl font-black text-island-volcanic mb-4 tracking-tighter leading-none">{title} Node.</h2>
-      <p className="text-island-green/60 font-semibold text-lg max-w-md leading-relaxed">The {title} administrative interface is currently being optimized for the Catarman pilot. Access will be granted shortly.</p>
-      <Link 
-        to="/government"
-        className="mt-12 btn-primary px-12 py-6 rounded-full"
-      >
-        <Sparkles size={20} strokeWidth={3} /> Return to Telemetry
-      </Link>
-    </div>
+
+      <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm space-y-8">
+        <h3 className="text-2xl font-black text-island-volcanic tracking-tighter">Profile</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Municipal</label>
+            <input defaultValue="Catarman" className="w-full px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100 text-sm font-bold text-island-volcanic outline-none focus:ring-4 focus:ring-island-emerald/5" readOnly />
+          </div>
+          <div>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Province</label>
+            <input defaultValue="Camiguin" className="w-full px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100 text-sm font-bold text-island-volcanic outline-none focus:ring-4 focus:ring-island-emerald/5" readOnly />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm space-y-8">
+        <h3 className="text-2xl font-black text-island-volcanic tracking-tighter">Notifications</h3>
+        <div className="space-y-6">
+          {[
+            { label: 'Booking Alerts', desc: 'New bookings and cancellations' },
+            { label: 'Safety Incidents', desc: 'Emergency reports and health alerts' },
+            { label: 'Port Updates', desc: 'Vessel arrivals and departures' },
+            { label: 'Weekly Reports', desc: 'Automated visitor statistics digest' },
+          ].map((item, idx) => (
+            <div key={idx} className="flex items-center justify-between py-4">
+              <div>
+                <p className="text-sm font-bold text-island-volcanic">{item.label}</p>
+                <p className="text-xs text-slate-400 font-medium">{item.desc}</p>
+              </div>
+              <div className="w-12 h-7 bg-island-emerald rounded-full relative cursor-pointer shadow-inner">
+                <div className="w-5 h-5 bg-white rounded-full absolute top-1 right-1 shadow-md" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm space-y-8">
+        <h3 className="text-2xl font-black text-island-volcanic tracking-tighter">Display</h3>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-bold text-island-volcanic">Compact Mode</p>
+            <p className="text-xs text-slate-400 font-medium">Show more data in less space</p>
+          </div>
+          <div className="w-12 h-7 bg-slate-200 rounded-full relative cursor-pointer shadow-inner">
+            <div className="w-5 h-5 bg-white rounded-full absolute top-1 left-1 shadow-md" />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          onClick={() => toast.success('Settings saved successfully')}
+          className="px-10 py-5 bg-island-emerald text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-island-emerald/90 transition-all active:scale-95"
+        >
+          Save Settings
+        </button>
+      </div>
+    </motion.div>
   );
 
   return (
@@ -277,25 +332,25 @@ export default function GovernmentDashboard() {
             </div>
             <div>
               <h3 className="text-2xl font-black text-island-volcanic tracking-tighter leading-none mb-1">Catarman</h3>
-              <span className="text-[10px] text-island-emerald font-black uppercase tracking-[0.4em]">Node Master</span>
+              <span className="text-xs text-island-emerald font-bold tracking-wider">Municipal</span>
             </div>
           </div>
 
           <nav className="space-y-4">
-            <SidebarItem icon={BarChart3} label="Telemetry" to="/government" active={location.pathname === '/government'} />
-            <SidebarItem icon={MapPin} label="Active Map" to="/government/map" active={location.pathname.startsWith('/government/map')} />
-            <SidebarItem icon={Users} label="Agent Registry" to="/government/registry" active={location.pathname.startsWith('/government/registry')} />
-            <SidebarItem icon={Ship} label="Port Terminal" to="/government/port" active={location.pathname.startsWith('/government/port')} />
-            <SidebarItem icon={Activity} label="System Health" to="/government/health" active={location.pathname.startsWith('/government/health')} />
-            <SidebarItem icon={FileText} label="Manifests" to="/government/reports" active={location.pathname.startsWith('/government/reports')} />
+            <SidebarItem icon={BarChart3} label="Dashboard" to="/government" active={location.pathname === '/government'} />
+            <SidebarItem icon={MapPin} label="Map" to="/government/map" active={location.pathname.startsWith('/government/map')} />
+            <SidebarItem icon={Users} label="Registry" to="/government/registry" active={location.pathname.startsWith('/government/registry')} />
+            <SidebarItem icon={Ship} label="Port" to="/government/port" active={location.pathname.startsWith('/government/port')} />
+            <SidebarItem icon={Activity} label="Safety" to="/government/health" active={location.pathname.startsWith('/government/health')} />
+            <SidebarItem icon={FileText} label="Reports" to="/government/reports" active={location.pathname.startsWith('/government/reports')} />
           </nav>
         </div>
         
         <div className="p-10 border-t-2 border-stone-50 space-y-4">
-          <SidebarItem icon={Settings} label="Protocols" to="/government/settings" active={location.pathname.startsWith('/government/settings')} />
+          <SidebarItem icon={Settings} label="Settings" to="/government/settings" active={location.pathname.startsWith('/government/settings')} />
           <Link 
             to="/"
-            className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.75rem] text-xs font-black uppercase tracking-widest text-slate-400 bg-stone-50 hover:bg-rose-50 hover:text-island-coral transition-all duration-300 border border-transparent hover:border-rose-100"
+            className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.75rem] text-xs font-semibold tracking-tight text-slate-400 bg-stone-50 hover:bg-rose-50 hover:text-island-coral transition-all duration-300 border border-transparent hover:border-rose-100"
           >
             <X size={22} strokeWidth={3} />
             Terminate
@@ -309,9 +364,9 @@ export default function GovernmentDashboard() {
         <header className="bg-white/80 backdrop-blur-md border-b border-emerald-50 p-8 lg:px-12 z-30 shrink-0">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
             <div>
-              <span className="text-island-emerald font-black uppercase tracking-[0.5em] text-[10px] mb-2 block">Operational Interface v1.0.5</span>
-              <h1 className="text-4xl lg:text-5xl font-black text-island-volcanic tracking-tighter leading-none">Government <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-island-green">Command.</span></h1>
-              <p className="text-slate-500 font-semibold text-base mt-2">Real-time municipal telemetry and administrative nodes.</p>
+              <span className="text-island-emerald font-bold tracking-wider text-xs mb-2 block">Government Dashboard</span>
+              <h1 className="text-4xl lg:text-5xl font-black text-island-volcanic tracking-tighter leading-none">Municipal <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-island-green">Dashboard.</span></h1>
+              <p className="text-slate-500 font-medium text-base mt-2">Municipal oversight and analytics platform</p>
             </div>
             
             <div className="flex items-center gap-6 w-full md:w-auto">
@@ -319,7 +374,7 @@ export default function GovernmentDashboard() {
                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-300 group-focus-within:text-island-emerald transition-colors" size={20} strokeWidth={3} />
                 <input 
                   type="text" 
-                  placeholder="Query manifests..." 
+                  placeholder="Search..." 
                   className="pl-14 pr-6 py-4 bg-white border-2 border-emerald-50 rounded-2xl outline-none focus:ring-8 focus:ring-island-emerald/5 focus:border-island-emerald/20 transition-all w-full md:w-80 shadow-2xl"
                 />
               </div>
@@ -341,7 +396,7 @@ export default function GovernmentDashboard() {
               <Route path="/port" element={<PortModule />} />
               <Route path="/health" element={<SafetyModule />} />
               <Route path="/reports" element={<ReportsModule />} />
-              <Route path="/settings" element={<ModulePlaceholder title="Protocols" icon={Settings} />} />
+              <Route path="/settings" element={<SettingsModule />} />
             </Routes>
           </div>
         </main>
@@ -350,45 +405,4 @@ export default function GovernmentDashboard() {
   );
 }
 
-function StatCard({ label, value, change, isPositive, icon: Icon, color }: any) {
-  const colors: any = {
-    emerald: 'text-island-emerald bg-emerald-50 border-emerald-100',
-    ocean: 'text-blue-500 bg-blue-50 border-blue-100',
-    purple: 'text-indigo-600 bg-indigo-50 border-indigo-100',
-    coral: 'text-island-coral bg-rose-50 border-rose-100',
-  };
 
-  return (
-    <motion.div 
-      whileHover={{ y: -12 }}
-      className="bg-white p-10 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl hover:shadow-3xl transition-all duration-500"
-    >
-      <div className="flex justify-between items-start mb-8">
-        <div className={`p-5 rounded-2xl border-2 ${colors[color]} shadow-lg`}>
-          <Icon size={32} strokeWidth={2.5} />
-        </div>
-        <div className={`flex items-center gap-1.5 text-[10px] font-black px-4 py-2 rounded-full border-2 ${isPositive ? 'bg-emerald-50 text-island-emerald border-emerald-100' : 'bg-rose-50 text-island-coral border-rose-100'}`}>
-          {isPositive ? <ArrowUpRight size={16} strokeWidth={3} /> : <ArrowDownRight size={16} strokeWidth={3} />}
-          {change}
-        </div>
-      </div>
-      <h4 className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] mb-3">{label}</h4>
-      <p className="text-4xl font-black text-island-volcanic tracking-tighter">{value}</p>
-    </motion.div>
-  );
-}
-
-function SidebarItem({ icon: Icon, label, to, active = false }: { icon: any, label: string, to: string, active?: boolean }) {
-  return (
-    <Link 
-      to={to}
-      className={`w-full flex items-center gap-5 px-8 py-5 rounded-2xl text-xs font-black uppercase tracking-[0.15em] transition-all duration-300 ${
-      active 
-        ? 'emerald-gradient text-white shadow-2xl shadow-island-emerald/30 border border-white/10' 
-        : 'text-island-green/40 bg-transparent hover:bg-emerald-50/50 hover:text-island-green'
-    }`}>
-      <Icon size={22} strokeWidth={active ? 3 : 2.5} />
-      {label}
-    </Link>
-  );
-}

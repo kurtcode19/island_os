@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { toast } from 'sonner';
 import { MapPin, Navigation, BookOpen, Crosshair, ExternalLink, Sparkles, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -91,7 +92,7 @@ const IslandMap: React.FC = () => {
   const handleLocateMe = () => {
     setIsLocating(true);
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
+      toast.error('Geolocation is not supported by your browser');
       setIsLocating(false);
       return;
     }
@@ -100,9 +101,10 @@ const IslandMap: React.FC = () => {
       (position) => {
         setUserPos([position.coords.latitude, position.coords.longitude]);
         setIsLocating(false);
+        toast.success('Location found');
       },
       () => {
-        alert('Unable to retrieve your location');
+        toast.error('Unable to retrieve your location');
         setIsLocating(false);
       }
     );

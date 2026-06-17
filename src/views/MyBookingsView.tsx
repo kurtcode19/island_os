@@ -95,12 +95,27 @@ export default function MyBookingsView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FDFDFB]">
-        <div className="flex flex-col items-center gap-6">
-          <div className="w-16 h-16 volcanic-gradient text-white rounded-2xl flex items-center justify-center shadow-2xl animate-spin">
-            <RefreshCw size={32} strokeWidth={3} />
+      <div className="min-h-screen bg-[#F4F4F1] pb-40">
+        <div className="bg-white border-b-2 border-stone-100 pt-16 pb-12 shadow-sm">
+          <div className="max-w-5xl mx-auto px-6">
+            <div className="w-32 h-4 bg-slate-100 rounded animate-pulse mb-8" />
+            <div className="w-64 h-10 bg-slate-100 rounded-xl animate-pulse mb-3" />
+            <div className="w-48 h-5 bg-slate-100 rounded animate-pulse" />
           </div>
-          <p className="text-island-volcanic font-black uppercase tracking-[0.3em] text-[10px]">Retrieving Journey Manifest...</p>
+        </div>
+        <div className="max-w-5xl mx-auto px-6 mt-16 space-y-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-[3.5rem] p-10 border-2 border-stone-100 shadow-xl">
+              <div className="flex gap-10">
+                <div className="w-20 h-20 bg-slate-100 rounded-[2rem] animate-pulse" />
+                <div className="flex-1 space-y-4">
+                  <div className="w-48 h-5 bg-slate-100 rounded animate-pulse" />
+                  <div className="w-32 h-4 bg-slate-100 rounded animate-pulse" />
+                  <div className="w-24 h-8 bg-slate-100 rounded-full animate-pulse" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -115,17 +130,17 @@ export default function MyBookingsView() {
             <div className="w-8 h-8 rounded-lg bg-stone-50 flex items-center justify-center border border-slate-100 group-hover:bg-island-volcanic group-hover:text-white transition-colors">
               <ArrowLeft size={16} strokeWidth={3} />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest">Return to Operations</span>
+            <span className="text-xs font-semibold tracking-tight">Back to Home</span>
           </Link>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
-              <span className="text-island-emerald font-black uppercase tracking-[0.4em] text-[10px] mb-3 block">Traveler Interface</span>
-              <h1 className="text-5xl font-black text-island-volcanic tracking-tighter">Active Manifest.</h1>
-              <p className="text-slate-500 font-medium text-lg mt-2">Manage your verified Catarman nodes and stay assignments.</p>
+              <span className="text-island-emerald font-bold tracking-wider text-xs mb-3 block">My Bookings</span>
+              <h1 className="text-5xl font-black text-island-volcanic tracking-tighter">Your Adventures.</h1>
+              <p className="text-slate-500 font-medium text-lg mt-2">Manage your stays, transport, and tours in Catarman.</p>
             </div>
             <div className="flex items-center gap-6">
               <div className="px-8 py-4 volcanic-gradient rounded-3xl border border-white/10 shadow-2xl">
-                <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.3em] mb-1 block">Verified Nodes</span>
+                <span className="text-[10px] font-bold text-white/50 tracking-wider mb-1 block">Confirmed</span>
                 <p className="text-3xl font-black text-island-emerald tracking-tighter">{bookings.filter(b => b.status === 'confirmed').length}</p>
               </div>
             </div>
@@ -135,20 +150,20 @@ export default function MyBookingsView() {
 
       <div className="max-w-5xl mx-auto px-6 mt-16">
         {testError && (
-          <div className="mb-10 p-6 bg-rose-50 text-rose-700 rounded-3xl border-2 border-rose-100 font-black text-sm shadow-xl">
-            Protocol Error: {testError}
+          <div className="mb-10 p-6 bg-rose-50 text-rose-700 rounded-3xl border-2 border-rose-100 font-semibold text-sm shadow-xl">
+            Error: {testError}
           </div>
         )}
         
         {bookings.length === 0 ? (
           <div className="bg-white rounded-[4rem] p-20 text-center border-2 border-stone-100 shadow-2xl">
             <div className="w-24 h-24 volcanic-gradient text-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-3xl">
-              <Ticket size={48} strokeWidth={2.5} />
+              <Compass size={48} strokeWidth={2.5} />
             </div>
-            <h2 className="text-4xl font-black text-island-volcanic tracking-tighter mb-4">No Nodes Registered</h2>
-            <p className="text-slate-500 font-medium text-lg mb-12 max-w-sm mx-auto leading-relaxed">Initialize your island adventure by reserving a verified stay or transport node.</p>
+            <h2 className="text-4xl font-black text-island-volcanic tracking-tighter mb-4">No bookings yet</h2>
+            <p className="text-slate-500 font-medium text-lg mb-12 max-w-sm mx-auto leading-relaxed">Time to plan your Catarman adventure! Book a stay or transport to get started.</p>
             <Link to="/stay" className="btn-primary px-12 py-6 rounded-full inline-flex">
-              Explore Available Stays <ChevronRight size={24} strokeWidth={3} />
+              Explore Stays <ChevronRight size={24} strokeWidth={3} />
             </Link>
           </div>
         ) : (
@@ -168,7 +183,7 @@ export default function MyBookingsView() {
                       <div className="w-20 h-20 rounded-[2rem] bg-stone-50 flex items-center justify-center text-island-volcanic border border-stone-100 group-hover:volcanic-gradient group-hover:text-white transition-all duration-700 shadow-inner">
                         <Icon size={40} strokeWidth={2.5} />
                       </div>
-                      <div className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.25em] border-2 shadow-sm ${getStatusColor(booking.status)}`}>
+                      <div className={`px-5 py-2 rounded-full text-[10px] font-bold tracking-wider border-2 shadow-sm ${getStatusColor(booking.status)}`}>
                         {booking.status}
                       </div>
                     </div>
@@ -176,11 +191,11 @@ export default function MyBookingsView() {
                     {/* Middle: Info */}
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-4 mb-3">
-                        <span className="text-[10px] font-black text-island-emerald uppercase tracking-[0.3em] bg-island-emerald/5 px-3 py-1 rounded-lg border border-island-emerald/10">
+                        <span className="text-[10px] font-bold text-island-emerald tracking-wider bg-island-emerald/5 px-3 py-1 rounded-lg border border-island-emerald/10">
                           {booking.serviceType}
                         </span>
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                          NODE-ID: {booking.id.slice(-8).toUpperCase()}
+                        <span className="text-[10px] font-semibold text-slate-300 tracking-tight">
+                          ID: {booking.id.slice(-8).toUpperCase()}
                         </span>
                       </div>
                       <h3 className="text-4xl font-black text-island-volcanic tracking-tighter mb-8 group-hover:text-island-emerald transition-colors duration-500">{booking.serviceName}</h3>
@@ -202,12 +217,12 @@ export default function MyBookingsView() {
                       {booking.paymentStatus === 'PAID' ? (
                         <div className="flex items-center justify-center gap-3 text-island-emerald bg-emerald-50 py-5 rounded-[2rem] border-2 border-emerald-100 shadow-sm">
                           <CheckCircle2 size={24} strokeWidth={3} />
-                          <span className="text-xs font-black uppercase tracking-[0.2em]">VERIFIED</span>
+                          <span className="text-xs font-bold tracking-wider">Paid</span>
                         </div>
                       ) : booking.status === 'cancelled' ? (
                         <div className="flex items-center justify-center gap-3 text-island-coral bg-rose-50 py-5 rounded-[2rem] border-2 border-rose-100">
                           <XCircle size={24} strokeWidth={3} />
-                          <span className="text-xs font-black uppercase tracking-[0.2em]">VOID</span>
+                          <span className="text-xs font-bold tracking-wider">Cancelled</span>
                         </div>
                       ) : (
                         <>
@@ -221,9 +236,9 @@ export default function MyBookingsView() {
                             ) : (
                               <CreditCard size={20} strokeWidth={3} />
                             )}
-                            Verify Transaction
+                            Pay Now
                           </button>
-                          <p className="text-[10px] text-center text-slate-400 font-black uppercase tracking-widest opacity-60">Simulate Node Payment</p>
+                          <p className="text-[10px] text-center text-slate-400 font-semibold tracking-tight opacity-60">Demo payment simulation</p>
                         </>
                       )}
                     </div>
@@ -236,7 +251,7 @@ export default function MyBookingsView() {
                         <AlertCircle size={20} strokeWidth={3} />
                       </div>
                       <div>
-                        <span className="font-black text-amber-900 uppercase tracking-widest text-[9px] mb-1 block">Protocol Intelligence</span>
+                        <span className="font-bold text-amber-900 tracking-wider text-[10px] mb-1 block">Reminder</span>
                         <p className="text-[11px] text-amber-800 font-bold leading-relaxed italic">
                           Manual verification required. Post-payment status will update to "Confirmed" across the municipal node network.
                         </p>

@@ -414,7 +414,7 @@ export default function MobileAppView() {
                   <Ticket size={40} strokeWidth={2.5} />
                 </div>
                 <h2 className="text-4xl font-black text-island-volcanic tracking-tighter mb-2">Municipal Pass</h2>
-                <p className="text-slate-400 text-sm font-medium tracking-tight">Catarman Pilot Identity Manifest</p>
+                <p className="text-slate-400 text-sm font-medium tracking-tight">Your digital pass for Catarman</p>
               </header>
               
               <div className="w-full aspect-square max-w-[320px] bg-white rounded-[4rem] border-8 border-slate-50 shadow-xl flex items-center justify-center relative group p-10 mb-12">
@@ -431,7 +431,7 @@ export default function MobileAppView() {
                 </div>
                 <div className="flex justify-between items-start mb-10 relative z-10">
                   <div>
-                    <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-2 block">Tourist Clearane</span>
+                    <span className="text-[10px] font-semibold text-white/40 tracking-tight mb-2 block">Passenger</span>
                     <p className="text-2xl font-black tracking-tighter">{user?.displayName || 'Catarman Guest'}</p>
                   </div>
                   <div className="w-12 h-12 bg-white/10 backdrop-blur-2xl rounded-xl flex items-center justify-center border border-white/20">
@@ -440,11 +440,11 @@ export default function MobileAppView() {
                 </div>
                 <div className="flex justify-between items-end relative z-10">
                   <div className="space-y-1">
-                    <span className="block text-[10px] font-black text-white/30 uppercase tracking-[0.4em]">Node ID</span>
+                    <span className="block text-[10px] font-semibold text-white/40 tracking-tight">Pass ID</span>
                     <span className="font-mono text-xs font-black tracking-widest text-island-emerald">CTRM-P-2026-9X</span>
                   </div>
-                  <div className="px-5 py-2 bg-island-emerald text-island-volcanic rounded-full text-[10px] font-black uppercase tracking-widest">
-                    SECURE
+                  <div className="px-5 py-2 bg-island-emerald text-island-volcanic rounded-full text-[10px] font-bold tracking-wider">
+                    Active
                   </div>
                 </div>
               </div>
@@ -472,8 +472,8 @@ export default function MobileAppView() {
                 <h2 className="text-3xl font-black text-island-volcanic tracking-tighter">
                   {user?.displayName || 'Digital Agent'}
                 </h2>
-                <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.4em] mt-3">
-                  {profile?.role || 'TOURIST'} • VERIFIED
+                <p className="text-slate-400 text-[10px] font-semibold tracking-tight mt-3">
+                  {profile?.role || 'TOURIST'}
                 </p>
               </header>
 
@@ -482,15 +482,15 @@ export default function MobileAppView() {
                   onClick={login}
                   className="btn-primary w-full py-6 rounded-3xl text-sm"
                 >
-                  Initialize Manifest
+                  Sign In
                 </button>
               ) : (
                 <div className="space-y-10">
                   <div>
                     <div className="flex justify-between items-center mb-6 px-2">
-                      <h3 className="text-xl font-black text-island-volcanic tracking-tighter">Active Nodes</h3>
-                      <span className="text-[10px] font-black text-island-emerald uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full">
-                        {bookings.length} Verified
+                      <h3 className="text-xl font-black text-island-volcanic tracking-tighter">My Bookings</h3>
+                      <span className="text-[10px] font-bold text-island-emerald tracking-wider bg-emerald-50 px-3 py-1 rounded-full">
+                        {bookings.length} total
                       </span>
                     </div>
                     
@@ -498,7 +498,7 @@ export default function MobileAppView() {
                       {bookings.length === 0 ? (
                         <div className="py-16 bg-slate-50 rounded-[2.5rem] text-center border-2 border-dashed border-slate-200">
                           <Sparkles className="mx-auto text-slate-200 mb-4" size={48} />
-                          <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">No Active Nodes</p>
+                          <p className="text-[10px] font-semibold text-slate-300 tracking-tight">No bookings yet</p>
                         </div>
                       ) : (
                         bookings.map((booking) => (
@@ -509,18 +509,18 @@ export default function MobileAppView() {
                                </div>
                             )}
                             <div className="mb-4">
-                              <span className="text-[10px] font-black text-island-emerald uppercase tracking-widest mb-1 block">{booking.serviceType}</span>
+                              <span className="text-[10px] font-bold text-island-emerald tracking-wider mb-1 block">{booking.serviceType}</span>
                               <h4 className="text-xl font-black text-island-volcanic tracking-tighter leading-none">{booking.serviceName}</h4>
                             </div>
                             <div className="flex justify-between items-end">
                               <div className="space-y-1">
-                                <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount Paid</span>
+                                <span className="block text-[10px] font-semibold text-slate-400 tracking-tight">Amount</span>
                                 <span className="text-xl font-black text-island-volcanic">₱{booking.amount?.toLocaleString()}</span>
                               </div>
                               {booking.paymentStatus === 'UNPAID' && (
                                 <button 
                                   onClick={() => handlePay(booking.id)}
-                                  className="bg-island-volcanic text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest"
+                                  className="bg-island-volcanic text-white px-6 py-3 rounded-xl text-[10px] font-bold tracking-wider"
                                 >
                                   Pay Now
                                 </button>
@@ -533,14 +533,14 @@ export default function MobileAppView() {
                   </div>
 
                   <div className="space-y-3">
-                    <ProfileItem icon={Building2} label="Claim Business Node" onClick={() => navigate('/claim-business')} />
+                    <ProfileItem icon={Building2} label="Claim a Business" onClick={() => navigate('/claim-business')} />
                   </div>
 
                   <button 
                     onClick={logout}
-                    className="w-full mt-10 py-6 bg-slate-50 text-island-coral rounded-3xl text-[10px] font-black uppercase tracking-[0.3em] border border-slate-100 active:scale-95 transition-all"
+                    className="w-full mt-10 py-6 bg-slate-50 text-island-coral rounded-3xl text-xs font-semibold tracking-tight border border-slate-100 active:scale-95 transition-all"
                   >
-                    Terminate Session
+                    Sign Out
                   </button>
                 </div>
               )}

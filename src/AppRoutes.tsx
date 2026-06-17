@@ -16,6 +16,7 @@ import LocationsView from './views/LocationsView';
 import MyBookingsView from './views/MyBookingsView';
 import ClaimBusinessView from './views/ClaimBusinessView';
 import TripPlannerView from './views/TripPlannerView';
+import HowItWorksView from './views/HowItWorksView';
 
 import { Navigation } from './components/layout/Navigation';
 import { MobileHeader } from './components/layout/MobileHeader';
@@ -56,13 +57,14 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
               <AnimatePresence mode="wait">
                 <motion.div 
                   key={location.pathname}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
+                  initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.98 }}
+                  transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
                 >
                   <Routes location={location}>
                     <Route path="/" element={<LandingView />} />
+                    <Route path="/how-it-works" element={<HowItWorksView />} />
                     <Route path="/stay" element={<StayView />} />
                     <Route path="/transport" element={<TransportView />} />
                     <Route path="/shops" element={<ShopsView />} />

@@ -39,7 +39,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
               }`}>
                 <tab.icon size={22} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
               </div>
-              <span className="text-[10px] font-black uppercase tracking-widest">{tab.label}</span>
+              <span className="text-xs font-semibold tracking-tight">{tab.label}</span>
             </button>
           ))}
         </div>
@@ -100,7 +100,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
             }`}>
               <tab.icon size={26} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
             </div>
-            <span className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors ${
+            <span className={`text-sm font-semibold tracking-tight transition-colors ${
               activeTab === tab.id ? 'text-island-volcanic' : 'text-slate-400 group-hover:text-slate-600'
             }`}>
               {tab.label}
@@ -122,7 +122,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
               <MapPin size={22} />
             </div>
             <div className="w-full pl-16 pr-6 py-6 bg-slate-50 border border-slate-100 rounded-3xl transition-all focus-within:ring-4 focus-within:ring-island-emerald/5 focus-within:bg-white focus-within:border-island-emerald/20">
-              <label className="block text-[8px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1">Destination</label>
+              <label className="block text-[10px] font-medium text-slate-400 tracking-tight mb-1">Destination</label>
               <input 
                 type="text" 
                 placeholder="Where to?" 
@@ -136,7 +136,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
               <CalendarIcon size={22} />
             </div>
             <div className="w-full pl-16 pr-6 py-6 bg-slate-50 border border-slate-100 rounded-3xl hover:bg-slate-100 transition-all">
-              <label className="block text-[8px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1 text-left">Check-in / Out</label>
+              <label className="block text-[10px] font-medium text-slate-400 tracking-tight mb-1 text-left">Check-in / Out</label>
               <div className="text-sm font-bold text-island-volcanic flex items-center justify-between">
                 <span>Jun 15 - Jun 18</span>
                 <ChevronDown size={14} className="text-slate-400" />
@@ -149,7 +149,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
               <Users size={22} />
             </div>
             <div className="w-full pl-16 pr-6 py-6 bg-slate-50 border border-slate-100 rounded-3xl hover:bg-slate-100 transition-all">
-              <label className="block text-[8px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1 text-left">Travelers</label>
+              <label className="block text-[10px] font-medium text-slate-400 tracking-tight mb-1 text-left">Travelers</label>
               <div className="text-sm font-bold text-island-volcanic flex items-center justify-between">
                 <span>2 travelers, 1 room</span>
                 <ChevronDown size={14} className="text-slate-400" />

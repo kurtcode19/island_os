@@ -15,6 +15,8 @@ import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { SearchWidget } from '../components/SearchWidget';
+import { ProcessFlow } from '../components/ProcessFlow';
+import { bookingFlow, tripPlannerFlow } from '../data/processFlow';
 
 const experiences = [
   { id: 'exp_2', title: 'Sunken Cemetery Exploration', type: 'Heritage', rating: 4.8, price: 150, businessId: 'catarman_lgu', image: '/images/hero-sunken.png' },
@@ -32,6 +34,7 @@ export default function LandingView() {
   const navigate = useNavigate();
   const [selectedExp, setSelectedExp] = useState<any>(null);
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [howItWorksTab, setHowItWorksTab] = useState<'booking' | 'planner'>('booking');
 
   const handleBookExperience = async (exp: any) => {
     if (!user) {
@@ -132,7 +135,7 @@ export default function LandingView() {
               
               <div className="absolute top-10 right-10 bg-white/10 backdrop-blur-2xl px-10 py-6 rounded-3xl border border-white/20">
                 <p className="text-white text-5xl font-black tracking-tighter leading-none mb-1">98%</p>
-                <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Satisfaction Rate</p>
+                <p className="text-white/60 text-xs font-medium tracking-tight">Satisfaction Rate</p>
               </div>
             </motion.div>
 
@@ -148,14 +151,82 @@ export default function LandingView() {
                   <Sparkles size={24} />
                 </div>
                 <div>
-                  <p className="text-island-volcanic font-black tracking-tight">AI Generated</p>
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Custom Itineraries</p>
+                  <p className="text-island-volcanic font-bold tracking-tight">AI Generated</p>
+                  <p className="text-slate-400 text-xs font-semibold tracking-tight">Custom Itineraries</p>
                 </div>
               </div>
               <p className="text-slate-500 text-sm font-medium leading-relaxed italic">
                 "Our trusted local partners ensure every moment in Catarman is unforgettable."
               </p>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-24 md:py-32 px-6">
+        <div className="max-w-[1600px] mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <span className="text-island-emerald font-bold tracking-wider text-xs mb-4 block">/ How It Works</span>
+            <h2 className="text-5xl md:text-7xl font-black text-island-volcanic tracking-tighter leading-[0.9] mb-6 uppercase italic">
+              Your journey <br className="md:hidden" />
+              <span className="text-island-emerald not-italic"> starts here.</span>
+            </h2>
+            <p className="text-slate-500 text-lg font-medium max-w-xl mx-auto">
+              From discovery to exploration in just a few steps.
+            </p>
+          </motion.div>
+
+          <div className="flex justify-center gap-4 mb-16">
+            <button
+              onClick={() => setHowItWorksTab('booking')}
+              className={`px-8 py-4 rounded-full text-sm font-bold tracking-wider transition-all ${
+                howItWorksTab === 'booking'
+                  ? 'bg-island-volcanic text-white shadow-xl shadow-island-volcanic/20'
+                  : 'bg-white text-slate-500 border border-slate-100 hover:border-island-emerald/30'
+              }`}
+            >
+              Book an Experience
+            </button>
+            <button
+              onClick={() => setHowItWorksTab('planner')}
+              className={`px-8 py-4 rounded-full text-sm font-bold tracking-wider transition-all ${
+                howItWorksTab === 'planner'
+                  ? 'bg-island-volcanic text-white shadow-xl shadow-island-volcanic/20'
+                  : 'bg-white text-slate-500 border border-slate-100 hover:border-island-emerald/30'
+              }`}
+            >
+              Plan with AI
+            </button>
+          </div>
+
+          <motion.div
+            key={howItWorksTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="bg-white rounded-[4rem] p-10 md:p-16 shadow-xl border border-slate-100"
+          >
+            <ProcessFlow
+              steps={howItWorksTab === 'booking' ? bookingFlow.steps : tripPlannerFlow.steps}
+              variant="teaser"
+            />
+          </motion.div>
+
+          <div className="text-center mt-12">
+            <Link
+              to="/how-it-works"
+              className="inline-flex items-center gap-3 text-sm font-semibold text-island-emerald hover:text-island-green transition-colors group"
+            >
+              See full breakdown
+              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
         </div>
       </section>
@@ -221,7 +292,7 @@ export default function LandingView() {
               </h2>
             </div>
             <div className="space-y-8 text-right">
-              <p className="text-slate-400 text-sm font-medium leading-relaxed max-w-xs ml-auto uppercase tracking-widest">
+              <p className="text-slate-400 text-sm font-medium leading-relaxed max-w-xs ml-auto">
                 Official municipal experiences verified by the Catarman Tourism Office.
               </p>
               <button className="bg-island-volcanic text-white px-10 py-5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-3 hover:scale-105 transition-all shadow-xl">
@@ -374,16 +445,16 @@ export default function LandingView() {
             
             <div className="grid grid-cols-2 gap-20">
               <div className="space-y-8">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Explore</h4>
-                <ul className="space-y-4 font-black text-sm uppercase tracking-widest">
+                <h4 className="text-xs font-bold tracking-wider text-slate-400">Explore</h4>
+                <ul className="space-y-4 text-sm font-semibold tracking-tight">
                   <li><a href="#" className="hover:text-island-emerald transition-all">Destinations</a></li>
                   <li><a href="#" className="hover:text-island-emerald transition-all">Experiences</a></li>
                   <li><a href="#" className="hover:text-island-emerald transition-all">Itineraries</a></li>
                 </ul>
               </div>
               <div className="space-y-8">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">Company</h4>
-                <ul className="space-y-4 font-black text-sm uppercase tracking-widest">
+                <h4 className="text-xs font-bold tracking-wider text-slate-400">Company</h4>
+                <ul className="space-y-4 text-sm font-semibold tracking-tight">
                   <li><a href="#" className="hover:text-island-emerald transition-all">About Us</a></li>
                   <li><a href="#" className="hover:text-island-emerald transition-all">Careers</a></li>
                   <li><a href="#" className="hover:text-island-emerald transition-all">Contact</a></li>
@@ -392,7 +463,7 @@ export default function LandingView() {
             </div>
           </div>
           
-          <div className="pt-20 border-t border-slate-50 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">
+          <div className="pt-20 border-t border-slate-50 flex justify-between items-center text-xs font-semibold tracking-tight text-slate-400">
             <p>© 2026 Catarman eSuroy</p>
             <div className="flex gap-10">
               <a href="#" className="hover:text-island-volcanic transition-colors">Instagram</a>

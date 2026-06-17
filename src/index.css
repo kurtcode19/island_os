@@ -18,11 +18,21 @@
   --color-island-accent: #eaff00; /* Neon Yellow */
   --color-island-cream: #f8fafc; /* Clean Neutral Slate-50 */
   --color-island-sand: #f1f5f9; /* Soft Slate-100 */
+  --color-island-warm-cream: #fefcf5; /* Warm off-white */
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply font-sans text-island-green bg-white antialiased selection:bg-island-emerald/20 selection:text-island-emerald;
+    @apply font-sans text-island-green bg-island-warm-cream antialiased selection:bg-island-emerald/20 selection:text-island-emerald;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

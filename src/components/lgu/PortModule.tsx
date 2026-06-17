@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { toast } from 'sonner';
 import { Anchor, Ship, Search, Filter, Download, ArrowUpRight, ArrowDownRight, Clock, MapPin, AlertCircle } from 'lucide-react';
 
 const vessels = [
@@ -21,7 +22,10 @@ export default function PortModule() {
           <p className="text-slate-500 font-light">Management of vessel arrivals, departures, and port operations.</p>
         </div>
         <div className="flex gap-4 w-full md:w-auto">
-          <button className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
+          <button
+            onClick={() => toast.success('Port log export ready for download')}
+            className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2"
+          >
             <Download size={18} /> Export Log
           </button>
           <button className="flex-1 md:flex-none px-6 py-3 btn-primary">

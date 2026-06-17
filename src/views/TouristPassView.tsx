@@ -14,12 +14,12 @@ export default function TouristPassView() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
           >
-            <span className="text-island-emerald font-black uppercase tracking-[0.5em] text-[10px] mb-4 block">Verified Digital Node</span>
+            <span className="text-island-emerald font-bold tracking-wider text-xs mb-4 block">Digital Pass</span>
             <h1 className="text-6xl md:text-8xl font-black text-white mb-6 tracking-tighter leading-none drop-shadow-2xl">
               Digital <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-white">Pass.</span>
             </h1>
             <p className="text-xl text-white/60 font-medium max-w-2xl mx-auto leading-relaxed">
-              Your all-in-one digital manifest for seamless access to Catarman's heritage nodes and transport loops.
+              Your all-in-one digital pass for seamless access to Catarman's heritage sites and transport.
             </p>
           </motion.div>
         </div>
@@ -44,7 +44,7 @@ export default function TouristPassView() {
                     <QrCode size={48} strokeWidth={2} />
                   </div>
                   <h3 className="text-3xl font-black tracking-tighter">Catarman <br /> <span className="text-island-emerald">Pass.</span></h3>
-                  <p className="text-white/40 text-[9px] font-black uppercase tracking-[0.3em] mt-3">Verified Pilot Agent</p>
+                  <p className="text-white/40 text-[10px] font-bold tracking-wider mt-3">Verified Pass</p>
                 </div>
               </div>
               
@@ -66,7 +66,7 @@ export default function TouristPassView() {
                       </div>
                       <span className="text-sm font-black text-island-volcanic">Kurt Mier</span>
                     </div>
-                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Operator</span>
+                    <span className="text-[10px] font-semibold text-slate-400 tracking-tight">Passenger</span>
                   </div>
                   <div className="flex justify-between items-center py-5 border-b-2 border-stone-50">
                     <div className="flex items-center gap-4">
@@ -75,12 +75,12 @@ export default function TouristPassView() {
                       </div>
                       <span className="text-sm font-black text-island-volcanic">JUN 2026</span>
                     </div>
-                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Node Expiry</span>
+                    <span className="text-[10px] font-semibold text-slate-400 tracking-tight">Expires</span>
                   </div>
                 </div>
 
                 <button className="btn-volcanic w-full py-6 rounded-[2rem]">
-                  <Download size={20} strokeWidth={3} /> Export Manifest PDF
+                  <Download size={20} strokeWidth={3} /> Export Pass
                 </button>
               </div>
             </motion.div>
@@ -89,18 +89,18 @@ export default function TouristPassView() {
           {/* Benefits & Info */}
           <div className="lg:col-span-2 space-y-16 py-14">
             <div>
-              <span className="text-island-coral font-black uppercase tracking-[0.4em] text-[10px] mb-4 block">Operational Protocol</span>
+              <span className="text-island-coral font-bold tracking-wider text-xs mb-4 block">Pass Benefits</span>
               <h2 className="text-5xl md:text-7xl font-black text-island-volcanic mb-10 tracking-tighter leading-[0.95]">Universal <br /><span className="text-island-emerald">Interface.</span></h2>
               <p className="text-2xl text-slate-500 font-medium leading-relaxed mb-16 max-w-2xl">
-                The Digital Pass is your secure key to the Catarman pilot network, eliminating friction at every node transition.
+                The Digital Pass is your secure key to exploring Catarman — one scan gets you into every attraction.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {[
-                  { title: 'Node Entry', desc: 'Secure verification at all major heritage and nature nodes.', icon: CheckCircle2, color: 'bg-emerald-50 text-island-emerald' },
-                  { title: 'Transit Priority', desc: 'Link your transit manifest for accelerated loop entry.', icon: Ticket, color: 'bg-blue-50 text-blue-500' },
-                  { title: 'Protocol Safety', desc: 'Integrated health node and emergency telemetry.', icon: ShieldCheck, color: 'bg-rose-50 text-island-coral' },
-                  { title: 'Economic Perks', desc: 'Exclusive node rewards at partner retail marketplaces.', icon: MapPin, color: 'bg-amber-50 text-island-sunset' },
+                  { title: 'Quick Entry', desc: 'Skip the lines at all major heritage and nature attractions.', icon: CheckCircle2, color: 'bg-emerald-50 text-island-emerald' },
+                  { title: 'Transit Access', desc: 'Link your ferry and transport bookings for seamless travel.', icon: Ticket, color: 'bg-blue-50 text-blue-500' },
+                  { title: 'Safety First', desc: 'Integrated health and safety info for your peace of mind.', icon: ShieldCheck, color: 'bg-rose-50 text-island-coral' },
+                  { title: 'Local Perks', desc: 'Exclusive discounts at partner shops and marketplaces.', icon: MapPin, color: 'bg-amber-50 text-island-sunset' },
                 ].map((benefit, idx) => (
                   <div key={idx} className="bg-white p-10 rounded-[3rem] border-2 border-slate-100 shadow-xl flex flex-col gap-8 group hover:shadow-2xl transition-all duration-500">
                     <div className={`w-16 h-16 rounded-2xl ${benefit.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
@@ -119,12 +119,12 @@ export default function TouristPassView() {
               <div className="absolute top-0 right-0 opacity-5 pointer-events-none">
                 <Smartphone size={300} className="translate-x-10 -translate-y-10" />
               </div>
-              <h3 className="text-4xl font-black text-island-volcanic mb-12 tracking-tighter">System Architecture.</h3>
+              <h3 className="text-4xl font-black text-island-volcanic mb-12 tracking-tighter">How It Works.</h3>
               <div className="space-y-12">
                 {[
-                  { step: '01', title: 'Node Registration', desc: 'Complete the digital tourism manifest prior to municipal entry.' },
-                  { step: '02', title: 'Node Verification', desc: 'Manifest is automatically processed and verified by the LGU node.' },
-                  { step: '03', title: 'Interface Access', desc: 'Active QR code allows seamless node and transit transitions.' },
+                  { step: '01', title: 'Register', desc: 'Sign up and get your digital pass before your trip.' },
+                  { step: '02', title: 'Verify', desc: 'Your pass is automatically activated for all attractions.' },
+                  { step: '03', title: 'Explore', desc: 'Show your QR code at any entry point for seamless access.' },
                 ].map((step, idx) => (
                   <div key={idx} className="flex gap-10 relative group">
                     {idx < 2 && <div className="absolute left-8 top-16 bottom-0 w-1 bg-stone-50 group-hover:bg-island-emerald/20 transition-colors"></div>}
@@ -148,7 +148,7 @@ export default function TouristPassView() {
               <div className="flex-1 text-center md:text-left relative z-10">
                 <h3 className="text-4xl font-black mb-3 tracking-tighter leading-none">Mobile First.</h3>
                 <p className="text-white/70 font-medium text-xl mb-10 leading-relaxed">
-                  Download the Catarman eSuroy interface for offline node access and real-time protocol updates.
+                  Download the Catarman eSuroy app for offline access and real-time updates.
                 </p>
                 <div className="flex flex-wrap justify-center md:justify-start gap-5">
                   <button className="btn-volcanic px-8 py-4 rounded-2xl">App Store</button>

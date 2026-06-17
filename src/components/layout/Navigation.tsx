@@ -98,7 +98,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`relative px-5 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] transition-all group ${
+                    className={`relative px-5 py-2.5 rounded-full text-sm font-semibold tracking-tight transition-all group ${
                       isActive ? 'text-white' : 'text-slate-500 hover:text-island-green'
                     }`}
                   >
@@ -124,7 +124,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                 <div className="relative">
                   <button 
                     onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border bg-slate-50 text-slate-600 border-slate-100 hover:bg-slate-100"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold tracking-tight transition-all border bg-slate-50 text-slate-600 border-slate-100 hover:bg-slate-100"
                   >
                     {currentRole}
                   </button>
@@ -141,7 +141,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                           <button
                             key={role}
                             onClick={() => handleRoleSwitch(role)}
-                            className={`w-full text-left px-5 py-3.5 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all ${
+                            className={`w-full text-left px-5 py-3.5 rounded-2xl text-xs font-semibold tracking-tight transition-all ${
                               currentRole === role ? 'bg-island-emerald/10 text-island-emerald' : 'text-slate-500 hover:bg-slate-50'
                             }`}
                           >
@@ -182,14 +182,14 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                         <Link
                           to="/claim-business"
                           onClick={() => setIsUserMenuOpen(false)}
-                          className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-island-emerald hover:bg-island-emerald/5 transition-all mb-2"
+                          className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-semibold tracking-tight text-island-emerald hover:bg-island-emerald/5 transition-all mb-2"
                         >
                           <Building2 size={16} />
                           Claim Business
                         </Link>
                         <button
                           onClick={() => { logout(); setIsUserMenuOpen(false); }}
-                          className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-island-coral hover:bg-island-coral/5 transition-all"
+                          className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-semibold tracking-tight text-island-coral hover:bg-island-coral/5 transition-all"
                         >
                           <LogOut size={16} />
                           Sign Out
@@ -200,19 +200,19 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                 </div>
               </div>
             ) : (
-              <button 
-                onClick={login}
-                className="text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-island-volcanic transition-colors"
-              >
+                <button 
+                  onClick={login}
+                  className="text-sm font-semibold tracking-tight text-slate-500 hover:text-island-volcanic transition-colors"
+                >
                 Sign In
               </button>
             )}
 
             <button 
               onClick={() => navigate('/planner')}
-              className="px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 bg-island-volcanic text-white shadow-xl shadow-island-volcanic/20"
+              className="px-8 py-3 rounded-full text-xs font-bold tracking-wider transition-all hover:scale-105 active:scale-95 bg-island-volcanic text-white shadow-xl shadow-island-volcanic/20"
             >
-              Contact
+              AI Planner
             </button>
           </div>
 
@@ -253,7 +253,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                     key={item.path}
                     to={item.path}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center gap-4 p-4 rounded-2xl text-sm font-bold uppercase tracking-widest ${
+                    className={`flex items-center gap-4 p-4 rounded-2xl text-sm font-semibold tracking-tight ${
                       isActive ? 'bg-island-emerald/10 text-island-emerald' : 'text-slate-500 hover:bg-slate-50'
                     }`}
                   >
@@ -266,7 +266,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
               {!user && (
                 <button 
                   onClick={login}
-                  className="w-full flex items-center justify-center gap-4 p-4 rounded-2xl sunset-gradient text-white text-sm font-bold uppercase tracking-widest shadow-lg shadow-island-sunset/20"
+                  className="w-full flex items-center justify-center gap-4 p-4 rounded-2xl sunset-gradient text-white text-sm font-bold tracking-wider shadow-lg shadow-island-sunset/20"
                 >
                   <LogIn size={20} />
                   Sign In
@@ -276,7 +276,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
               {user && (
                 <button 
                   onClick={logout}
-                  className="w-full flex items-center justify-center gap-4 p-4 rounded-2xl bg-island-coral/10 text-island-coral text-sm font-bold uppercase tracking-widest"
+                  className="w-full flex items-center justify-center gap-4 p-4 rounded-2xl bg-island-coral/10 text-island-coral text-sm font-bold tracking-wider"
                 >
                   <LogOut size={20} />
                   Sign Out
@@ -297,12 +297,12 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
             className="md:hidden bg-white border-b border-slate-100 overflow-hidden"
           >
             <div className="px-6 pt-4 pb-10 space-y-3">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-2">Switch Role</p>
+              <p className="text-xs font-semibold text-slate-400 tracking-tight px-4 mb-2">Switch Role</p>
               {(['TOURIST', 'BUSINESS', 'LGU'] as UserRole[]).map((role) => (
                 <button
                   key={role}
                   onClick={() => handleRoleSwitch(role)}
-                  className={`w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-bold uppercase tracking-widest ${
+                  className={`w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-semibold tracking-tight ${
                     currentRole === role ? 'bg-island-emerald/10 text-island-emerald' : 'text-slate-500 hover:bg-slate-50'
                   }`}
                 >

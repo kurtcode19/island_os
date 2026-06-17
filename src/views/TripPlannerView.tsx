@@ -130,16 +130,26 @@ export default function TripPlannerView() {
 
     // Fallback Mock Data
     const getMockItinerary = (numDays: number) => {
-      const activities = [
+      const allActivities = [
         { timeSlot: "8:00 AM", activity: "Sunken Cemetery Expedition", location: "Catarman Coast", description: "Snorkel over the historic Sunken Cemetery and witness the iconic giant cross.", whyGo: "It's the most iconic landmark in Camiguin with hauntingly beautiful underwater views.", price: 500, category: 'Heritage' },
         { timeSlot: "11:30 AM", activity: "Tuasan Falls Refresh", location: "Mainit, Catarman", description: "Swim in the crystal clear, cold waters of one of the island's most pristine falls.", whyGo: "Less crowded than other falls, offering a serene jungle atmosphere.", price: 50, category: 'Nature' },
         { timeSlot: "2:30 PM", activity: "Old Church Ruins Walk", location: "Bonbon, Catarman", description: "Explore the coral stone walls of the 16th-century Gui-ob Church.", whyGo: "Feel the weight of history in these beautifully preserved Spanish-era ruins.", price: 0, category: 'Heritage' },
-        { timeSlot: "5:30 PM", activity: "Sunset at Bura Soda Water", location: "Catarman", description: "Relax in the only soda water pool in the Philippines as the sun dips low.", whyGo: "The unique effervescent water is incredibly refreshing after a day of exploring.", price: 100, category: 'Relax' }
+        { timeSlot: "5:30 PM", activity: "Sunset at Bura Soda Water", location: "Catarman", description: "Relax in the only soda water pool in the Philippines as the sun dips low.", whyGo: "The unique effervescent water is incredibly refreshing after a day of exploring.", price: 100, category: 'Relax' },
+        { timeSlot: "7:00 AM", activity: "Sto. Niño Cold Spring Dip", location: "Catarman", description: "Start your day with an invigorating swim in the cold spring.", whyGo: "Perfect morning ritual to wake up surrounded by lush greenery.", price: 50, category: 'Nature' },
+        { timeSlot: "10:00 AM", activity: "Catarman Public Market Tour", location: "Poblacion, Catarman", description: "Wander through the bustling market and sample fresh local produce.", whyGo: "The best place to experience daily island life and find unique souvenirs.", price: 200, category: 'Heritage' },
+        { timeSlot: "1:00 PM", activity: "Mantigue Island Snorkeling", location: "Mahinog Coast", description: "Hop on a boat to this pristine sandbar with crystal clear waters.", whyGo: "The marine sanctuary teems with colorful fish and vibrant corals.", price: 800, category: 'Adventure' },
+        { timeSlot: "4:00 PM", activity: "Catarman Food Trip", location: "Poblacion, Catarman", description: "Sample local delicacies including pastel, dried squid, and fresh seafood.", whyGo: "Catarman's food scene is an underrated gem with bold local flavors.", price: 350, category: 'Relax' },
+        { timeSlot: "6:00 AM", activity: "Sunrise at Katibawasan Falls", location: "Mambajao, Catarman", description: "Witness the morning light filtering through the towering cliff faces.", whyGo: "Early morning means fewer crowds and a magical mist over the water.", price: 50, category: 'Nature' },
+        { timeSlot: "9:30 AM", activity: "Coffee at a Local Cafe", location: "Poblacion, Catarman", description: "Enjoy freshly brewed Camiguin arabica coffee at a neighborhood cafe.", whyGo: "Camiguin's volcanic soil produces some of the best coffee in the country.", price: 120, category: 'Relax' },
+        { timeSlot: "3:00 PM", activity: "Lanzones Plantation Visit", location: "Catarman Highlands", description: "Tour a local lanzones farm and learn about the island's famous fruit.", whyGo: "Taste the sweetest lanzones straight from the tree during harvest season.", price: 250, category: 'Heritage' },
+        { timeSlot: "7:00 PM", activity: "Night Swim at Soda Water Park", location: "Catarman", description: "Experience the unique sensation of swimming in naturally carbonated water under the stars.", whyGo: "The bubbles make you feel weightless — a truly one-of-a-kind experience.", price: 100, category: 'Relax' },
       ];
+
+      const shuffled = [...allActivities].sort(() => Math.random() - 0.5);
 
       return Array.from({ length: numDays }, (_, i) => ({
         day: i + 1,
-        activities: activities.slice(0, 3 + (i % 2))
+        activities: shuffled.slice(i * 4, i * 4 + 3 + (i % 2))
       }));
     };
 
@@ -325,7 +335,7 @@ export default function TripPlannerView() {
     // Duration Step
     steps_rendered.push(
       <div key="q-duration" className="space-y-6">
-        <ChatBubble role="ai">Mabuhay! I am your Catarman Intelligence Node. To synchronize your visit, how many rotational cycles (days) will you be staying?</ChatBubble>
+        <ChatBubble role="ai">Mabuhay! Welcome to Catarman. How many days will you be staying?</ChatBubble>
         {step === 'duration' && (
           <SelectionGrid title="Select Duration">
             {[1, 2, 3, 4, 5].map(d => (
@@ -346,15 +356,15 @@ export default function TripPlannerView() {
     if (steps.indexOf(step) >= steps.indexOf('group')) {
       steps_rendered.push(
         <div key="a-duration" className="space-y-6">
-          <ChatBubble role="user">{days} days sounds perfect.</ChatBubble>
-          <ChatBubble role="ai">Initializing manifest for {days} days. Who will be part of this exploration unit?</ChatBubble>
+          <ChatBubble role="user">{days} days sounds great!</ChatBubble>
+          <ChatBubble role="ai">Great, {days} days! Who will be joining you?</ChatBubble>
           {step === 'group' && (
             <SelectionGrid title="Exploration Unit">
               {[
-                { id: 'Solo', icon: Compass, label: 'Solo Node', desc: 'Personal Discovery' },
-                { id: 'Couple', icon: Heart, label: 'Dual Nodes', desc: 'Heritage Partnership' },
-                { id: 'Family', icon: Users, label: 'Collective', desc: 'Secure Group Unit' },
-                { id: 'Friends', icon: Users, label: 'Coalition', desc: 'Shared Experience' }
+                { id: 'Solo', icon: Compass, label: 'Solo', desc: 'Traveling alone' },
+                { id: 'Couple', icon: Heart, label: 'Couple', desc: 'Romantic getaway' },
+                { id: 'Family', icon: Users, label: 'Family', desc: 'Fun for everyone' },
+                { id: 'Friends', icon: Users, label: 'Friends', desc: 'Travel with friends' }
               ].map(g => (
                 <ChoiceButton 
                   key={g.id} 
@@ -374,14 +384,14 @@ export default function TripPlannerView() {
     if (steps.indexOf(step) >= steps.indexOf('transport')) {
       steps_rendered.push(
         <div key="a-group" className="space-y-6">
-          <ChatBubble role="user">It's a {groupType.toLowerCase()} exploration.</ChatBubble>
-          <ChatBubble role="ai">Copy that. What is your preferred mobility method within the municipality?</ChatBubble>
+          <ChatBubble role="user">Traveling as a {groupType.toLowerCase()}.</ChatBubble>
+          <ChatBubble role="ai">How would you like to get around Catarman?</ChatBubble>
           {step === 'transport' && (
             <SelectionGrid title="Mobility Method">
               {[
-                { id: 'No Vehicle', icon: MapPin, label: 'Public Loop', desc: 'Local Tricycles' },
-                { id: 'Self-Drive', icon: Car, label: 'Autonomous', desc: 'Motorbike Rental' },
-                { id: 'Private Tour', icon: ShieldCheck, label: 'Guided Node', desc: 'LGU Verified Guide' }
+                { id: 'No Vehicle', icon: MapPin, label: 'Public Transport', desc: 'Tricycles & jeepneys' },
+                { id: 'Self-Drive', icon: Car, label: 'Self-Drive', desc: 'Scooter or van rental' },
+                { id: 'Private Tour', icon: ShieldCheck, label: 'Guided Tour', desc: 'Local expert guide' }
               ].map(t => (
                 <ChoiceButton 
                   key={t.id} 
@@ -402,13 +412,13 @@ export default function TripPlannerView() {
       steps_rendered.push(
         <div key="a-transport" className="space-y-6">
           <ChatBubble role="user">Using the {transport.toLowerCase()} mode.</ChatBubble>
-          <ChatBubble role="ai">Logistics synced. What frequency of exploration do you prefer?</ChatBubble>
+          <ChatBubble role="ai">What pace do you prefer for your trip?</ChatBubble>
           {step === 'pace' && (
-            <SelectionGrid title="Exploration Frequency">
+            <SelectionGrid title="Pace">
               {[
-                { id: 'Relaxed', icon: Sun, label: 'Unchecked', desc: 'Leisurely Cycles' },
-                { id: 'Moderate', icon: Clock, label: 'Balanced', desc: 'Optimal Throughput' },
-                { id: 'Packed', icon: Zap, label: 'Intensive', desc: 'Maximum Immersion' }
+                { id: 'Relaxed', icon: Sun, label: 'Relaxed', desc: 'At our own pace' },
+                { id: 'Moderate', icon: Clock, label: 'Moderate', desc: 'A good mix' },
+                { id: 'Packed', icon: Zap, label: 'Packed', desc: 'See it all' }
               ].map(p => (
                 <ChoiceButton 
                   key={p.id} 
@@ -429,15 +439,15 @@ export default function TripPlannerView() {
       steps_rendered.push(
         <div key="a-pace" className="space-y-6">
           <ChatBubble role="user">Setting pace to {pace.toLowerCase()}.</ChatBubble>
-          <ChatBubble role="ai">Pace locked. Are there specific Catarman nodes you wish to prioritize?</ChatBubble>
+          <ChatBubble role="ai">Any particular interests or things you'd love to experience?</ChatBubble>
           {step === 'interests' && (
             <div className="space-y-8 md:px-14">
               <div className="grid grid-cols-2 gap-5 mt-6">
                 {[
-                  { id: 'Photography', icon: Camera, label: 'Visuals' },
-                  { id: 'Hidden Gems', icon: Gem, label: 'Heritage' },
-                  { id: 'Local Food', icon: Utensils, label: 'Cuisine' },
-                  { id: 'Extreme Hiking', icon: Mountain, label: 'Nature' }
+                  { id: 'Photography', icon: Camera, label: 'Photography' },
+                  { id: 'Hidden Gems', icon: Gem, label: 'Hidden Gems' },
+                  { id: 'Local Food', icon: Utensils, label: 'Local Food' },
+                  { id: 'Extreme Hiking', icon: Mountain, label: 'Hiking' }
                 ].map(i => (
                   <ChoiceButton 
                     key={i.id} 
@@ -452,9 +462,9 @@ export default function TripPlannerView() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setStep('style')}
-                className="w-full bg-island-volcanic text-white py-8 rounded-[3rem] font-black uppercase tracking-[0.4em] text-xs shadow-2xl flex items-center justify-center gap-5 hover:bg-island-emerald transition-all"
+                className="w-full bg-island-volcanic text-white py-8 rounded-[3rem] font-bold tracking-wider text-xs shadow-2xl flex items-center justify-center gap-5 hover:bg-island-emerald transition-all"
               >
-                Proceed to Styles <ArrowRight size={22} strokeWidth={3} />
+                Continue <ArrowRight size={22} strokeWidth={3} />
               </motion.button>
             </div>
           )}
@@ -467,13 +477,13 @@ export default function TripPlannerView() {
       steps_rendered.push(
         <div key="a-interests" className="space-y-6">
           <ChatBubble role="user">Prioritize {interests.length > 0 ? interests.join(' and ') : "all nodes"}.</ChatBubble>
-          <ChatBubble role="ai">Priorities established. What is the overarching aesthetic of your Catarman Aufenthalt?</ChatBubble>
+          <ChatBubble role="ai">Great choices! What kind of experience are you looking for?</ChatBubble>
           {step === 'style' && (
-            <SelectionGrid title="Overarching Aesthetic">
+            <SelectionGrid title="Travel Style">
               {[
-                { id: 'Adventure', icon: Mountain, label: 'Discovery', desc: 'Deep Exploration' },
-                { id: 'Relax', icon: Sun, label: 'Serenity', desc: 'Slow Rhythms' },
-                { id: 'Foodie', icon: Coffee, label: 'Authentic', desc: 'Gastronomy Focus' }
+                { id: 'Adventure', icon: Mountain, label: 'Adventure', desc: 'Thrills & exploration' },
+                { id: 'Relax', icon: Sun, label: 'Relaxation', desc: 'Rest & recharge' },
+                { id: 'Foodie', icon: Coffee, label: 'Foodie', desc: 'Local flavors' }
               ].map(s => (
                 <ChoiceButton 
                   key={s.id} 
@@ -493,14 +503,14 @@ export default function TripPlannerView() {
     if (steps.indexOf(step) >= steps.indexOf('budget')) {
       steps_rendered.push(
         <div key="a-style" className="space-y-6">
-          <ChatBubble role="user">Seeking {style.toLowerCase()}.</ChatBubble>
-          <ChatBubble role="ai">Final verification. Select your Catarman resource allocation level.</ChatBubble>
+          <ChatBubble role="user">Looking for a {style.toLowerCase()} trip.</ChatBubble>
+          <ChatBubble role="ai">What's your budget range?</ChatBubble>
           {step === 'budget' && (
-            <SelectionGrid title="Resource Allocation">
+            <SelectionGrid title="Budget">
               {[
-                { id: 'Budget', icon: Coins, label: 'Essential', desc: 'Maximum Value' },
-                { id: 'Moderate', icon: Wallet, label: 'Premium', desc: 'Elevated Comfort' },
-                { id: 'Luxury', icon: Gem, label: 'Elite', desc: 'Bespoke Tiers' }
+                { id: 'Budget', icon: Coins, label: 'Budget-Friendly', desc: 'Great value' },
+                { id: 'Moderate', icon: Wallet, label: 'Mid-Range', desc: 'Comfortable' },
+                { id: 'Luxury', icon: Gem, label: 'Premium', desc: 'No limit' }
               ].map(b => (
                 <ChoiceButton 
                   key={b.id} 
@@ -519,9 +529,9 @@ export default function TripPlannerView() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={generateTrip}
-                className="w-full bg-island-emerald text-white py-10 rounded-[4rem] font-black uppercase tracking-[0.5em] text-sm shadow-[0_40px_80px_-20px_rgba(16,185,129,0.4)] flex items-center justify-center gap-6"
+                className="w-full bg-island-emerald text-white py-10 rounded-[4rem] font-bold tracking-wider text-sm shadow-[0_40px_80px_-20px_rgba(16,185,129,0.4)] flex items-center justify-center gap-6"
               >
-                <Dna size={28} strokeWidth={3} className="animate-spin-slow" /> Synthesize Manifest
+                <Sparkles size={28} strokeWidth={3} /> Build My Itinerary
               </motion.button>
             </div>
           )}
@@ -548,12 +558,12 @@ export default function TripPlannerView() {
             </button>
             <div>
               <h1 className="text-3xl font-black text-island-volcanic tracking-tighter uppercase italic italic-no leading-none">AI Planner</h1>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-2">Catarman eSuroy Node</p>
+              <p className="text-xs font-semibold text-slate-400 tracking-tight mt-2">AI Travel Planner</p>
             </div>
           </div>
           <div className="hidden sm:flex items-center gap-4 bg-island-volcanic px-6 py-3 rounded-full border border-white/10 shadow-xl">
             <div className="w-2 h-2 bg-island-emerald rounded-full animate-pulse" />
-            <span className="text-[9px] font-black text-white uppercase tracking-[0.3em]">Quantum Sync Active</span>
+            <span className="text-[10px] font-bold text-white tracking-wider">Generating your itinerary...</span>
           </div>
         </header>
 
@@ -576,7 +586,7 @@ export default function TripPlannerView() {
               </div>
               <div className="space-y-6">
                 <h2 className="text-5xl font-black text-island-volcanic tracking-tighter uppercase leading-none">Synthesizing <br /> Journey Data</h2>
-                <p className="text-slate-400 text-xs font-black uppercase tracking-[0.5em] italic">"{LOADING_QUOTES[quoteIndex]}"</p>
+                <p className="text-slate-400 text-sm font-medium italic leading-relaxed">"{LOADING_QUOTES[quoteIndex]}"</p>
               </div>
               <div className="w-full max-w-sm h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner">
                 <motion.div 
@@ -592,14 +602,14 @@ export default function TripPlannerView() {
               {/* Result Header */}
               <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
                 <div className="space-y-6">
-                  <span className="text-[10px] font-black text-island-emerald uppercase tracking-[0.5em] block">Manifest Complete</span>
+                  <span className="text-[10px] font-bold text-island-emerald tracking-wider block">Itinerary Complete</span>
                   <h2 className="text-6xl lg:text-8xl font-black text-island-volcanic tracking-tighter uppercase leading-[0.85] italic">Catarman <br /> <span className="not-italic text-island-emerald">Explorer</span></h2>
                   <div className="flex flex-wrap gap-4">
                     <div className="flex items-center gap-3 bg-island-volcanic text-white px-6 py-2.5 rounded-full border border-white/10 shadow-xl">
                       <Calendar size={14} className="text-island-emerald" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">{days} Days</span>
+                      <span className="text-xs font-bold tracking-wider">{days} Days</span>
                     </div>
-                    <div className="flex items-center gap-3 bg-white text-island-volcanic px-6 py-2.5 rounded-full border border-slate-100 shadow-xl font-black text-[10px] uppercase tracking-widest">
+                    <div className="flex items-center gap-3 bg-white text-island-volcanic px-6 py-2.5 rounded-full border border-slate-100 shadow-xl text-xs font-bold tracking-wider">
                       <Users size={14} /> {groupType}
                     </div>
                   </div>
@@ -618,8 +628,8 @@ export default function TripPlannerView() {
                         {day.day}
                       </div>
                       <div>
-                        <h3 className="text-2xl md:text-4xl font-black text-island-volcanic uppercase tracking-tighter leading-none italic">Day Cycle {day.day}</h3>
-                        <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-2 md:mt-3">Heritage Sync: {idx === 0 ? 'Discovery' : idx === 1 ? 'Immersion' : 'Integration'}</p>
+                        <h3 className="text-2xl md:text-4xl font-black text-island-volcanic uppercase tracking-tighter leading-none italic">Day {day.day}</h3>
+                        <p className="text-[10px] font-semibold text-slate-400 tracking-tight mt-2 md:mt-3">Theme: {idx === 0 ? 'Discovery' : idx === 1 ? 'Immersion' : 'Integration'}</p>
                       </div>
                     </div>
 
@@ -634,7 +644,7 @@ export default function TripPlannerView() {
                             <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
                               <span className="text-lg md:text-xl font-black text-island-volcanic tracking-tighter">{act.timeSlot}</span>
                               <div className="hidden md:block h-px bg-slate-100 flex-1" />
-                              <span className="text-[8px] md:text-[10px] font-black text-island-emerald uppercase tracking-[0.3em] bg-emerald-50 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-island-emerald/10 italic w-fit">
+                              <span className="text-[10px] font-bold text-island-emerald tracking-wider bg-emerald-50 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-island-emerald/10 w-fit">
                                 {act.category || 'Experience'}
                               </span>
                             </div>
@@ -647,12 +657,12 @@ export default function TripPlannerView() {
                                   <h4 className="text-3xl md:text-5xl font-black text-island-volcanic tracking-tighter uppercase leading-[0.9] group-hover/card:text-island-emerald transition-colors italic">{act.activity}</h4>
                                   <div className="flex items-center gap-2 md:gap-4 text-slate-400">
                                     <MapPin size={14} className="text-island-emerald" />
-                                    <span className="text-[9px] md:text-[11px] font-black uppercase tracking-widest leading-tight">{act.location}</span>
+                                    <span className="text-xs md:text-sm font-semibold tracking-tight">{act.location}</span>
                                   </div>
                                 </div>
                                 <div className="text-left md:text-right shrink-0">
                                   <span className="text-2xl md:text-4xl font-black text-island-volcanic tracking-tighter">₱{act.price}</span>
-                                  <span className="block text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Est. Resource</span>
+                                  <span className="block text-[10px] font-semibold text-slate-400 tracking-tight mt-1">Estimated cost</span>
                                 </div>
                               </div>
 
@@ -665,7 +675,7 @@ export default function TripPlannerView() {
                                   <Zap size={24} strokeWidth={2.5} />
                                 </div>
                                 <div className="relative z-10">
-                                  <span className="text-[8px] md:text-[9px] font-black text-island-emerald uppercase tracking-[0.4em] mb-1 block">Catarman AI Logic</span>
+                                  <span className="text-[10px] font-semibold text-island-emerald tracking-tight mb-1 block">Why this works</span>
                                   <p className="text-xs md:text-lg font-black italic leading-tight text-white/90">"{act.whyGo}"</p>
                                 </div>
                               </div>
@@ -682,7 +692,7 @@ export default function TripPlannerView() {
                                       : 'bg-island-volcanic text-white hover:bg-island-emerald'
                                   }`}
                                 >
-                                  {bookingStatus[`${day.day}-${act.activity}-pass`] === 'success' ? <><CheckCircle2 size={18} md:size={24} /> Node Manifested</> : <><Ticket size={18} md:size={24} /> Sync to Pass</>}
+                                  {bookingStatus[`${day.day}-${act.activity}-pass`] === 'success' ? <><CheckCircle2 size={18} md:size={24} /> Saved!</> : <><Ticket size={18} md:size={24} /> Save to Pass</>}
                                 </motion.button>
                                 <motion.button 
                                   whileHover={{ scale: 1.02 }}
@@ -709,14 +719,14 @@ export default function TripPlannerView() {
                     <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-white/10 rounded-full translate-x-16 -translate-y-16 md:translate-x-32 md:-translate-y-32 animate-pulse" />
                     <div className="relative z-10 text-center space-y-6 md:space-y-8">
                       <ShieldCheck size={48} md:size={80} className="mx-auto text-white/40 mb-6 md:mb-10" />
-                      <h3 className="text-4xl md:text-7xl font-black uppercase tracking-tighter italic">Verify Entire <br /> Manifest</h3>
-                      <p className="text-white/80 font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[8px] md:text-xs max-w-md mx-auto">Lock in all nodes and finalize your Catarman exploration protocol.</p>
+                      <h3 className="text-4xl md:text-7xl font-black uppercase tracking-tighter italic">Review Your <br /> Itinerary</h3>
+                      <p className="text-white/80 font-medium text-xs md:text-sm max-w-md mx-auto">Save all activities to your pass and finalize your Catarman adventure.</p>
                       <motion.button 
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="w-full sm:w-auto bg-white text-island-emerald px-10 md:px-16 py-6 md:py-8 rounded-full font-black uppercase tracking-[0.3em] md:tracking-[0.5em] text-[10px] md:text-sm shadow-3xl hover:bg-island-volcanic hover:text-white transition-all"
                       >
-                        Confirm All Nodes
+                        Confirm All
                       </motion.button>
                     </div>
                   </div>

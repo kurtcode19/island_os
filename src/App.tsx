@@ -2,6 +2,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, User as FirebaseUser, signInWithPopup, signInWithRedirect } from 'firebase/auth';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { Toaster, toast } from 'sonner';
 import { auth, db, googleProvider, handleFirestoreError, OperationType } from './firebase';
 import { UserRole, UserProfile } from './types';
 import { AuthContext } from './context/AuthContext';
@@ -82,7 +83,7 @@ export default function App() {
       console.error('Login failed:', error);
       
       if (error.code === 'auth/unauthorized-domain') {
-        const confirmRedirect = confirm(
+        const confirmRedirect = window.confirm(
           `Domain "${window.location.hostname}" is not authorized in Firebase Console.\n\n` +
           `Would you like to try Sign-In via Redirect instead? (This sometimes works better for local IPs)`
         );
@@ -90,13 +91,13 @@ export default function App() {
           try {
             await signInWithRedirect(auth, googleProvider);
           } catch (redirectError: any) {
-            alert(`Redirect login failed: ${redirectError.message}`);
+            toast.error(`Redirect login failed: ${redirectError.message}`);
           }
         }
       } else if (error.code === 'auth/popup-blocked') {
-        alert('Please allow popups for this website to sign in.');
+        toast.error('Please allow popups for this website to sign in.');
       } else {
-        alert(`Login failed: ${error.message}`);
+        toast.error(`Login failed: ${error.message}`);
       }
     }
   };
@@ -127,6 +128,20 @@ export default function App() {
         <div className="min-h-screen bg-island-cream font-sans text-island-volcanic selection:bg-island-emerald/20">
           <AppRoutes role={role} setRole={setRole} isMobile={isMobile} />
         </div>
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: {
+              background: '#0a2a1a',
+              color: '#fff',
+              border: '1px solid rgba(16,185,129,0.2)',
+              borderRadius: '1.5rem',
+              padding: '16px 24px',
+              fontSize: '14px',
+              fontWeight: 600,
+            },
+          }}
+        />
       </Router>
     </AuthContext.Provider>
   );

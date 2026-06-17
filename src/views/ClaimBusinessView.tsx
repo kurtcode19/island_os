@@ -61,9 +61,9 @@ export default function ClaimBusinessView() {
           <div className="w-24 h-24 forest-gradient rounded-[2.5rem] flex items-center justify-center text-white mx-auto mb-8 shadow-2xl border border-white/10">
             <Building2 size={48} strokeWidth={2} />
           </div>
-          <h1 className="text-5xl font-black text-island-volcanic tracking-tighter mb-4">Node <span className="text-island-emerald">Registration.</span></h1>
-          <p className="text-island-green/60 font-semibold text-lg max-w-lg mx-auto">
-            Associate your digital identity with a municipal business node to access operational telemetry and manifests.
+          <h1 className="text-5xl font-black text-island-volcanic tracking-tighter mb-4">Claim a <span className="text-island-emerald">Business.</span></h1>
+          <p className="text-island-green/60 font-medium text-lg max-w-lg mx-auto">
+            Register your business to manage bookings, reviews, and analytics on the Catarman platform.
           </p>
         </motion.div>
 
@@ -73,7 +73,7 @@ export default function ClaimBusinessView() {
             <h2 className="text-2xl font-black text-island-volcanic tracking-tighter mb-8">Manual Entry</h2>
             <div className="space-y-6">
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-3 px-2">Assigned Business ID</label>
+                <label className="text-xs font-semibold text-slate-400 tracking-tight block mb-3 px-2">Business ID</label>
                 <div className="relative">
                   <input 
                     type="text" 
@@ -95,7 +95,7 @@ export default function ClaimBusinessView() {
                 ) : success ? (
                    <CheckCircle2 size={22} />
                 ) : (
-                  <>Manifest Node <ArrowRight size={20} strokeWidth={3} /></>
+                  <>Claim Business <ArrowRight size={20} strokeWidth={3} /></>
                 )}
               </button>
             </div>
@@ -137,17 +137,17 @@ export default function ClaimBusinessView() {
             <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-[2rem] flex items-center justify-center text-white mb-6 shadow-2xl border border-white/20">
               <CheckCircle2 size={40} strokeWidth={3} />
             </div>
-            <h3 className="text-4xl font-black tracking-tighter mb-3 leading-none">Node Sync Active.</h3>
-            <p className="text-emerald-100/60 font-bold uppercase tracking-[0.2em] text-xs mb-10">Initializing operational interface...</p>
+            <h3 className="text-4xl font-black tracking-tighter mb-3 leading-none">Business Registered!</h3>
+            <p className="text-emerald-100/60 font-medium text-sm mb-10">Redirecting to your dashboard...</p>
             <div className="flex items-center gap-8 py-6 px-10 bg-black/20 rounded-[2rem] border border-white/10 backdrop-blur-md">
               <div className="flex items-center gap-3">
                 <ShieldCheck size={24} strokeWidth={2.5} className="text-island-emerald" />
-                <span className="text-sm font-black uppercase tracking-widest">BUSINESS</span>
+                <span className="text-sm font-semibold tracking-tight">Business Account</span>
               </div>
               <div className="w-px h-8 bg-white/10"></div>
               <div className="flex items-center gap-3">
                 <LayoutDashboard size={24} strokeWidth={2.5} className="text-island-emerald" />
-                <span className="text-sm font-black uppercase tracking-widest">LIVE</span>
+                <span className="text-sm font-semibold tracking-tight">Active</span>
               </div>
             </div>
           </motion.div>

@@ -33,7 +33,7 @@ export default function ShopsView() {
     <div className="min-h-screen bg-[#F0FDF4] pb-40 selection:bg-island-emerald/20">
       <div className="max-w-7xl mx-auto px-6 py-20">
         <header className="mb-16">
-          <span className="text-[10px] font-black text-island-emerald uppercase tracking-[0.4em] mb-3 block">Retail Node Grid</span>
+          <span className="text-xs font-bold text-island-emerald tracking-wider mb-3 block">Local Shops</span>
           <h1 className="text-6xl font-black text-island-volcanic tracking-tighter">Verified <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-island-volcanic">Marketplace.</span></h1>
         </header>
 
@@ -53,7 +53,7 @@ export default function ShopsView() {
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                   referrerPolicy="no-referrer"
                 />
-                <div className="absolute top-6 right-6 px-4 py-1.5 bg-white/95 backdrop-blur-xl rounded-full text-[9px] font-black text-island-volcanic uppercase tracking-[0.2em] shadow-lg border border-slate-100">
+                <div className="absolute top-6 right-6 px-4 py-1.5 bg-white/95 backdrop-blur-xl rounded-full text-[10px] font-bold text-island-volcanic tracking-wider shadow-lg border border-slate-100">
                   {shop.category}
                 </div>
               </div>
@@ -68,7 +68,7 @@ export default function ShopsView() {
                 <p className="text-slate-500 font-medium text-sm mb-10 leading-relaxed">{shop.description}</p>
                 <button className="btn-volcanic w-full py-5 rounded-2xl">
                   <MapPin size={18} strokeWidth={3} />
-                  Node Location
+                  View Location
                 </button>
               </div>
             </motion.div>

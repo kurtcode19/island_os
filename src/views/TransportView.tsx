@@ -71,7 +71,7 @@ export default function TransportView() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <span className="text-island-emerald font-black uppercase tracking-[0.4em] text-[10px] mb-4 block">Municipal Logistics</span>
+            <span className="text-island-emerald font-bold tracking-wider text-xs mb-4 block">Transport</span>
             <h1 className="text-6xl md:text-8xl font-black text-white mb-6 tracking-tighter leading-none drop-shadow-2xl">
               Island <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-white">Flow.</span>
             </h1>
@@ -87,8 +87,8 @@ export default function TransportView() {
           {/* Booking Options */}
           <div className="lg:col-span-2 space-y-12">
             <div>
-              <span className="text-island-coral font-black uppercase tracking-[0.4em] text-[10px] mb-4 block">Services Marketplace</span>
-              <h2 className="text-5xl md:text-6xl font-black text-island-volcanic tracking-tighter mb-12">Transit Nodes.</h2>
+              <span className="text-island-coral font-bold tracking-wider text-xs mb-4 block">Available Services</span>
+              <h2 className="text-5xl md:text-6xl font-black text-island-volcanic tracking-tighter mb-12">Transit Options.</h2>
               
               <div className="grid grid-cols-1 gap-8">
                 {transportOptions.map((opt, idx) => (
@@ -105,22 +105,22 @@ export default function TransportView() {
                     <div className="flex-1 text-center md:text-left">
                       <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3">
                         <h3 className="text-3xl font-black text-island-volcanic tracking-tighter">{opt.title}</h3>
-                        <span className="px-4 py-1.5 bg-stone-50 text-slate-500 text-[9px] font-black rounded-full uppercase tracking-widest border border-slate-100">
+                        <span className="px-4 py-1.5 bg-stone-50 text-slate-500 text-[10px] font-bold tracking-wider rounded-full border border-slate-100">
                           {opt.provider}
                         </span>
                       </div>
                       <p className="text-slate-500 font-medium mb-6 leading-relaxed">{opt.route}</p>
                       <div className="flex flex-wrap justify-center md:justify-start gap-8">
-                        <div className="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <div className="flex items-center gap-3 text-xs font-semibold text-slate-400 tracking-tight">
                           <Clock size={16} strokeWidth={3} className="text-island-emerald" /> {opt.duration}
                         </div>
-                        <div className="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                          <ShieldCheck size={16} strokeWidth={3} className="text-island-emerald" /> Verified Node
+                        <div className="flex items-center gap-3 text-xs font-semibold text-slate-400 tracking-tight">
+                          <ShieldCheck size={16} strokeWidth={3} className="text-island-emerald" /> Verified Route
                         </div>
                       </div>
                     </div>
                     <div className="text-center md:text-right">
-                      <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1 block">Starts At</span>
+                      <span className="text-xs text-slate-400 font-semibold tracking-tight mb-1 block">Starts at</span>
                       <p className="text-4xl font-black text-island-volcanic tracking-tighter mb-6">₱{opt.price.toLocaleString()}</p>
                       <button 
                         onClick={() => setSelectedTransport(opt)}
@@ -140,18 +140,18 @@ export default function TransportView() {
                 <Navigation size={400} className="absolute -top-20 -right-20 rotate-12" />
               </div>
               <div className="relative z-10">
-                <span className="text-island-emerald font-black uppercase tracking-[0.4em] text-[10px] mb-6 block">Real-time Telemetry</span>
+                <span className="text-island-emerald font-bold tracking-wider text-xs mb-6 block">Live Tracking</span>
                 <h3 className="text-4xl md:text-5xl font-black mb-6 tracking-tighter">Live <span className="text-island-emerald">Ferry Tracker.</span></h3>
                 <p className="text-slate-300 font-medium text-xl mb-10 max-w-md leading-relaxed">
                   Advanced GPS tracking for all municipal ferry nodes in the Catarman channel.
                 </p>
                 <div className="flex flex-wrap items-center gap-10">
                   <button className="btn-primary px-10 py-6 rounded-2xl">
-                    Launch Node Tracker
+                    Open Ferry Tracker
                   </button>
-                  <div className="flex items-center gap-3 text-island-emerald font-black uppercase tracking-widest text-[11px]">
+                  <div className="flex items-center gap-3 text-island-emerald font-semibold tracking-tight text-sm">
                     <span className="w-2.5 h-2.5 rounded-full bg-island-emerald animate-pulse shadow-[0_0_10px_rgba(16,185,129,1)]"></span>
-                    4 Active Nodes
+                    4 Active Vessels
                   </div>
                 </div>
               </div>
@@ -173,9 +173,9 @@ export default function TransportView() {
                   <div key={idx} className="flex items-center justify-between py-5 border-b border-slate-50 last:border-0">
                     <div>
                       <p className="text-xl font-black text-island-volcanic tracking-tighter">{s.time}</p>
-                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">{s.from} → {s.to}</p>
+                      <p className="text-xs text-slate-400 font-semibold tracking-tight mt-1">{s.from} → {s.to}</p>
                     </div>
-                    <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-sm ${s.type === 'warning' ? 'bg-rose-50 text-island-coral border border-rose-100' : 'bg-emerald-50 text-island-emerald border border-emerald-100'}`}>
+                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider shadow-sm ${s.type === 'warning' ? 'bg-rose-50 text-island-coral border border-rose-100' : 'bg-emerald-50 text-island-emerald border border-emerald-100'}`}>
                       {s.status}
                     </div>
                   </div>
@@ -184,19 +184,19 @@ export default function TransportView() {
               
               <div className="mt-12 p-8 bg-stone-50 rounded-3xl flex items-start gap-5 border border-slate-100">
                 <Info size={24} strokeWidth={3} className="text-blue-500 shrink-0 mt-1" />
-                <p className="text-xs text-slate-500 font-bold leading-relaxed uppercase tracking-wider">
-                  Operational status depends on climate node data. Terminal arrival advised 45m prior.
+                <p className="text-xs text-slate-500 font-medium leading-relaxed tracking-tight">
+                  Schedules may change depending on weather conditions. Please arrive at the terminal at least 45 minutes early.
                 </p>
               </div>
             </div>
 
             <div className="volcanic-gradient p-12 rounded-[4rem] text-white shadow-2xl border border-white/10">
-              <h3 className="text-2xl font-black mb-6 tracking-tighter">Bespoke Guides.</h3>
+              <h3 className="text-2xl font-black mb-6 tracking-tighter">Local Guides.</h3>
               <p className="text-slate-400 font-medium mb-10 leading-relaxed">
-                Assign a verified local heritage agent with secure transit for a deep immersion.
+                Book a verified local guide with transport for a deeper experience.
               </p>
               <button className="btn-primary w-full py-6 rounded-2xl text-xs">
-                Request Agent
+                Find a Guide
               </button>
             </div>
           </div>
@@ -235,7 +235,7 @@ export default function TransportView() {
                   </div>
                   <div>
                     <h3 className="text-3xl font-black text-island-volcanic tracking-tighter">{selectedTransport.title}</h3>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-1">{selectedTransport.provider}</p>
+                    <p className="text-xs font-semibold text-slate-400 tracking-tight mt-1">{selectedTransport.provider}</p>
                   </div>
                 </div>
 
@@ -252,7 +252,7 @@ export default function TransportView() {
 
                 <div className="flex items-center justify-between p-10 bg-stone-50 rounded-[3rem] mb-12 border border-slate-100">
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Confirmed Fare</span>
+                    <span className="text-xs font-semibold text-slate-400 tracking-tight mb-1">Confirmed Fare</span>
                     <span className="text-4xl font-black text-island-volcanic tracking-tighter">₱{selectedTransport.price.toLocaleString()}</span>
                   </div>
                   <ShieldCheck size={48} className="text-island-emerald opacity-20" />
@@ -267,7 +267,7 @@ export default function TransportView() {
                     <div className="w-16 h-16 btn-primary rounded-full shadow-2xl">
                       <CheckCircle2 size={36} strokeWidth={3} />
                     </div>
-                    <p className="text-island-emerald font-black uppercase tracking-[0.3em] text-[11px]">Booking Active</p>
+                    <p className="text-island-emerald font-bold tracking-wider text-xs">Booking Confirmed</p>
                   </motion.div>
                 ) : (
                   <button 
@@ -280,7 +280,7 @@ export default function TransportView() {
                     ) : (
                       <Sparkles size={24} strokeWidth={2.5} />
                     )}
-                    Commit to Transit
+                    Confirm Booking
                   </button>
                 )}
               </div>

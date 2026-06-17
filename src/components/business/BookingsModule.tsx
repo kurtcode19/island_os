@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
+import { toast } from 'sonner';
 import { 
   Search, 
   Filter, 
@@ -96,7 +97,10 @@ export default function BookingsModule() {
           <p className="text-slate-500 font-light">View and manage your guest reservations in real-time.</p>
         </div>
         <div className="flex gap-4 w-full md:w-auto">
-          <button className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
+          <button
+            onClick={() => toast.success('Bookings CSV export ready for download')}
+            className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2"
+          >
             <Download size={18} /> Export CSV
           </button>
         </div>
