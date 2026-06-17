@@ -1,24 +1,20 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Building2, CheckCircle2, ArrowRight, ShieldCheck, LayoutDashboard, Search, Sparkles, RefreshCw } from 'lucide-react';
+import { Building2, CheckCircle2, ArrowRight, ShieldCheck, LayoutDashboard, Search, Sparkles, RefreshCw, Hotel, MapPin, Wifi } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { accommodations } from '../data/accommodations';
 
-const demoBusinesses = [
-  { id: 'biz-resort-1', name: 'Blue Lagoon Resort & Spa', type: 'Stay' },
-  { id: 'biz-lodge-1', name: 'Volcanic Eco-Lodge', type: 'Stay' },
-  { id: 'biz-homestay-1', name: 'White Island Homestay', type: 'Stay' },
-  { id: 'biz-glamping-1', name: 'Hibok-Hibok Glamping', type: 'Stay' },
-  { id: 'island_hopping_co', name: 'White Island Sandbar', type: 'Experience' },
-  { id: 'camiguin_divers', name: 'Sunken Cemetery Diving', type: 'Experience' },
-  { id: 'mountain_guides', name: 'Hibok-Hibok Volcano Hike', type: 'Experience' },
-  { id: 'nature_parks', name: 'Katibawasan Falls', type: 'Experience' },
-  { id: 'ferry_co', name: 'Fast Craft Ferry', type: 'Transport' },
-  { id: 'van_rentals_inc', name: 'Private Van Rental', type: 'Transport' },
-  { id: 'local_bikes', name: 'Scooter Rental', type: 'Transport' },
-];
+const activeBusinesses = accommodations
+  .filter((a, idx, self) => self.findIndex(b => b.businessId === a.businessId) === idx)
+  .map(a => ({
+    id: a.businessId,
+    name: a.name,
+    type: a.type,
+    tags: a.tags.slice(0, 2)
+  }));
 
 export default function ClaimBusinessView() {
   const { user, profile } = useAuth();
@@ -79,7 +75,7 @@ export default function ClaimBusinessView() {
                     type="text" 
                     value={customId}
                     onChange={(e) => setCustomId(e.target.value)}
-                    placeholder="e.g. biz-resort-1"
+                    placeholder="e.g. biz-olympia-1"
                     className="w-full px-8 py-5 bg-emerald-50/30 border-2 border-emerald-50 rounded-2xl text-island-green font-bold outline-none focus:border-island-emerald transition-all shadow-inner"
                   />
                   <Search size={22} className="absolute right-6 top-1/2 -translate-y-1/2 text-emerald-200" strokeWidth={3} />
@@ -101,11 +97,15 @@ export default function ClaimBusinessView() {
             </div>
           </div>
 
-          {/* Demo Businesses */}
+          {/* Active Businesses */}
           <div className="bg-white p-10 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl">
-            <h2 className="text-2xl font-black text-island-volcanic tracking-tighter mb-8">Active Directory</h2>
-            <div className="space-y-4 max-h-[400px] overflow-y-auto no-scrollbar pr-2">
-              {demoBusinesses.map((biz) => (
+            <h2 className="text-2xl font-black text-island-volcanic tracking-tighter mb-2">Active Directory</h2>
+            <p className="text-island-green/60 font-medium text-sm mb-8">Select a business to claim and manage its bookings.</p>
+            <div className="space-y-4 max-h-[500px] overflow-y-auto no-scrollbar pr-2">
+              {activeBusinesses.length === 0 && (
+                <p className="text-slate-400 text-sm text-center py-10">No businesses available yet.</p>
+              )}
+              {activeBusinesses.map((biz) => (
                 <button
                   key={biz.id}
                   onClick={() => handleClaim(biz.id)}
@@ -114,9 +114,14 @@ export default function ClaimBusinessView() {
                 >
                   <div className="text-left">
                     <p className="text-sm font-black text-island-volcanic leading-none mb-1">{biz.name}</p>
-                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">{biz.type} • {biz.id}</p>
+                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-2">{biz.type}</p>
+                    <div className="flex gap-2">
+                      {biz.tags.map(tag => (
+                        <span key={tag} className="text-[8px] font-bold text-island-emerald bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">{tag}</span>
+                      ))}
+                    </div>
                   </div>
-                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-emerald-200 group-hover:text-island-emerald shadow-sm group-hover:shadow-md transition-all">
+                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-emerald-200 group-hover:text-island-emerald shadow-sm group-hover:shadow-md transition-all shrink-0">
                     <ArrowRight size={16} strokeWidth={3} />
                   </div>
                 </button>
