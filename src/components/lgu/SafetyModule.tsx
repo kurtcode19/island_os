@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ShieldCheck, HeartPulse, Search, Filter, Download, AlertCircle, CheckCircle2, Clock, Activity, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, HeartPulse, Search, Filter, Download, AlertCircle, CheckCircle2, Clock, Activity, ShieldAlert, MapPin, User, X } from 'lucide-react';
+import { subscribeToIncidents, resolveIncident } from '../../lib/incidentService';
+import type { Incident } from '../../types';
 
 const reports = [
   { id: 'HS-201', location: 'White Island', type: 'Sanitary Inspection', status: 'Passed', date: 'Oct 24, 2026', inspector: 'Dr. Santos' },
@@ -9,6 +12,23 @@ const reports = [
 ];
 
 export default function SafetyModule() {
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToIncidents((data) => {
+      setIncidents(data);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const activeIncidents = incidents.filter(i => i.status === 'active');
+  const sosIncidents = activeIncidents.filter(i => i.type === 'sos');
+  const reportIncidents = activeIncidents.filter(i => i.type === 'report');
+
+  const handleResolve = async (id: string) => {
+    await resolveIncident(id);
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -34,8 +54,8 @@ export default function SafetyModule() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {[
           { label: 'Safety Score', value: '98.4%', change: '+0.5%', isPositive: true, icon: ShieldCheck, color: 'emerald' },
-          { label: 'Active Alerts', value: '2', change: '-1', isPositive: true, icon: ShieldAlert, color: 'coral' },
-          { label: 'Inspections', value: '42', change: '+12', isPositive: true, icon: Activity, color: 'ocean' },
+          { label: 'Active Incidents', value: String(activeIncidents.length), change: activeIncidents.length > 0 ? `${activeIncidents.length} pending` : '0', isPositive: activeIncidents.length === 0, icon: ShieldAlert, color: 'coral' },
+          { label: 'SOS Alerts', value: String(sosIncidents.length), change: sosIncidents.length > 0 ? 'URGENT' : 'None', isPositive: sosIncidents.length === 0, icon: AlertCircle, color: 'rose' },
           { label: 'Health Index', value: 'A+', change: 'Stable', isPositive: true, icon: HeartPulse, color: 'purple' },
         ].map((stat, idx) => (
           <div key={idx} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
@@ -52,6 +72,80 @@ export default function SafetyModule() {
           </div>
         ))}
       </div>
+
+      {/* Live Incident Feed */}
+      {incidents.length > 0 && (
+        <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <h3 className="text-2xl font-serif font-bold text-island-green italic">
+                Live <span className="not-italic text-island-emerald">Incidents</span>
+              </h3>
+              {activeIncidents.length > 0 && (
+                <span className="px-3 py-1 bg-island-coral/10 text-island-coral rounded-full text-[10px] font-bold animate-pulse">
+                  {activeIncidents.length} Active
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="space-y-4">
+            {incidents.slice(0, 10).map((incident) => (
+              <div
+                key={incident.id}
+                className={`flex items-start gap-5 p-6 rounded-2xl border transition-all ${
+                  incident.status === 'active'
+                    ? incident.type === 'sos'
+                      ? 'bg-rose-50 border-rose-100'
+                      : 'bg-amber-50 border-amber-100'
+                    : 'bg-slate-50 border-slate-100'
+                }`}
+              >
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                  incident.type === 'sos' ? 'bg-island-coral/20 text-island-coral' : 'bg-amber-500/20 text-amber-500'
+                }`}>
+                  {incident.type === 'sos' ? <AlertCircle size={24} /> : <ShieldAlert size={24} />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="font-bold text-island-volcanic text-sm">{incident.touristName}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      incident.type === 'sos' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'
+                    }`}>
+                      {incident.type === 'sos' ? 'SOS' : 'Report'}
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      incident.status === 'active' ? 'bg-island-emerald/10 text-island-emerald' : 'text-slate-400 bg-slate-100'
+                    }`}>
+                      {incident.status}
+                    </span>
+                  </div>
+                  {incident.message && (
+                    <p className="text-sm text-slate-600 font-medium mb-2">"{incident.message}"</p>
+                  )}
+                  <div className="flex items-center gap-4 text-xs text-slate-400">
+                    {incident.lat !== 0 && (
+                      <span className="flex items-center gap-1">
+                        <MapPin size={12} /> {incident.lat.toFixed(4)}, {incident.lng.toFixed(4)}
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <User size={12} /> {incident.touristUid?.substring(0, 8)}...
+                    </span>
+                  </div>
+                </div>
+                {incident.status === 'active' && (
+                  <button
+                    onClick={() => handleResolve(incident.id!)}
+                    className="px-5 py-3 bg-white rounded-2xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-island-emerald/10 hover:text-island-emerald hover:border-island-emerald/20 transition-all shrink-0"
+                  >
+                    Resolve
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Inspection Reports */}
@@ -108,24 +202,32 @@ export default function SafetyModule() {
           </div>
         </div>
 
-        {/* Safety Protocols / Emergency */}
+        {/* Emergency + Health Resources */}
         <div className="space-y-10">
-          <div className="bg-island-coral p-10 rounded-[3rem] text-white shadow-xl shadow-island-coral/20 relative overflow-hidden group">
-            <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
-            <h3 className="text-2xl font-serif font-bold mb-6 relative z-10">Emergency <span className="italic text-white/80">Alert</span></h3>
-            <div className="space-y-6 relative z-10">
-              <div className="p-4 bg-white/10 rounded-2xl border border-white/10">
-                <div className="flex items-center gap-3 mb-2">
-                  <AlertCircle size={18} />
-                  <span className="font-bold text-sm">Active Alert</span>
-                </div>
-                <p className="text-xs text-white/80 font-light">Strong currents reported at White Island. All swimming activities suspended until further notice.</p>
+          {activeIncidents.length > 0 && (
+            <div className="bg-island-coral p-10 rounded-[3rem] text-white shadow-xl shadow-island-coral/20 relative overflow-hidden group">
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
+              <h3 className="text-2xl font-serif font-bold mb-6 relative z-10">Emergency <span className="italic text-white/80">Alert</span></h3>
+              <div className="space-y-4 relative z-10">
+                {activeIncidents.slice(0, 3).map((inc) => (
+                  <div key={inc.id} className="p-4 bg-white/10 rounded-2xl border border-white/10">
+                    <div className="flex items-center gap-3 mb-2">
+                      {inc.type === 'sos' ? <AlertCircle size={18} /> : <ShieldAlert size={18} />}
+                      <span className="font-bold text-sm">{inc.type === 'sos' ? 'SOS Alert' : 'Report'}</span>
+                      <span className="ml-auto text-[10px] text-white/60">{inc.touristName}</span>
+                    </div>
+                    <p className="text-xs text-white/80 font-light">{inc.message || 'No details provided'}</p>
+                    {inc.lat !== 0 && (
+                      <p className="text-[10px] text-white/50 mt-1 font-mono">{inc.lat.toFixed(4)}, {inc.lng.toFixed(4)}</p>
+                    )}
+                  </div>
+                ))}
+                <button className="w-full py-4 bg-white text-island-coral rounded-2xl font-bold text-sm shadow-lg shadow-black/10 hover:scale-105 transition-all flex items-center justify-center gap-3">
+                  <ShieldAlert size={18} /> Broadcast Alert
+                </button>
               </div>
-              <button className="w-full py-4 bg-white text-island-coral rounded-2xl font-bold text-sm shadow-lg shadow-black/10 hover:scale-105 transition-all flex items-center justify-center gap-3">
-                <ShieldAlert size={18} /> Broadcast Alert
-              </button>
             </div>
-          </div>
+          )}
 
           <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
             <h3 className="text-xl font-serif font-bold text-island-green mb-8">Health Resources</h3>

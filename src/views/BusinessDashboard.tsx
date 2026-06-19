@@ -9,6 +9,7 @@ import {
   Search, 
   Bell, 
   X,
+  Scan,
   LayoutDashboard,
   LogOut,
   Sparkles,
@@ -29,6 +30,7 @@ import InventoryModule from '../components/business/InventoryModule';
 import ToursModule from '../components/business/ToursModule';
 import ReviewsModule from '../components/business/ReviewsModule';
 import SettingsModule from '../components/business/SettingsModule';
+import CheckInView from './CheckInView';
 
 export default function BusinessDashboard() {
   const { logout, profile } = useAuth();
@@ -149,6 +151,7 @@ export default function BusinessDashboard() {
             <SidebarItem icon={Package} label="Inventory" to="/business/inventory" active={location.pathname.startsWith('/business/inventory')} />
             <SidebarItem icon={Compass} label="Tours" to="/business/tours" active={location.pathname.startsWith('/business/tours')} />
             <SidebarItem icon={Star} label="Reviews" to="/business/reviews" active={location.pathname.startsWith('/business/reviews')} />
+            <SidebarItem icon={Scan} label="Check-In Scanner" to="/business/checkin" active={location.pathname.startsWith('/business/checkin')} />
           </nav>
         </div>
         
@@ -202,6 +205,7 @@ export default function BusinessDashboard() {
               <Route path="/inventory" element={<InventoryModule />} />
               <Route path="/tours" element={<ToursModule />} />
               <Route path="/reviews" element={<ReviewsModule />} />
+              <Route path="/checkin" element={<CheckInView />} />
               <Route path="/settings" element={<SettingsModule />} />
             </Routes>
           </div>

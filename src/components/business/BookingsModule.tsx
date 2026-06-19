@@ -127,7 +127,9 @@ export default function BookingsModule() {
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
               <option value="confirmed">Confirmed</option>
+              <option value="checked_in">Checked In</option>
               <option value="cancelled">Cancelled</option>
+              <option value="departed">Departed</option>
             </select>
           </div>
         </div>

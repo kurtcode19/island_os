@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Hotel, Star, MapPin, Wifi, Coffee, Wind, Waves, ArrowRight, Search, Filter, CheckCircle2, Sparkles, RefreshCw } from 'lucide-react';
+import { Hotel, Star, MapPin, Wifi, Coffee, Wind, Waves, ArrowRight, Search, Filter, CheckCircle2, Sparkles, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { toast } from 'sonner';
 
 import { accommodations } from '../data/accommodations';
+import DateGuestPicker from '../components/shared/DateGuestPicker';
+import { checkAvailability } from '../lib/capacityService';
+import { logEvent } from '../lib/auditService';
 
 export default function StayView() {
   const { user, login } = useAuth();
   const [bookingStatus, setBookingStatus] = useState<{[key: string]: 'idle' | 'loading' | 'success'}>({});
   const [testError, setTestError] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState('All');
+  const [selectedDates, setSelectedDates] = useState<{[key: string]: string}>({});
+  const [selectedGuests, setSelectedGuests] = useState<{[key: string]: number}>({});
 
   const handleBook = async (hotel: typeof accommodations[0]) => {
     if (!user) {
@@ -19,24 +25,44 @@ export default function StayView() {
       return;
     }
 
+    const date = selectedDates[hotel.id];
+    const guests = selectedGuests[hotel.id] || 1;
+
+    if (!date) {
+      toast.error('Please select a date');
+      return;
+    }
+
     setBookingStatus(prev => ({ ...prev, [hotel.id]: 'loading' }));
     setTestError(null);
+
+    // Check capacity before booking
+    const availability = await checkAvailability(hotel.id, date, guests);
+    if (!availability.available) {
+      toast.error(`Only ${availability.remaining} spots remaining on this date`);
+      setBookingStatus(prev => ({ ...prev, [hotel.id]: 'idle' }));
+      return;
+    }
 
     try {
       await addDoc(collection(db, 'bookings'), {
         touristUid: user.uid,
         touristName: user.displayName || 'Anonymous',
+        touristEmail: user.email || '',
         serviceId: hotel.id,
         serviceName: hotel.name,
         serviceType: 'stay',
         businessId: hotel.businessId,
-        date: new Date().toISOString(),
+        date,
+        guests,
         status: 'pending',
         paymentStatus: 'UNPAID',
-        amount: hotel.price,
+        amount: hotel.price * guests,
         createdAt: serverTimestamp()
       });
+      logEvent('created', 'bookings', undefined, `Booking for ${hotel.name} on ${date}`);
       setBookingStatus(prev => ({ ...prev, [hotel.id]: 'success' }));
+      toast.success('Booking request submitted!');
       setTimeout(() => {
         setBookingStatus(prev => ({ ...prev, [hotel.id]: 'idle' }));
       }, 3000);
@@ -184,6 +210,13 @@ export default function StayView() {
                   <div className="flex items-center gap-3 text-slate-500 font-semibold text-xs tracking-tight">
                     <Wind size={20} strokeWidth={3} className="text-island-emerald" /> Climate
                   </div>
+                </div>
+
+                <div className="mb-6">
+                  <DateGuestPicker
+                    onDateChange={(d) => setSelectedDates(prev => ({ ...prev, [hotel.id]: d }))}
+                    onGuestsChange={(g) => setSelectedGuests(prev => ({ ...prev, [hotel.id]: g }))}
+                  />
                 </div>
 
                 <button 

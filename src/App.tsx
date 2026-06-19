@@ -7,6 +7,8 @@ import { auth, db, googleProvider, handleFirestoreError, OperationType } from '.
 import { UserRole, UserProfile } from './types';
 import { AuthContext } from './context/AuthContext';
 import { AppRoutes } from './AppRoutes';
+import { createPass } from './lib/passService';
+import { logEvent } from './lib/auditService';
 
 export default function App() {
   const [role, setRole] = useState<UserRole>('TOURIST');
@@ -52,6 +54,13 @@ export default function App() {
             };
             try {
               await setDoc(userRef, newProfile);
+              // Auto-create tourist pass for new users
+              await createPass(
+                firebaseUser.uid,
+                firebaseUser.displayName || 'Anonymous',
+                firebaseUser.email || ''
+              );
+              logEvent('registered', 'users', firebaseUser.uid, 'New user registered via Google Sign-In');
               // onSnapshot will trigger again with the new data
             } catch (error) {
               setLoading(false);

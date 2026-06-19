@@ -21,6 +21,7 @@ import HowItWorksView from './views/HowItWorksView';
 import { Navigation } from './components/layout/Navigation';
 import { MobileHeader } from './components/layout/MobileHeader';
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
+import SOSButton from './components/shared/SOSButton';
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -53,6 +54,8 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
             ) : (
               location.pathname !== '/mobile' && <MobileHeader />
             )}
+            {/* SOS Button on tourist-facing pages */}
+            {role === 'TOURIST' && !location.pathname.startsWith('/business') && !location.pathname.startsWith('/government') && <SOSButton />}
             <main className={!isMobile ? "pt-20" : (location.pathname === '/mobile' ? "" : "pt-16 pb-24")}>
               <AnimatePresence mode="wait">
                 <motion.div 

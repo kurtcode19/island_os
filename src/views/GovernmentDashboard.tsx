@@ -20,6 +20,7 @@ import {
    Settings,
    Search,
    Bell,
+   Scan,
    ChevronRight,
    BarChart3,
    X
@@ -33,6 +34,7 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import LocationsView from './LocationsView';
+import CheckInView from './CheckInView';
 import { StatCard } from '../components/shared/StatCard';
 import { SidebarItem } from '../components/shared/SidebarItem';
 import RegistryModule from '../components/lgu/RegistryModule';
@@ -343,6 +345,7 @@ export default function GovernmentDashboard() {
             <SidebarItem icon={Ship} label="Port" to="/government/port" active={location.pathname.startsWith('/government/port')} />
             <SidebarItem icon={Activity} label="Safety" to="/government/health" active={location.pathname.startsWith('/government/health')} />
             <SidebarItem icon={FileText} label="Reports" to="/government/reports" active={location.pathname.startsWith('/government/reports')} />
+            <SidebarItem icon={Scan} label="Departure Scanner" to="/government/departure" active={location.pathname.startsWith('/government/departure')} />
           </nav>
         </div>
         
@@ -396,6 +399,7 @@ export default function GovernmentDashboard() {
               <Route path="/port" element={<PortModule />} />
               <Route path="/health" element={<SafetyModule />} />
               <Route path="/reports" element={<ReportsModule />} />
+              <Route path="/departure" element={<CheckInView />} />
               <Route path="/settings" element={<SettingsModule />} />
             </Routes>
           </div>

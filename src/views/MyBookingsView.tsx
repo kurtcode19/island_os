@@ -15,12 +15,14 @@ import {
   Hotel,
   Ship,
   Compass,
-  Sparkles
+  Sparkles,
+  Star
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { collection, query, where, onSnapshot, doc, updateDoc, orderBy } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import ReviewForm from '../components/shared/ReviewForm';
 
 export default function MyBookingsView() {
   const { user } = useAuth();
@@ -28,6 +30,7 @@ export default function MyBookingsView() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
+  const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -215,10 +218,19 @@ export default function MyBookingsView() {
                     {/* Right: Actions */}
                     <div className="flex flex-col justify-center gap-4 min-w-[200px]">
                       {booking.paymentStatus === 'PAID' ? (
-                        <div className="flex items-center justify-center gap-3 text-island-emerald bg-emerald-50 py-5 rounded-[2rem] border-2 border-emerald-100 shadow-sm">
-                          <CheckCircle2 size={24} strokeWidth={3} />
-                          <span className="text-xs font-bold tracking-wider">Paid</span>
-                        </div>
+                        <>
+                          <div className="flex items-center justify-center gap-3 text-island-emerald bg-emerald-50 py-5 rounded-[2rem] border-2 border-emerald-100 shadow-sm">
+                            <CheckCircle2 size={24} strokeWidth={3} />
+                            <span className="text-xs font-bold tracking-wider">Paid</span>
+                          </div>
+                          <button
+                            onClick={() => setReviewBookingId(booking.id)}
+                            className="flex items-center justify-center gap-2 py-4 bg-white border-2 border-island-sunset/20 text-island-sunset rounded-[2rem] text-[10px] font-bold tracking-wider hover:bg-island-sunset/5 transition-all"
+                          >
+                            <Star size={16} strokeWidth={3} />
+                            Write Review
+                          </button>
+                        </>
                       ) : booking.status === 'cancelled' ? (
                         <div className="flex items-center justify-center gap-3 text-island-coral bg-rose-50 py-5 rounded-[2rem] border-2 border-rose-100">
                           <XCircle size={24} strokeWidth={3} />
@@ -264,6 +276,30 @@ export default function MyBookingsView() {
           </div>
         )}
       </div>
+
+      {/* Review Modal */}
+      <AnimatePresence>
+        {reviewBookingId && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+            <div className="absolute inset-0 bg-island-volcanic/60 backdrop-blur-sm" onClick={() => setReviewBookingId(null)} />
+            <div className="relative w-full max-w-lg">
+              {(() => {
+                const booking = bookings.find(b => b.id === reviewBookingId);
+                if (!booking) return null;
+                return (
+                  <ReviewForm
+                    bookingId={reviewBookingId}
+                    businessId={booking.businessId || 'catarman_lgu'}
+                    serviceId={booking.serviceId}
+                    serviceName={booking.serviceName}
+                    onClose={() => setReviewBookingId(null)}
+                  />
+                );
+              })()}
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

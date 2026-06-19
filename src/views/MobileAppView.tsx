@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, 
   Map as MapIcon, 
   Compass, 
   User, 
-  QrCode, 
+  Info,
   Heart, 
   Star, 
   Navigation,
@@ -38,11 +38,17 @@ import {
 } from 'lucide-react';
 import { locations } from '../data/locations';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'sonner';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp, onSnapshot, query, where, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { accommodations } from '../data/accommodations';
 import { transportOptions } from '../data/transport';
 import { useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
+import { subscribeToPass } from '../lib/passService';
+import { checkAvailability } from '../lib/capacityService';
+import type { TouristPass } from '../types';
+import DateGuestPicker from '../components/shared/DateGuestPicker';
 import IslandMap from '../components/IslandMap';
 import { SearchWidget } from '../components/SearchWidget';
 
@@ -108,6 +114,12 @@ export default function MobileAppView() {
   const [selectedSpot, setSelectedSpot] = useState<any>(null);
   const [bookings, setBookings] = useState<any[]>([]);
   const [bookingStatus, setBookingStatus] = useState<{[key: string]: 'idle' | 'loading' | 'success'}>({});
+  const [pass, setPass] = useState<TouristPass | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedGuests, setSelectedGuests] = useState(1);
+  const [showBooking, setShowBooking] = useState(false);
+  const [addBreakfast, setAddBreakfast] = useState(false);
+  const [addLateCheckin, setAddLateCheckin] = useState(false);
 
   const isDesktop = window.innerWidth >= 768;
 
@@ -149,16 +161,46 @@ export default function MobileAppView() {
     return () => unsubscribe();
   }, [user]);
 
+  // Real-time pass subscription
+  useEffect(() => {
+    if (!user) {
+      setPass(null);
+      return;
+    }
+
+    const unsubscribe = subscribeToPass(user.uid, (passData) => {
+      setPass(passData);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
   const handleBook = async (item: any, type: 'stay' | 'transport' | 'spot') => {
     if (!user) {
       login();
       return;
     }
 
+    if (!selectedDate) {
+      toast.error('Please select a date');
+      return;
+    }
+
     const itemId = item.id;
     setBookingStatus(prev => ({ ...prev, [itemId]: 'loading' }));
 
+    // Check capacity
+    const availability = await checkAvailability(item.id, selectedDate, selectedGuests);
+    if (!availability.available) {
+      toast.error(`Only ${availability.remaining} spots remaining on this date`);
+      setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
+      return;
+    }
+
     try {
+      const baseAmount = (item.price || 150) * selectedGuests;
+      const addonAmount = (addBreakfast ? 350 * selectedGuests : 0) + (addLateCheckin ? 200 : 0);
+
       await addDoc(collection(db, 'bookings'), {
         touristUid: user.uid,
         touristName: user.displayName || 'Anonymous',
@@ -167,14 +209,17 @@ export default function MobileAppView() {
         serviceName: item.name || item.title,
         serviceType: type,
         businessId: item.businessId || 'catarman_lgu',
-        date: new Date().toLocaleDateString(),
+        date: selectedDate,
+        guests: selectedGuests,
+        addons: { breakfast: addBreakfast, lateCheckin: addLateCheckin },
         status: 'pending',
         paymentStatus: 'UNPAID',
-        amount: item.price || 150,
+        amount: baseAmount + addonAmount,
         createdAt: serverTimestamp()
       });
       
       setBookingStatus(prev => ({ ...prev, [itemId]: 'success' }));
+      toast.success('Booking request submitted!');
       setTimeout(() => {
         setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
         setSelectedSpot(null);
@@ -422,7 +467,13 @@ export default function MobileAppView() {
                 <div className="absolute top-8 right-8 w-8 h-8 border-t-4 border-r-4 border-island-emerald rounded-tr-xl"></div>
                 <div className="absolute bottom-8 left-8 w-8 h-8 border-b-4 border-l-4 border-island-emerald rounded-bl-xl"></div>
                 <div className="absolute bottom-8 right-8 w-8 h-8 border-b-4 border-r-4 border-island-emerald rounded-br-xl"></div>
-                <QrCode size={200} strokeWidth={1} className="text-island-volcanic" />
+                {user && pass ? (
+                  <QRCodeSVG value={`${window.location.origin}/verify-pass/${pass.passId}`} size={200} level="H" includeMargin />
+                ) : (
+                  <div className="w-[200px] h-[200px] flex items-center justify-center text-slate-300">
+                    <Info size={64} strokeWidth={1} />
+                  </div>
+                )}
               </div>
 
               <div className="w-full bg-island-volcanic p-10 rounded-[3.5rem] text-white shadow-2xl relative border border-white/5 overflow-hidden">
@@ -432,7 +483,7 @@ export default function MobileAppView() {
                 <div className="flex justify-between items-start mb-10 relative z-10">
                   <div>
                     <span className="text-[10px] font-semibold text-white/40 tracking-tight mb-2 block">Passenger</span>
-                    <p className="text-2xl font-black tracking-tighter">{user?.displayName || 'Catarman Guest'}</p>
+                    <p className="text-2xl font-black tracking-tighter">{pass?.displayName || user?.displayName || 'Catarman Guest'}</p>
                   </div>
                   <div className="w-12 h-12 bg-white/10 backdrop-blur-2xl rounded-xl flex items-center justify-center border border-white/20">
                     <ShieldCheck size={24} strokeWidth={3} className="text-island-emerald" />
@@ -441,10 +492,14 @@ export default function MobileAppView() {
                 <div className="flex justify-between items-end relative z-10">
                   <div className="space-y-1">
                     <span className="block text-[10px] font-semibold text-white/40 tracking-tight">Pass ID</span>
-                    <span className="font-mono text-xs font-black tracking-widest text-island-emerald">CTRM-P-2026-9X</span>
+                    <span className="font-mono text-xs font-black tracking-widest text-island-emerald">{pass?.passId || '—'}</span>
                   </div>
-                  <div className="px-5 py-2 bg-island-emerald text-island-volcanic rounded-full text-[10px] font-bold tracking-wider">
-                    Active
+                  <div className={`px-5 py-2 rounded-full text-[10px] font-bold tracking-wider ${
+                    pass?.status === 'active' 
+                      ? 'bg-island-emerald text-island-volcanic' 
+                      : 'bg-white/10 text-white/60'
+                  }`}>
+                    {pass?.status === 'active' ? 'Active' : pass?.status || '—'}
                   </div>
                 </div>
               </div>
@@ -549,117 +604,302 @@ export default function MobileAppView() {
         </div>
       </div>
 
-      {/* Overlays (Spot Details) */}
+      {/* Overlays (Spot Details) — Luxury Redesign */}
       <AnimatePresence>
-        {selectedSpot && (
+        {selectedSpot && !showBooking && (
           <motion.div 
             key="spot-detail"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute inset-0 bg-white z-[60] flex flex-col overflow-y-auto no-scrollbar pb-32"
+            className="absolute inset-0 bg-white z-[60] flex flex-col overflow-y-auto no-scrollbar"
           >
-            <div className="relative h-[45vh] shrink-0 p-6">
-              <div className="relative h-full w-full rounded-[3rem] overflow-hidden shadow-2xl">
+            {/* Hero Image */}
+            <div className="relative h-[50vh] shrink-0">
+              <div className="relative h-full w-full overflow-hidden">
                 <img src={selectedSpot.image} alt={selectedSpot.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
                 
-                <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
+                {/* Top Bar */}
+                <div className="absolute top-12 left-6 right-6 flex justify-between items-center z-10">
                   <motion.button 
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setSelectedSpot(null)}
-                    className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20"
+                    className="w-11 h-11 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20 shadow-lg"
                   >
-                    <ArrowLeft size={24} />
+                    <ArrowLeft size={22} />
                   </motion.button>
-                  <h2 className="text-white font-black uppercase tracking-[0.2em] text-xs">Details</h2>
                   <motion.button 
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => setSelectedSpot(null)}
-                    className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20"
+                    className="w-11 h-11 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20 shadow-lg"
                   >
-                    <X size={24} />
+                    <Heart size={20} />
                   </motion.button>
                 </div>
 
-                <div className="absolute bottom-8 left-8 flex items-center gap-2">
-                  <div className="flex -space-x-3">
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden shadow-lg">
-                        <img src={`https://i.pravatar.cc/100?u=${i+10}`} alt="" />
-                      </div>
-                    ))}
-                    <div className="w-8 h-8 rounded-full bg-island-accent border-2 border-white flex items-center justify-center text-[10px] font-black text-island-volcanic shadow-lg">2K</div>
+                {/* Price Overlay */}
+                <div className="absolute bottom-6 left-6 z-10">
+                  <div className="bg-white/20 backdrop-blur-xl rounded-2xl px-5 py-3 border border-white/20 shadow-xl">
+                    <span className="text-3xl font-black text-white tracking-tighter">₱{selectedSpot.price?.toLocaleString() || '150'}</span>
+                    <span className="text-white/70 text-sm font-medium ml-1">/ night</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="px-8 flex-1 flex flex-col py-6">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <div className="flex items-center gap-2 text-island-accent font-black uppercase tracking-widest text-[10px] mb-2 bg-island-volcanic px-3 py-1 rounded-full w-fit">
-                    <MapPin size={12} />
-                    {selectedSpot.category || 'Catarman, Camiguin'}
+            {/* Content */}
+            <div className="flex-1 px-6 pt-6 pb-40 space-y-6 bg-white">
+              {/* Title & Rating */}
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin size={14} className="text-island-emerald" />
+                    <span className="text-sm font-semibold text-slate-500">Catarman, Camiguin Island</span>
                   </div>
-                  <h3 className="text-4xl font-black text-island-volcanic tracking-tighter leading-none">{selectedSpot.name}</h3>
+                  <h2 className="text-3xl font-black text-island-volcanic tracking-tighter leading-tight">{selectedSpot.name}</h2>
                 </div>
-                <div className="text-right">
-                  <div className="text-3xl font-black text-island-emerald tracking-tighter">₱{selectedSpot.price?.toLocaleString()}</div>
-                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">/ experience</div>
+                <div className="flex items-center gap-1.5 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100 shrink-0 ml-4">
+                  <Star size={16} fill="#10b981" className="text-island-emerald" />
+                  <span className="text-sm font-black text-island-emerald">{selectedSpot.rating || '4.9'}</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mb-8 pb-8 border-b border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden">
-                    <img src="https://i.pravatar.cc/100?u=janeeth" alt="Creator" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-black text-island-volcanic">By Catarman Guide</div>
-                    <div className="text-[10px] font-bold text-slate-400">Verified Professional</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-                  <Star size={16} fill="#eaff00" className="text-island-accent" />
-                  <span className="text-xs font-black text-island-volcanic">{selectedSpot.rating || '4.9'}</span>
-                </div>
-              </div>
-
-              <div className="flex gap-3 mb-8">
-                {['Ticket', 'Hotel', 'Meal'].map(tag => (
-                  <div key={tag} className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100 text-slate-600 font-black text-[10px] uppercase tracking-widest">
-                    {tag === 'Ticket' && <Ticket size={14} />}
-                    {tag === 'Hotel' && <Building2 size={14} />}
-                    {tag === 'Meal' && <Utensils size={14} />}
-                    {tag}
+              {/* Amenities */}
+              <div className="flex gap-4">
+                {[
+                  { icon: 'wifi', label: 'Free Wi-Fi' },
+                  { icon: 'snowflake', label: 'Air Conditioning' },
+                ].map((amenity, i) => (
+                  <div key={i} className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                    <svg className="w-4 h-4 text-island-emerald" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      {amenity.icon === 'wifi' ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.858 15.355-5.858 21.213 0" />
+                      ) : (
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      )}
+                    </svg>
+                    <span className="text-xs font-bold text-slate-600">{amenity.label}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="mb-8">
-                <h4 className="text-lg font-black text-island-volcanic tracking-tight mb-3">Schedule Overview</h4>
-                <p className="text-slate-500 text-sm font-medium leading-relaxed">
+              {/* Description */}
+              <div className="pt-2">
+                <p className="text-sm text-slate-500 font-medium leading-relaxed">
                   {selectedSpot.description || 'Experience the profound heritage of Catarman. This landmark represents the emerald soul of our municipality, offering a unique blend of nature and history.'}
                 </p>
               </div>
-              
-              <div className="flex gap-4">
-                <button className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-island-volcanic border border-slate-100 active:scale-95 transition-all">
-                  <Sparkles size={24} />
-                </button>
-                <motion.button 
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleBook(selectedSpot, selectedSpot.type || 'spot')}
-                  disabled={bookingStatus[selectedSpot.id] === 'loading' || bookingStatus[selectedSpot.id] === 'success'}
-                  className="flex-1 btn-primary py-6 rounded-2xl text-sm shadow-2xl"
-                >
-                  {bookingStatus[selectedSpot.id] === 'success' ? 'Booking Active' : 
-                   bookingStatus[selectedSpot.id] === 'loading' ? <RefreshCw className="animate-spin" /> : 
-                   'Book Now'}
-                </motion.button>
+
+              {/* Image Thumbnails */}
+              <div>
+                <h4 className="text-sm font-black text-island-volcanic tracking-tight mb-3">Photos</h4>
+                <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-6 px-6">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 border border-slate-100 shadow-sm">
+                      <img 
+                        src={`https://images.unsplash.com/photo-${i === 1 ? '1544551763-46a013bb70d5' : i === 2 ? '1590073242678-70ee3fc28f8e' : i === 3 ? '1564013799919-ab600027ffc6' : '1571896349842-33c89424de2d'}?w=200&q=80`} 
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
+            </div>
+
+            {/* Sticky Book Button */}
+            <div className="fixed bottom-0 left-0 right-0 z-20 p-6 bg-white/80 backdrop-blur-2xl border-t border-slate-100">
+              <div className="flex items-center justify-between mb-4 px-1">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total</span>
+                  <p className="text-2xl font-black text-island-volcanic tracking-tighter">
+                    ₱{selectedSpot.price?.toLocaleString() || '150'}
+                    <span className="text-sm font-bold text-slate-400 ml-1">/ night</span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Star size={14} fill="#10b981" className="text-island-emerald" />
+                  <span className="text-sm font-bold text-slate-600">{selectedSpot.rating || '4.9'}</span>
+                  <span className="text-xs text-slate-400 ml-1">(128 reviews)</span>
+                </div>
+              </div>
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => {
+                  setSelectedDate('');
+                  setSelectedGuests(1);
+                  setAddBreakfast(false);
+                  setAddLateCheckin(false);
+                  setShowBooking(true);
+                }}
+                className="w-full py-5 bg-island-green text-white rounded-2xl font-black text-sm tracking-wider shadow-2xl shadow-island-green/30 hover:bg-island-green/90 transition-all"
+              >
+                Book Now
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Booking Bottom Sheet */}
+      <AnimatePresence>
+        {showBooking && selectedSpot && (
+          <motion.div 
+            key="booking-sheet"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="absolute inset-0 bg-white z-[70] flex flex-col overflow-y-auto no-scrollbar"
+          >
+            {/* Header */}
+            <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-xl px-6 pt-12 pb-4 border-b border-slate-50">
+              <div className="flex items-center justify-between mb-2">
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setShowBooking(false)}
+                  className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500"
+                >
+                  <ArrowLeft size={20} />
+                </motion.button>
+                <h2 className="text-lg font-black text-island-volcanic tracking-tighter">Complete Booking</h2>
+                <div className="w-10" />
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-100">
+                  <img src={selectedSpot.image} alt="" className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-island-volcanic tracking-tight">{selectedSpot.name}</p>
+                  <p className="text-[10px] font-bold text-slate-400">Catarman, Camiguin</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 px-6 pt-6 pb-48 space-y-8">
+              {/* Calendar */}
+              <div>
+                <h4 className="text-sm font-black text-island-volcanic tracking-tight mb-4">Select Date</h4>
+                <div className="bg-slate-50 rounded-3xl p-4 border border-slate-100">
+                  <DateGuestPicker
+                    onDateChange={setSelectedDate}
+                    onGuestsChange={setSelectedGuests}
+                  />
+                </div>
+              </div>
+
+              {/* Add-ons */}
+              <div>
+                <h4 className="text-sm font-black text-island-volcanic tracking-tight mb-4">Add-ons</h4>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setAddBreakfast(!addBreakfast)}
+                    className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 transition-all ${
+                      addBreakfast ? 'bg-island-green/5 border-island-green/30' : 'bg-white border-slate-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                        addBreakfast ? 'bg-island-green border-island-green' : 'border-slate-300'
+                      }`}>
+                        {addBreakfast && (
+                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-bold text-island-volcanic">Breakfast</p>
+                        <p className="text-[10px] font-semibold text-slate-400">Daily breakfast buffet</p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-black text-island-emerald">+₱350</span>
+                  </button>
+
+                  <button
+                    onClick={() => setAddLateCheckin(!addLateCheckin)}
+                    className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 transition-all ${
+                      addLateCheckin ? 'bg-island-green/5 border-island-green/30' : 'bg-white border-slate-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                        addLateCheckin ? 'bg-island-green border-island-green' : 'border-slate-300'
+                      }`}>
+                        {addLateCheckin && (
+                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-bold text-island-volcanic">Late Check-in</p>
+                        <p className="text-[10px] font-semibold text-slate-400">After 8:00 PM</p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-black text-island-emerald">+₱200</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Price Breakdown */}
+              <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 space-y-4">
+                <h4 className="text-sm font-black text-island-volcanic tracking-tight">Price Breakdown</h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500 font-medium">₱{selectedSpot.price?.toLocaleString() || '150'} x {selectedGuests} guest(s)</span>
+                    <span className="font-bold text-island-volcanic">₱{((selectedSpot.price || 150) * selectedGuests).toLocaleString()}</span>
+                  </div>
+                  {addBreakfast && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 font-medium">Breakfast x {selectedGuests}</span>
+                      <span className="font-bold text-island-volcanic">₱{(350 * selectedGuests).toLocaleString()}</span>
+                    </div>
+                  )}
+                  {addLateCheckin && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 font-medium">Late Check-in</span>
+                      <span className="font-bold text-island-volcanic">₱200</span>
+                    </div>
+                  )}
+                  <div className="border-t border-slate-200 pt-3 flex justify-between">
+                    <span className="text-sm font-black text-island-volcanic">Total</span>
+                    <span className="text-xl font-black text-island-emerald tracking-tighter">
+                      ₱{(
+                        (selectedSpot.price || 150) * selectedGuests +
+                        (addBreakfast ? 350 * selectedGuests : 0) +
+                        (addLateCheckin ? 200 : 0)
+                      ).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky Book Now Button */}
+            <div className="fixed bottom-0 left-0 right-0 z-20 p-6 bg-white/80 backdrop-blur-2xl border-t border-slate-100">
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => {
+                  handleBook(selectedSpot, selectedSpot.type || 'spot');
+                  setShowBooking(false);
+                }}
+                disabled={bookingStatus[selectedSpot.id] === 'loading' || bookingStatus[selectedSpot.id] === 'success' || !selectedDate}
+                className="w-full py-5 bg-island-green text-white rounded-2xl font-black text-sm tracking-wider shadow-2xl shadow-island-green/30 hover:bg-island-green/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {bookingStatus[selectedSpot.id] === 'loading' ? (
+                  <RefreshCw className="animate-spin mx-auto" size={22} />
+                ) : bookingStatus[selectedSpot.id] === 'success' ? (
+                  'Booking Confirmed ✓'
+                ) : (
+                  `Book now — ₱${(
+                    (selectedSpot.price || 150) * selectedGuests +
+                    (addBreakfast ? 350 * selectedGuests : 0) +
+                    (addLateCheckin ? 200 : 0)
+                  ).toLocaleString()}`
+                )}
+              </motion.button>
             </div>
           </motion.div>
         )}

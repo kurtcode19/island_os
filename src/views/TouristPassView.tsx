@@ -1,7 +1,39 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { QrCode, ShieldCheck, Ticket, MapPin, Calendar, User, Info, CheckCircle2, ArrowRight, Smartphone, Download, Sparkles } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { ShieldCheck, Ticket, MapPin, Calendar, User, Info, CheckCircle2, ArrowRight, Smartphone, Download, Sparkles } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { subscribeToPass } from '../lib/passService';
+import type { TouristPass } from '../types';
 
 export default function TouristPassView() {
+  const { user, login } = useAuth();
+  const [pass, setPass] = useState<TouristPass | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setPass(null);
+      setLoading(false);
+      return;
+    }
+
+    const unsubscribe = subscribeToPass(user.uid, (passData) => {
+      setPass(passData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const passUrl = pass ? `${window.location.origin}/verify-pass/${pass.passId}` : '';
+
+  const formatDate = (timestamp: any) => {
+    if (!timestamp) return '—';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  };
+
   return (
     <div className="bg-[#F0FDF4] min-h-screen pb-40 selection:bg-island-emerald/20">
       {/* Header */}
@@ -41,18 +73,30 @@ export default function TouristPassView() {
                 </div>
                 <div className="relative z-10">
                   <div className="w-24 h-24 bg-white/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 backdrop-blur-3xl border border-white/20 shadow-2xl">
-                    <QrCode size={48} strokeWidth={2} />
+                    <Ticket size={48} strokeWidth={2} />
                   </div>
                   <h3 className="text-3xl font-black tracking-tighter">Catarman <br /> <span className="text-island-emerald">Pass.</span></h3>
                   <p className="text-white/40 text-[10px] font-bold tracking-wider mt-3">Verified Pass</p>
                 </div>
               </div>
-              
+
               <div className="px-5 pb-5 space-y-10">
                 <div className="flex justify-center">
                   <div className="p-8 bg-stone-50 rounded-[3rem] border-2 border-slate-100 relative shadow-inner">
-                    <QrCode size={200} className="text-island-volcanic" strokeWidth={1} />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-5">
+                    {user && pass ? (
+                      <QRCodeSVG
+                        value={passUrl}
+                        size={200}
+                        level="H"
+                        includeMargin
+                        className="w-full h-full"
+                      />
+                    ) : (
+                      <div className="w-[200px] h-[200px] flex items-center justify-center text-slate-300">
+                        <Info size={64} strokeWidth={1} />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
                       <ShieldCheck size={120} />
                     </div>
                   </div>
@@ -64,7 +108,9 @@ export default function TouristPassView() {
                       <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center text-island-emerald">
                         <User size={18} strokeWidth={3} />
                       </div>
-                      <span className="text-sm font-black text-island-volcanic">Kurt Mier</span>
+                      <span className="text-sm font-black text-island-volcanic">
+                        {pass?.displayName || user?.displayName || 'Guest'}
+                      </span>
                     </div>
                     <span className="text-[10px] font-semibold text-slate-400 tracking-tight">Passenger</span>
                   </div>
@@ -73,13 +119,45 @@ export default function TouristPassView() {
                       <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center text-island-emerald">
                         <Calendar size={18} strokeWidth={3} />
                       </div>
-                      <span className="text-sm font-black text-island-volcanic">JUN 2026</span>
+                      <span className="text-sm font-black text-island-volcanic">
+                        {pass ? formatDate(pass.expiresAt) : '—'}
+                      </span>
                     </div>
                     <span className="text-[10px] font-semibold text-slate-400 tracking-tight">Expires</span>
                   </div>
+                  <div className="flex justify-between items-center py-5 border-b-2 border-stone-50">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center text-island-emerald">
+                        <Info size={18} strokeWidth={3} />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-island-volcanic block leading-tight">
+                          {pass?.passId || '—'}
+                        </span>
+                        <span className="text-[8px] font-semibold text-slate-400 tracking-tight">Pass ID</span>
+                      </div>
+                    </div>
+                    {pass?.status === 'active' ? (
+                      <span className="text-[10px] font-bold text-island-emerald bg-emerald-50 px-3 py-1 rounded-full">Active</span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">{pass?.status || '—'}</span>
+                    )}
+                  </div>
                 </div>
 
-                <button className="btn-volcanic w-full py-6 rounded-[2rem]">
+                <button
+                  onClick={() => {
+                    if (!user) { login(); return; }
+                    const canvas = document.querySelector('canvas');
+                    if (canvas) {
+                      const link = document.createElement('a');
+                      link.download = `catarman-pass-${pass?.passId || 'download'}.png`;
+                      link.href = canvas.toDataURL('image/png');
+                      link.click();
+                    }
+                  }}
+                  className="btn-volcanic w-full py-6 rounded-[2rem]"
+                >
                   <Download size={20} strokeWidth={3} /> Export Pass
                 </button>
               </div>

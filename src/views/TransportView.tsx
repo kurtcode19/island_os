@@ -1,18 +1,24 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Ship, Car, Bike, MapPin, Clock, Calendar, ArrowRight, Info, ShieldCheck, Waves, Navigation, X, CheckCircle2, RefreshCw, Sparkles } from 'lucide-react';
+import { Ship, Car, Bike, MapPin, Clock, Calendar, ArrowRight, Info, ShieldCheck, Waves, Navigation, X, CheckCircle2, RefreshCw, Sparkles, AlertTriangle } from 'lucide-react';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { transportOptions, schedules } from '../data/transport';
+import DateGuestPicker from '../components/shared/DateGuestPicker';
+import { checkAvailability } from '../lib/capacityService';
+import { logEvent } from '../lib/auditService';
 
 export default function TransportView() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const [selectedTransport, setSelectedTransport] = useState<any>(null);
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedGuests, setSelectedGuests] = useState(1);
 
   const handleBookTransport = async (transport: any) => {
     if (!user) {
@@ -20,7 +26,21 @@ export default function TransportView() {
       return;
     }
 
+    if (!selectedDate) {
+      toast.error('Please select a travel date');
+      return;
+    }
+
     setBookingStatus('loading');
+
+    // Check capacity
+    const availability = await checkAvailability(transport.id, selectedDate, selectedGuests);
+    if (!availability.available) {
+      toast.error(`Only ${availability.remaining} seats remaining on this date`);
+      setBookingStatus('idle');
+      return;
+    }
+
     try {
       const bookingData = {
         touristUid: user.uid,
@@ -30,15 +50,18 @@ export default function TransportView() {
         serviceName: transport.title,
         serviceType: 'transport',
         businessId: transport.businessId,
-        date: new Date().toLocaleDateString(),
-        amount: transport.price,
+        date: selectedDate,
+        guests: selectedGuests,
+        amount: transport.price * selectedGuests,
         status: 'pending',
         paymentStatus: 'UNPAID',
         createdAt: serverTimestamp(),
       };
 
       await addDoc(collection(db, 'bookings'), bookingData);
+      logEvent('created', 'bookings', undefined, `Transport booking for ${transport.title} on ${selectedDate}`);
       setBookingStatus('success');
+      toast.success('Booking request submitted!');
       setTimeout(() => {
         setBookingStatus('idle');
         setSelectedTransport(null);
@@ -256,6 +279,13 @@ export default function TransportView() {
                     <span className="text-4xl font-black text-island-volcanic tracking-tighter">₱{selectedTransport.price.toLocaleString()}</span>
                   </div>
                   <ShieldCheck size={48} className="text-island-emerald opacity-20" />
+                </div>
+
+                <div className="mb-8">
+                  <DateGuestPicker
+                    onDateChange={setSelectedDate}
+                    onGuestsChange={setSelectedGuests}
+                  />
                 </div>
 
                 {bookingStatus === 'success' ? (
