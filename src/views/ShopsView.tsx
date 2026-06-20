@@ -3,29 +3,13 @@ import { ShoppingBag, Store, Search, MapPin, Star, Sparkles } from 'lucide-react
 
 const shops = [
   {
-    id: 1,
-    name: "Catarman Crafts",
-    category: "Gifts",
-    rating: 4.8,
-    image: "https://picsum.photos/seed/local-souvenirs-crafts/800/600",
-    description: "Best local crafts and delicacies from the heart of Catarman."
-  },
-  {
     id: 2,
     name: "Municipal Public Market",
     category: "Market",
     rating: 4.5,
-    image: "https://picsum.photos/seed/tropical-market-fruits/800/600",
+    image: "/images/DigiPay-1.png",
     description: "Fresh produce and local street food node."
   },
-  {
-    id: 3,
-    name: "Island Node Boutique",
-    category: "Apparel",
-    rating: 4.7,
-    image: "https://picsum.photos/seed/surf-shop-beach/800/600",
-    description: "Verified island wear and gear."
-  }
 ];
 
 export default function ShopsView() {

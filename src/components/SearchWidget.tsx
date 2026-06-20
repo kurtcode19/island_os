@@ -24,18 +24,18 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
 
   if (variant === 'mobile') {
     return (
-      <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 p-6 border border-slate-100 w-full">
+      <div className="bg-white rounded-[2.5rem] tropic-shadow-lg p-6 border border-tropic-sand/30 w-full">
         <div className="flex gap-6 overflow-x-auto no-scrollbar mb-8 pb-2">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex flex-col items-center gap-2 min-w-fit transition-all ${
-                activeTab === tab.id ? 'text-island-emerald' : 'text-slate-400'
+                activeTab === tab.id ? 'text-tropic-emerald' : 'text-tropic-green/40'
               }`}
             >
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
-                activeTab === tab.id ? 'bg-island-emerald/10 scale-110' : 'bg-slate-50'
+                activeTab === tab.id ? 'bg-tropic-emerald/10 scale-110' : 'bg-tropic-sand/30'
               }`}>
                 <tab.icon size={22} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
               </div>
@@ -46,38 +46,38 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
 
         <div className="space-y-4">
           <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-tropic-green/40">
               <MapPin size={18} />
             </div>
             <input 
               type="text" 
               placeholder="Where to?" 
-              className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-island-emerald/20 transition-all outline-none"
+              className="w-full pl-12 pr-4 py-4 bg-tropic-sand/30 border border-tropic-sand/30 rounded-2xl text-sm font-bold text-tropic-green focus:ring-2 focus:ring-tropic-emerald/20 transition-all outline-none placeholder:text-tropic-green/30"
             />
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-tropic-green/40">
                 <CalendarIcon size={18} />
               </div>
-              <div className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-bold flex flex-col justify-center">
-                <span className="text-[8px] text-slate-400 uppercase tracking-widest mb-0.5">Dates</span>
+              <div className="w-full pl-12 pr-4 py-4 bg-tropic-sand/30 border border-tropic-sand/30 rounded-2xl text-xs font-bold flex flex-col justify-center text-tropic-green">
+                <span className="text-[8px] text-tropic-green/40 uppercase tracking-widest mb-0.5">Dates</span>
                 <span>Jun 15 - 18</span>
               </div>
             </div>
             <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-tropic-green/40">
                 <Users size={18} />
               </div>
-              <div className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-bold flex flex-col justify-center">
-                <span className="text-[8px] text-slate-400 uppercase tracking-widest mb-0.5">Travelers</span>
+              <div className="w-full pl-12 pr-4 py-4 bg-tropic-sand/30 border border-tropic-sand/30 rounded-2xl text-xs font-bold flex flex-col justify-center text-tropic-green">
+                <span className="text-[8px] text-tropic-green/40 uppercase tracking-widest mb-0.5">Travelers</span>
                 <span>2 Guests</span>
               </div>
             </div>
           </div>
 
-          <button className="w-full bg-island-volcanic text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
+          <button className="w-full bg-gradient-to-r from-tropic-emerald to-tropic-ocean text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
             <Search size={18} />
             Search Experiences
           </button>

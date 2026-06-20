@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Compass, Hotel, Ship, Building2, MapIcon, Sparkles, Ticket, Calendar, BarChart3, LogOut, LogIn, ShieldCheck, Menu, X, LayoutDashboard } from 'lucide-react';
+import { Compass, Hotel, Ship, Bike, Building2, MapIcon, Sparkles, Ticket, Calendar, BarChart3, LogOut, LogIn, ShieldCheck, Menu, X, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types';
 import { doc, setDoc } from 'firebase/firestore';
@@ -19,6 +19,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
     { path: '/', label: 'Home', icon: Compass },
     { path: '/stay', label: 'Stay', icon: Hotel },
     { path: '/transport', label: 'Transport', icon: Ship },
+    { path: '/rentals', label: 'Rentals', icon: Bike },
     { path: '/shops', label: 'Shops', icon: Building2 },
     { path: '/locations', label: 'Locations', icon: MapIcon },
     { path: '/planner', label: 'AI Planner', icon: Sparkles },

@@ -75,9 +75,9 @@ const LOADING_QUOTES = [
 
 const CAMIGUIN_IMAGES = [
   "/images/hero-sunken.png",
-  "https://files01.pna.gov.ph/source/2024/05/06/camiguin-old-church-ruins-05032024jb.jpg",
-  "https://thefroggyadventures.com/wp-content/uploads/2024/10/tuasan-falls-camiguin.jpg",
-  "https://www.lanzonescabana.com/custom/domain_4/image_files/sitemgr_photo_21.png",
+  "/images/old-spanish-church-ruins-big-tree.jpg",
+  "/images/tuasan.jpg",
+  "/images/borasoda.png",
   "/images/explore-bg.jpg"
 ];
 

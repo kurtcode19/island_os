@@ -20,12 +20,12 @@ import { bookingFlow, tripPlannerFlow } from '../data/processFlow';
 
 const experiences = [
   { id: 'exp_2', title: 'Sunken Cemetery Exploration', type: 'Heritage', rating: 4.8, price: 150, businessId: 'catarman_lgu', image: '/images/hero-sunken.png' },
-  { id: 'exp_5', title: 'Gui-ob Church Ruins Tour', type: 'Historical', rating: 4.9, price: 100, businessId: 'catarman_heritage', image: 'https://files01.pna.gov.ph/source/2024/05/06/camiguin-old-church-ruins-05032024jb.jpg' },
-  { id: 'exp_6', title: 'Tuasan Falls Adventure', type: 'Nature', rating: 4.7, price: 300, businessId: 'nature_guides', image: 'https://thefroggyadventures.com/wp-content/uploads/2024/10/tuasan-falls-camiguin.jpg' },
+  { id: 'exp_5', title: 'Gui-ob Church Ruins Tour', type: 'Historical', rating: 4.9, price: 100, businessId: 'catarman_heritage', image: '/images/old-spanish-church-ruins-big-tree.jpg' },
+  { id: 'exp_6', title: 'Tuasan Falls Adventure', type: 'Nature', rating: 4.7, price: 300, businessId: 'nature_guides', image: '/images/tuasan.jpg' },
 ];
 
 const highlights = [
-  { id: '01', title: 'Heritage Trails', description: "We don't just guide tours; we preserve the stories of Catarman, from the sunken landmarks to the colonial ruins that define our soul.", image: 'https://files01.pna.gov.ph/source/2024/05/06/camiguin-old-church-ruins-05032024jb.jpg' },
+  { id: '01', title: 'Heritage Trails', description: "We don't just guide tours; we preserve the stories of Catarman, from the sunken landmarks to the colonial ruins that define our soul.", image: '/images/old-spanish-church-ruins-big-tree.jpg' },
   { id: '02', title: 'Local Partnerships', description: "Working closely with Catarman LGU and local businesses, we ensure your visit supports the community while offering authentic island life.", image: '/images/DigiPay-1.png' },
 ];
 
@@ -159,6 +159,73 @@ export default function LandingView() {
                 "Our trusted local partners ensure every moment in Catarman is unforgettable."
               </p>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Rentals Section */}
+      <section className="py-24 md:py-32 px-6 bg-island-cream/30">
+        <div className="max-w-[1600px] mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="flex justify-between items-end mb-16"
+          >
+            <div>
+              <span className="text-island-emerald font-bold tracking-wider text-xs mb-4 block">/ Rentals</span>
+              <h2 className="text-5xl md:text-7xl font-black text-island-volcanic tracking-tighter leading-[0.9] mb-6 uppercase italic">
+                Vehicles for <br className="md:hidden" />
+                <span className="text-island-emerald not-italic"> every trip.</span>
+              </h2>
+              <p className="text-slate-500 text-lg font-medium max-w-xl">
+                Scooters, bikes, tricycles, and SUVs — get around the island your way.
+              </p>
+            </div>
+            <Link to="/rentals" className="hidden md:flex items-center gap-2 px-8 py-4 bg-island-volcanic text-white rounded-full font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">
+              View All <ArrowUpRight size={16} />
+            </Link>
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { name: 'Scooter', rate: 500, unit: 'day', image: '/images/camiguin-rent-a-scooters.jpg', seats: 2 },
+              { name: 'Mountain Bike', rate: 250, unit: 'day', image: '/images/mountainbike.jpg', seats: 1 },
+              { name: 'Tricycle', rate: 300, unit: 'hour', image: '/images/tricycle.jpg', seats: 4 },
+            ].map((v, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="group bg-white rounded-[2.5rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all cursor-pointer"
+                onClick={() => navigate('/rentals')}
+              >
+                <div className="relative h-56 overflow-hidden">
+                  <img src={v.image} alt={v.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  <div className="absolute bottom-5 left-5 right-5 flex justify-between items-end">
+                    <h3 className="text-2xl font-black text-white tracking-tighter">{v.name}</h3>
+                    <div className="bg-white/90 backdrop-blur-xl px-4 py-2 rounded-2xl text-right">
+                      <span className="text-xl font-black text-island-green">₱{v.rate}</span>
+                      <span className="text-[10px] text-slate-500 font-semibold ml-1">/{v.unit}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-6 flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                    <span>Up to {v.seats} seats</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-island-emerald uppercase tracking-widest group-hover:translate-x-1 transition-transform">Browse →</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          <div className="mt-10 text-center md:hidden">
+            <Link to="/rentals" className="inline-flex items-center gap-2 px-8 py-4 bg-island-volcanic text-white rounded-full font-bold text-xs uppercase tracking-widest">
+              View All Vehicles <ArrowUpRight size={16} />
+            </Link>
           </div>
         </div>
       </section>
@@ -341,7 +408,7 @@ export default function LandingView() {
           "The Sunken Cemetery was a spiritual experience unlike any other. Catarman's history is written in the landscape, and every guide we met treated us like family."
         </h2>
         <div className="mt-20 flex flex-col items-center gap-6">
-          <img src="https://i.pravatar.cc/100?u=tourist1" alt="Avatar" className="w-24 h-24 rounded-full shadow-2xl border-4 border-white" />
+          <img src="/images/logo.png" alt="Avatar" className="w-24 h-24 rounded-full shadow-2xl border-4 border-white object-cover" />
           <div>
             <p className="font-black tracking-tight text-xl uppercase italic">Marco Salvatierra</p>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Catarman Explorer</p>

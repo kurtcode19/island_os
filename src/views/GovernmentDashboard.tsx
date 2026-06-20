@@ -236,7 +236,7 @@ export default function GovernmentDashboard() {
           </div>
           <div className="aspect-video bg-emerald-50 rounded-[2.5rem] relative overflow-hidden group border-2 border-emerald-100 shadow-inner">
             <img 
-              src="https://img.atlasobscura.com/CmlPBCqrdngS4DE4q_DDyDdVYBjhcSTHrsI9PUEbvkQ/rs:fill:780:520:1/g:ce/q:81/sm:1/scp:1/ar:1/aHR0cHM6Ly9hdGxh/cy1kZXYuczMuYW1h/em9uYXdzLmNvbS91/cGxvYWRzL3BsYWNl/X2ltYWdlcy85OTA0/ZjhlMDJiMGM0ODM5/NWJfU3Vua2VuX0Nl/bWV0ZXJ5LF9DYXRh/cm1hbixfQ2FtaWd1/aW4uanBn.jpg" 
+              src="/images/hero-sunken.png" 
               alt="Island Heatmap" 
               className="w-full h-full object-cover opacity-20 group-hover:scale-105 transition-transform duration-1000 grayscale group-hover:grayscale-0"
               referrerPolicy="no-referrer"

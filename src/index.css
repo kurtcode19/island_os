@@ -19,6 +19,23 @@
   --color-island-cream: #f8fafc; /* Clean Neutral Slate-50 */
   --color-island-sand: #f1f5f9; /* Soft Slate-100 */
   --color-island-warm-cream: #fefcf5; /* Warm off-white */
+  
+  /* ── Tropical / Pastel Travel App Theme ── */
+  --color-tropic-green: #2D6A4F;
+  --color-tropic-emerald: #52B788;
+  --color-tropic-sage: #95D5B2;
+  --color-tropic-ocean: #48C9B0;
+  --color-tropic-teal: #14B8A6;
+  --color-tropic-coral: #FF8A65;
+  --color-tropic-terracotta: #E07A5F;
+  --color-tropic-sand: #F5E6D3;
+  --color-tropic-cream: #FEFCF3;
+  --color-tropic-sky: #E0F2FE;
+  --color-tropic-sunset: #FFD166;
+  --color-tropic-lavender: #C4B5FD;
+  --color-tropic-rose: #F43F5E;
+  --color-tropic-deep: #0F766E;
+  --color-tropic-warm: #FFF7ED;
 }
 
 @keyframes shimmer {
@@ -84,6 +101,73 @@
 
 @utility accent-gradient {
   background: linear-gradient(135deg, #eaff00 0%, #d4ff00 100%);
+}
+
+@utility tropic-sunset-gradient {
+  background: linear-gradient(135deg, #FFD166 0%, #FF8A65 100%);
+}
+
+@utility tropic-ocean-gradient {
+  background: linear-gradient(135deg, #48C9B0 0%, #0F766E 100%);
+}
+
+@utility tropic-sky-gradient {
+  background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%);
+}
+
+@utility tropic-warm-gradient {
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+}
+
+@utility tropic-sand-gradient {
+  background: linear-gradient(135deg, #F5E6D3 0%, #EDD5B5 100%);
+}
+
+@utility tropic-mint-gradient {
+  background: linear-gradient(135deg, #95D5B2 0%, #52B788 100%);
+}
+
+/* Travel App Glassmorphism */
+.tropic-glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.tropic-glass-dark {
+  background: rgba(45, 106, 79, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.tropic-shadow {
+  box-shadow: 0 8px 32px rgba(45, 106, 79, 0.08);
+}
+
+.tropic-shadow-lg {
+  box-shadow: 0 12px 48px rgba(45, 106, 79, 0.12);
+}
+
+.tropic-shadow-xl {
+  box-shadow: 0 20px 60px rgba(45, 106, 79, 0.15);
+}
+
+/* ── Design System Tokens (mobile UI kit) ── */
+:root {
+  --bg: #F4F6F8;
+  --text: #0B1220;
+  --muted: #6B7280;
+  --accent-start: #52B788;
+  --accent-end: #38A6D6;
+  --accent-soft: #7CE6C3;
+  --card-radius: 24px;
+  --phone-radius: 36px;
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-blur: blur(18px);
+  --shadow-sm: 0 8px 24px rgba(8, 12, 20, 0.06);
+  --shadow-lg: 0 20px 50px rgba(8, 12, 20, 0.12);
 }
 
 .btn-primary {
