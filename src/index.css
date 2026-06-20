@@ -9,7 +9,7 @@
   --font-display: "Plus Jakarta Sans", sans-serif;
   --font-serif: "Cormorant Garamond", serif;
   
-  --color-island-green: #0a2e26; /* Deep Elegant Green */
+  --color-island-green: #1F3D36; /* Luxury Dark Green */
   --color-island-emerald: #10b981; /* Fresh Emerald */
   --color-island-coral: #f472b6; /* Hot Pink/Coral */
   --color-island-sunset: #f59e0b; /* Sunny Yellow */
@@ -87,7 +87,7 @@
 }
 
 .btn-primary {
-  @apply accent-gradient text-island-volcanic shadow-xl shadow-island-accent/20 hover:shadow-island-accent/40 active:scale-95 transition-all duration-300 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2;
+  @apply bg-island-green text-white shadow-xl shadow-island-green/30 hover:shadow-island-green/50 active:scale-95 transition-all duration-300 font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2;
 }
 
 .btn-secondary {
@@ -95,15 +95,43 @@
 }
 
 .btn-volcanic {
-  @apply forest-gradient text-white border border-white/10 shadow-xl hover:shadow-island-green/40 active:scale-95 transition-all duration-300 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2;
+  @apply bg-island-green text-white border border-white/10 shadow-xl hover:shadow-island-green/40 active:scale-95 transition-all duration-300 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2;
 }
 
 .premium-shadow {
-  box-shadow: 0 20px 50px -12px rgba(6, 78, 59, 0.1);
+  box-shadow: 0 20px 50px -12px rgba(31, 61, 54, 0.1);
 }
 
 .card-hover {
-  @apply transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] hover:scale-[1.02] hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-900/10;
+  @apply transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] hover:scale-[1.02] hover:-translate-y-2 hover:shadow-2xl hover:shadow-island-green/10;
+}
+
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-dark {
+  background: rgba(31, 61, 54, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Neumorphism */
+.neumorph {
+  box-shadow: 8px 8px 16px rgba(31, 61, 54, 0.06), -8px -8px 16px rgba(255, 255, 255, 0.8);
+}
+
+.neumorph-sm {
+  box-shadow: 4px 4px 8px rgba(31, 61, 54, 0.06), -4px -4px 8px rgba(255, 255, 255, 0.8);
+}
+
+.neumorph-inset {
+  box-shadow: inset 4px 4px 8px rgba(31, 61, 54, 0.06), inset -4px -4px 8px rgba(255, 255, 255, 0.8);
 }
 
 /* Leaflet Popup Customization */

@@ -5,7 +5,7 @@ import {
   Map as MapIcon, 
   Compass, 
   User, 
-  Info,
+  QrCode, 
   Heart, 
   Star, 
   Navigation,
@@ -34,21 +34,25 @@ import {
   ShieldCheck,
   Sparkles,
   RefreshCw,
-  Zap
+  Zap,
+  Plus,
+  Minus,
+  CalendarDays,
+  Wifi,
+  Wind,
+  Coffee,
+  ChevronLeft,
+  ChevronRight as ChevronRightIcon,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { locations } from '../data/locations';
 import { useAuth } from '../context/AuthContext';
-import { toast } from 'sonner';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp, onSnapshot, query, where, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { accommodations } from '../data/accommodations';
 import { transportOptions } from '../data/transport';
 import { useNavigate } from 'react-router-dom';
-import { QRCodeSVG } from 'qrcode.react';
-import { subscribeToPass } from '../lib/passService';
-import { checkAvailability } from '../lib/capacityService';
-import type { TouristPass } from '../types';
-import DateGuestPicker from '../components/shared/DateGuestPicker';
 import IslandMap from '../components/IslandMap';
 import { SearchWidget } from '../components/SearchWidget';
 
@@ -114,12 +118,14 @@ export default function MobileAppView() {
   const [selectedSpot, setSelectedSpot] = useState<any>(null);
   const [bookings, setBookings] = useState<any[]>([]);
   const [bookingStatus, setBookingStatus] = useState<{[key: string]: 'idle' | 'loading' | 'success'}>({});
-  const [pass, setPass] = useState<TouristPass | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedGuests, setSelectedGuests] = useState(1);
+  
+  // Booking flow state
   const [showBooking, setShowBooking] = useState(false);
-  const [addBreakfast, setAddBreakfast] = useState(false);
-  const [addLateCheckin, setAddLateCheckin] = useState(false);
+  const [checkIn, setCheckIn] = useState<Date>(new Date(2026, 5, 15));
+  const [checkOut, setCheckOut] = useState<Date>(new Date(2026, 5, 18));
+  const [guests, setGuests] = useState(2);
+  const [addons, setAddons] = useState({ breakfast: false, lateCheckin: false });
+  const [selectedImage, setSelectedImage] = useState(0);
 
   const isDesktop = window.innerWidth >= 768;
 
@@ -161,46 +167,16 @@ export default function MobileAppView() {
     return () => unsubscribe();
   }, [user]);
 
-  // Real-time pass subscription
-  useEffect(() => {
-    if (!user) {
-      setPass(null);
-      return;
-    }
-
-    const unsubscribe = subscribeToPass(user.uid, (passData) => {
-      setPass(passData);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
   const handleBook = async (item: any, type: 'stay' | 'transport' | 'spot') => {
     if (!user) {
       login();
       return;
     }
 
-    if (!selectedDate) {
-      toast.error('Please select a date');
-      return;
-    }
-
     const itemId = item.id;
     setBookingStatus(prev => ({ ...prev, [itemId]: 'loading' }));
 
-    // Check capacity
-    const availability = await checkAvailability(item.id, selectedDate, selectedGuests);
-    if (!availability.available) {
-      toast.error(`Only ${availability.remaining} spots remaining on this date`);
-      setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
-      return;
-    }
-
     try {
-      const baseAmount = (item.price || 150) * selectedGuests;
-      const addonAmount = (addBreakfast ? 350 * selectedGuests : 0) + (addLateCheckin ? 200 : 0);
-
       await addDoc(collection(db, 'bookings'), {
         touristUid: user.uid,
         touristName: user.displayName || 'Anonymous',
@@ -209,17 +185,14 @@ export default function MobileAppView() {
         serviceName: item.name || item.title,
         serviceType: type,
         businessId: item.businessId || 'catarman_lgu',
-        date: selectedDate,
-        guests: selectedGuests,
-        addons: { breakfast: addBreakfast, lateCheckin: addLateCheckin },
+        date: new Date().toLocaleDateString(),
         status: 'pending',
         paymentStatus: 'UNPAID',
-        amount: baseAmount + addonAmount,
+        amount: item.price || 150,
         createdAt: serverTimestamp()
       });
       
       setBookingStatus(prev => ({ ...prev, [itemId]: 'success' }));
-      toast.success('Booking request submitted!');
       setTimeout(() => {
         setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
         setSelectedSpot(null);
@@ -467,13 +440,7 @@ export default function MobileAppView() {
                 <div className="absolute top-8 right-8 w-8 h-8 border-t-4 border-r-4 border-island-emerald rounded-tr-xl"></div>
                 <div className="absolute bottom-8 left-8 w-8 h-8 border-b-4 border-l-4 border-island-emerald rounded-bl-xl"></div>
                 <div className="absolute bottom-8 right-8 w-8 h-8 border-b-4 border-r-4 border-island-emerald rounded-br-xl"></div>
-                {user && pass ? (
-                  <QRCodeSVG value={`${window.location.origin}/verify-pass/${pass.passId}`} size={200} level="H" includeMargin />
-                ) : (
-                  <div className="w-[200px] h-[200px] flex items-center justify-center text-slate-300">
-                    <Info size={64} strokeWidth={1} />
-                  </div>
-                )}
+                <QrCode size={200} strokeWidth={1} className="text-island-volcanic" />
               </div>
 
               <div className="w-full bg-island-volcanic p-10 rounded-[3.5rem] text-white shadow-2xl relative border border-white/5 overflow-hidden">
@@ -483,7 +450,7 @@ export default function MobileAppView() {
                 <div className="flex justify-between items-start mb-10 relative z-10">
                   <div>
                     <span className="text-[10px] font-semibold text-white/40 tracking-tight mb-2 block">Passenger</span>
-                    <p className="text-2xl font-black tracking-tighter">{pass?.displayName || user?.displayName || 'Catarman Guest'}</p>
+                    <p className="text-2xl font-black tracking-tighter">{user?.displayName || 'Catarman Guest'}</p>
                   </div>
                   <div className="w-12 h-12 bg-white/10 backdrop-blur-2xl rounded-xl flex items-center justify-center border border-white/20">
                     <ShieldCheck size={24} strokeWidth={3} className="text-island-emerald" />
@@ -492,14 +459,10 @@ export default function MobileAppView() {
                 <div className="flex justify-between items-end relative z-10">
                   <div className="space-y-1">
                     <span className="block text-[10px] font-semibold text-white/40 tracking-tight">Pass ID</span>
-                    <span className="font-mono text-xs font-black tracking-widest text-island-emerald">{pass?.passId || '—'}</span>
+                    <span className="font-mono text-xs font-black tracking-widest text-island-emerald">CTRM-P-2026-9X</span>
                   </div>
-                  <div className={`px-5 py-2 rounded-full text-[10px] font-bold tracking-wider ${
-                    pass?.status === 'active' 
-                      ? 'bg-island-emerald text-island-volcanic' 
-                      : 'bg-white/10 text-white/60'
-                  }`}>
-                    {pass?.status === 'active' ? 'Active' : pass?.status || '—'}
+                  <div className="px-5 py-2 bg-island-emerald text-island-volcanic rounded-full text-[10px] font-bold tracking-wider">
+                    Active
                   </div>
                 </div>
               </div>
@@ -604,7 +567,7 @@ export default function MobileAppView() {
         </div>
       </div>
 
-      {/* Overlays (Spot Details) — Luxury Redesign */}
+      {/* Overlays (Spot Details & Booking) */}
       <AnimatePresence>
         {selectedSpot && !showBooking && (
           <motion.div 
@@ -613,293 +576,291 @@ export default function MobileAppView() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute inset-0 bg-white z-[60] flex flex-col overflow-y-auto no-scrollbar"
+            className="absolute inset-0 bg-white z-[60] flex flex-col overflow-y-auto no-scrollbar pb-32"
           >
-            {/* Hero Image */}
+            {/* Hero Image with Glass Header */}
             <div className="relative h-[50vh] shrink-0">
-              <div className="relative h-full w-full overflow-hidden">
-                <img src={selectedSpot.image} alt={selectedSpot.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              <div className="absolute inset-0">
+                <img src={spotImageGallery(selectedSpot)[selectedImage]} alt={selectedSpot.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
-                
-                {/* Top Bar */}
-                <div className="absolute top-12 left-6 right-6 flex justify-between items-center z-10">
+              </div>
+
+              {/* Top Bar */}
+              <div className="absolute top-0 left-0 right-0 p-6 z-10">
+                <div className="flex justify-between items-center">
                   <motion.button 
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => setSelectedSpot(null)}
-                    className="w-11 h-11 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20 shadow-lg"
+                    onClick={() => { setSelectedSpot(null); setShowBooking(false); }}
+                    className="w-11 h-11 bg-white/20 backdrop-blur-2xl rounded-full flex items-center justify-center text-white border border-white/20 shadow-lg"
                   >
                     <ArrowLeft size={22} />
                   </motion.button>
                   <motion.button 
                     whileTap={{ scale: 0.9 }}
-                    className="w-11 h-11 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20 shadow-lg"
+                    className="w-11 h-11 bg-white/20 backdrop-blur-2xl rounded-full flex items-center justify-center text-white border border-white/20 shadow-lg hover:bg-island-coral/60 transition-colors"
                   >
                     <Heart size={20} />
                   </motion.button>
                 </div>
-
-                {/* Price Overlay */}
-                <div className="absolute bottom-6 left-6 z-10">
-                  <div className="bg-white/20 backdrop-blur-xl rounded-2xl px-5 py-3 border border-white/20 shadow-xl">
-                    <span className="text-3xl font-black text-white tracking-tighter">₱{selectedSpot.price?.toLocaleString() || '150'}</span>
-                    <span className="text-white/70 text-sm font-medium ml-1">/ night</span>
-                  </div>
-                </div>
               </div>
-            </div>
 
-            {/* Content */}
-            <div className="flex-1 px-6 pt-6 pb-40 space-y-6 bg-white">
-              {/* Title & Rating */}
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MapPin size={14} className="text-island-emerald" />
-                    <span className="text-sm font-semibold text-slate-500">Catarman, Camiguin Island</span>
-                  </div>
-                  <h2 className="text-3xl font-black text-island-volcanic tracking-tighter leading-tight">{selectedSpot.name}</h2>
-                </div>
-                <div className="flex items-center gap-1.5 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100 shrink-0 ml-4">
-                  <Star size={16} fill="#10b981" className="text-island-emerald" />
-                  <span className="text-sm font-black text-island-emerald">{selectedSpot.rating || '4.9'}</span>
+              {/* Price Badge */}
+              <div className="absolute top-24 right-6 z-10">
+                <div className="bg-white/90 backdrop-blur-2xl px-5 py-3 rounded-2xl shadow-2xl border border-white/50">
+                  <span className="text-2xl font-black text-island-green">₱{selectedSpot.price?.toLocaleString()}</span>
+                  <span className="text-[10px] text-slate-500 font-semibold ml-1">/night</span>
                 </div>
               </div>
 
-              {/* Amenities */}
-              <div className="flex gap-4">
-                {[
-                  { icon: 'wifi', label: 'Free Wi-Fi' },
-                  { icon: 'snowflake', label: 'Air Conditioning' },
-                ].map((amenity, i) => (
-                  <div key={i} className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                    <svg className="w-4 h-4 text-island-emerald" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      {amenity.icon === 'wifi' ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.858 15.355-5.858 21.213 0" />
-                      ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      )}
-                    </svg>
-                    <span className="text-xs font-bold text-slate-600">{amenity.label}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Description */}
-              <div className="pt-2">
-                <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                  {selectedSpot.description || 'Experience the profound heritage of Catarman. This landmark represents the emerald soul of our municipality, offering a unique blend of nature and history.'}
-                </p>
+              {/* Rating Badge */}
+              <div className="absolute bottom-24 left-6 z-10">
+                <div className="flex items-center gap-2 bg-white/90 backdrop-blur-2xl px-4 py-2 rounded-2xl shadow-2xl border border-white/50">
+                  <Star size={16} fill="#f59e0b" className="text-island-sunset" />
+                  <span className="text-sm font-black text-island-green">{selectedSpot.rating || '4.9'}</span>
+                </div>
               </div>
 
               {/* Image Thumbnails */}
-              <div>
-                <h4 className="text-sm font-black text-island-volcanic tracking-tight mb-3">Photos</h4>
-                <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-6 px-6">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 border border-slate-100 shadow-sm">
-                      <img 
-                        src={`https://images.unsplash.com/photo-${i === 1 ? '1544551763-46a013bb70d5' : i === 2 ? '1590073242678-70ee3fc28f8e' : i === 3 ? '1564013799919-ab600027ffc6' : '1571896349842-33c89424de2d'}?w=200&q=80`} 
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
+              <div className="absolute bottom-6 left-0 right-0 px-6 z-10">
+                <div className="flex gap-3 overflow-x-auto no-scrollbar">
+                  {spotImageGallery(selectedSpot).map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedImage(idx)}
+                      className={`shrink-0 w-16 h-16 rounded-2xl overflow-hidden border-2 transition-all ${
+                        idx === selectedImage ? 'border-white ring-2 ring-island-green/40 shadow-2xl scale-110' : 'border-white/50 opacity-60'
+                      }`}
+                    >
+                      <img src={img} alt="" className="w-full h-full object-cover" />
+                    </button>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Sticky Book Button */}
-            <div className="fixed bottom-0 left-0 right-0 z-20 p-6 bg-white/80 backdrop-blur-2xl border-t border-slate-100">
-              <div className="flex items-center justify-between mb-4 px-1">
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total</span>
-                  <p className="text-2xl font-black text-island-volcanic tracking-tighter">
-                    ₱{selectedSpot.price?.toLocaleString() || '150'}
-                    <span className="text-sm font-bold text-slate-400 ml-1">/ night</span>
-                  </p>
+            {/* Content */}
+            <div className="px-6 flex-1 flex flex-col py-6 -mt-2">
+              {/* Title & Location */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 text-island-emerald font-semibold text-[10px] uppercase tracking-widest mb-2">
+                  <MapPin size={12} />
+                  {selectedSpot.category || 'Catarman, Camiguin'}
                 </div>
-                <div className="flex items-center gap-1">
-                  <Star size={14} fill="#10b981" className="text-island-emerald" />
-                  <span className="text-sm font-bold text-slate-600">{selectedSpot.rating || '4.9'}</span>
-                  <span className="text-xs text-slate-400 ml-1">(128 reviews)</span>
+                <h3 className="text-3xl font-black text-island-green tracking-tighter leading-tight">{selectedSpot.name}</h3>
+                <p className="text-slate-400 text-sm font-medium mt-1">Siargao Island, Philippines</p>
+              </div>
+
+              {/* Amenities */}
+              <div className="flex gap-4 mb-8 pb-6 border-b border-slate-100">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 rounded-2xl text-slate-600">
+                  <Wifi size={16} strokeWidth={2.5} /> <span className="text-[10px] font-semibold">Wi-Fi</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 rounded-2xl text-slate-600">
+                  <Wind size={16} strokeWidth={2.5} /> <span className="text-[10px] font-semibold">AC</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 rounded-2xl text-slate-600">
+                  <Coffee size={16} strokeWidth={2.5} /> <span className="text-[10px] font-semibold">Breakfast</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 rounded-2xl text-slate-600">
+                  <Sun size={16} strokeWidth={2.5} /> <span className="text-[10px] font-semibold">Pool</span>
                 </div>
               </div>
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  setSelectedDate('');
-                  setSelectedGuests(1);
-                  setAddBreakfast(false);
-                  setAddLateCheckin(false);
-                  setShowBooking(true);
-                }}
-                className="w-full py-5 bg-island-green text-white rounded-2xl font-black text-sm tracking-wider shadow-2xl shadow-island-green/30 hover:bg-island-green/90 transition-all"
-              >
-                Book Now
-              </motion.button>
+
+              {/* Description */}
+              <div className="mb-8">
+                <h4 className="text-base font-bold text-island-green tracking-tight mb-3">About this place</h4>
+                <p className="text-slate-500 text-sm font-medium leading-relaxed">
+                  {selectedSpot.description || 'Experience the profound heritage of Catarman. This landmark represents the emerald soul of our municipality, offering a unique blend of nature and history.'}
+                </p>
+              </div>
+
+              {/* Reviews Preview */}
+              <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-100">
+                <div className="flex -space-x-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden shadow-md">
+                      <img src={`https://i.pravatar.cc/100?u=${i + 20}`} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                  <div className="w-8 h-8 rounded-full bg-island-green border-2 border-white flex items-center justify-center text-[9px] font-bold text-white shadow-md">2K+</div>
+                </div>
+                <div>
+                  <span className="text-sm font-bold text-island-green">Excellent</span>
+                  <span className="text-xs text-slate-400 ml-2">· 245 reviews</span>
+                </div>
+              </div>
+
+              {/* Book Now CTA */}
+              <div className="mt-auto pt-4">
+                <motion.button 
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setShowBooking(true)}
+                  className="w-full bg-island-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-island-green/20 hover:shadow-island-green/40 transition-all flex items-center justify-center gap-3"
+                >
+                  <CalendarDays size={20} />
+                  Book Now
+                </motion.button>
+                <p className="text-center text-[10px] text-slate-400 font-medium mt-3">You won't be charged yet</p>
+              </div>
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
 
-      {/* Booking Bottom Sheet */}
-      <AnimatePresence>
-        {showBooking && selectedSpot && (
+        {selectedSpot && showBooking && (
           <motion.div 
-            key="booking-sheet"
+            key="booking-flow"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute inset-0 bg-white z-[70] flex flex-col overflow-y-auto no-scrollbar"
+            className="absolute inset-0 bg-white z-[60] flex flex-col overflow-y-auto no-scrollbar pb-32"
           >
-            {/* Header */}
-            <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-xl px-6 pt-12 pb-4 border-b border-slate-50">
-              <div className="flex items-center justify-between mb-2">
-                <motion.button
+            {/* Booking Header */}
+            <div className="sticky top-0 bg-white/95 backdrop-blur-3xl z-10 px-6 pt-6 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-4">
+                <motion.button 
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setShowBooking(false)}
-                  className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500"
+                  className="w-11 h-11 bg-slate-50 rounded-full flex items-center justify-center text-slate-600 border border-slate-100"
                 >
                   <ArrowLeft size={20} />
                 </motion.button>
-                <h2 className="text-lg font-black text-island-volcanic tracking-tighter">Complete Booking</h2>
-                <div className="w-10" />
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-100">
-                  <img src={selectedSpot.image} alt="" className="w-full h-full object-cover" />
-                </div>
                 <div>
-                  <p className="text-sm font-black text-island-volcanic tracking-tight">{selectedSpot.name}</p>
-                  <p className="text-[10px] font-bold text-slate-400">Catarman, Camiguin</p>
+                  <h3 className="text-lg font-bold text-island-green tracking-tight leading-tight">{selectedSpot.name}</h3>
+                  <p className="text-[10px] text-slate-400 font-medium">₱{selectedSpot.price?.toLocaleString()} / night</p>
                 </div>
               </div>
             </div>
 
-            <div className="flex-1 px-6 pt-6 pb-48 space-y-8">
+            <div className="px-6 pt-6 space-y-8 flex-1">
               {/* Calendar */}
               <div>
-                <h4 className="text-sm font-black text-island-volcanic tracking-tight mb-4">Select Date</h4>
-                <div className="bg-slate-50 rounded-3xl p-4 border border-slate-100">
-                  <DateGuestPicker
-                    onDateChange={setSelectedDate}
-                    onGuestsChange={setSelectedGuests}
-                  />
+                <h4 className="text-sm font-bold text-island-green mb-4 flex items-center gap-2">
+                  <CalendarDays size={18} className="text-island-emerald" /> Select dates
+                </h4>
+                <MonthCalendar 
+                  checkIn={checkIn} checkOut={checkOut}
+                  onSelectCheckIn={setCheckIn} onSelectCheckOut={setCheckOut}
+                />
+              </div>
+
+              {/* Guest Selector */}
+              <div>
+                <h4 className="text-sm font-bold text-island-green mb-4">Guests</h4>
+                <div className="bg-white rounded-3xl p-5 border border-slate-100 neumorph-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-sm font-semibold text-slate-800">Adults</span>
+                      <p className="text-[10px] text-slate-400 font-medium">Ages 13+</p>
+                    </div>
+                    <div className="flex items-center gap-5">
+                      <button 
+                        onClick={() => setGuests(Math.max(1, guests - 1))}
+                        className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 border border-slate-100 hover:bg-island-green hover:text-white transition-all"
+                      >
+                        <Minus size={16} strokeWidth={3} />
+                      </button>
+                      <span className="w-8 text-center text-lg font-bold text-island-green">{guests}</span>
+                      <button 
+                        onClick={() => setGuests(Math.min(10, guests + 1))}
+                        className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 border border-slate-100 hover:bg-island-green hover:text-white transition-all"
+                      >
+                        <Plus size={16} strokeWidth={3} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* Add-ons */}
               <div>
-                <h4 className="text-sm font-black text-island-volcanic tracking-tight mb-4">Add-ons</h4>
+                <h4 className="text-sm font-bold text-island-green mb-4">Add-ons</h4>
                 <div className="space-y-3">
-                  <button
-                    onClick={() => setAddBreakfast(!addBreakfast)}
-                    className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 transition-all ${
-                      addBreakfast ? 'bg-island-green/5 border-island-green/30' : 'bg-white border-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
-                        addBreakfast ? 'bg-island-green border-island-green' : 'border-slate-300'
+                  {[
+                    { id: 'breakfast', label: 'Breakfast Bundle', price: 250, icon: Coffee },
+                    { id: 'lateCheckin', label: 'Late Check-in', price: 150, icon: Moon },
+                  ].map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => setAddons(prev => ({ ...prev, [item.id]: !(prev as any)[item.id] }))}
+                      className={`w-full flex items-center justify-between p-5 rounded-3xl border-2 transition-all ${
+                        (addons as any)[item.id] 
+                          ? 'border-island-green bg-island-green/5 shadow-lg' 
+                          : 'border-slate-100 bg-white hover:border-slate-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all ${
+                          (addons as any)[item.id] ? 'bg-island-green text-white' : 'bg-slate-50 text-slate-400'
+                        }`}>
+                          <item.icon size={20} strokeWidth={2.5} />
+                        </div>
+                        <div className="text-left">
+                          <span className="block text-sm font-bold text-slate-800">{item.label}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">+ ₱{item.price}</span>
+                        </div>
+                      </div>
+                      <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
+                        (addons as any)[item.id] ? 'bg-island-green border-island-green text-white' : 'border-slate-300'
                       }`}>
-                        {addBreakfast && (
-                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
+                        {(addons as any)[item.id] && <CheckCircle2 size={14} strokeWidth={4} />}
                       </div>
-                      <div className="text-left">
-                        <p className="text-sm font-bold text-island-volcanic">Breakfast</p>
-                        <p className="text-[10px] font-semibold text-slate-400">Daily breakfast buffet</p>
-                      </div>
-                    </div>
-                    <span className="text-sm font-black text-island-emerald">+₱350</span>
-                  </button>
-
-                  <button
-                    onClick={() => setAddLateCheckin(!addLateCheckin)}
-                    className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 transition-all ${
-                      addLateCheckin ? 'bg-island-green/5 border-island-green/30' : 'bg-white border-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
-                        addLateCheckin ? 'bg-island-green border-island-green' : 'border-slate-300'
-                      }`}>
-                        {addLateCheckin && (
-                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
-                      </div>
-                      <div className="text-left">
-                        <p className="text-sm font-bold text-island-volcanic">Late Check-in</p>
-                        <p className="text-[10px] font-semibold text-slate-400">After 8:00 PM</p>
-                      </div>
-                    </div>
-                    <span className="text-sm font-black text-island-emerald">+₱200</span>
-                  </button>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Price Breakdown */}
-              <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 space-y-4">
-                <h4 className="text-sm font-black text-island-volcanic tracking-tight">Price Breakdown</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500 font-medium">₱{selectedSpot.price?.toLocaleString() || '150'} x {selectedGuests} guest(s)</span>
-                    <span className="font-bold text-island-volcanic">₱{((selectedSpot.price || 150) * selectedGuests).toLocaleString()}</span>
-                  </div>
-                  {addBreakfast && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500 font-medium">Breakfast x {selectedGuests}</span>
-                      <span className="font-bold text-island-volcanic">₱{(350 * selectedGuests).toLocaleString()}</span>
-                    </div>
-                  )}
-                  {addLateCheckin && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500 font-medium">Late Check-in</span>
-                      <span className="font-bold text-island-volcanic">₱200</span>
-                    </div>
-                  )}
-                  <div className="border-t border-slate-200 pt-3 flex justify-between">
-                    <span className="text-sm font-black text-island-volcanic">Total</span>
-                    <span className="text-xl font-black text-island-emerald tracking-tighter">
-                      ₱{(
-                        (selectedSpot.price || 150) * selectedGuests +
-                        (addBreakfast ? 350 * selectedGuests : 0) +
-                        (addLateCheckin ? 200 : 0)
-                      ).toLocaleString()}
-                    </span>
-                  </div>
+              {/* Price Summary */}
+              <div className="bg-slate-50 rounded-3xl p-6 space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-slate-600">₱{selectedSpot.price?.toLocaleString()} x {Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))} nights</span>
+                  <span className="text-sm font-semibold text-slate-800">₱{(selectedSpot.price || 0) * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))}</span>
                 </div>
-              </div>
-            </div>
-
-            {/* Sticky Book Now Button */}
-            <div className="fixed bottom-0 left-0 right-0 z-20 p-6 bg-white/80 backdrop-blur-2xl border-t border-slate-100">
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  handleBook(selectedSpot, selectedSpot.type || 'spot');
-                  setShowBooking(false);
-                }}
-                disabled={bookingStatus[selectedSpot.id] === 'loading' || bookingStatus[selectedSpot.id] === 'success' || !selectedDate}
-                className="w-full py-5 bg-island-green text-white rounded-2xl font-black text-sm tracking-wider shadow-2xl shadow-island-green/30 hover:bg-island-green/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {bookingStatus[selectedSpot.id] === 'loading' ? (
-                  <RefreshCw className="animate-spin mx-auto" size={22} />
-                ) : bookingStatus[selectedSpot.id] === 'success' ? (
-                  'Booking Confirmed ✓'
-                ) : (
-                  `Book now — ₱${(
-                    (selectedSpot.price || 150) * selectedGuests +
-                    (addBreakfast ? 350 * selectedGuests : 0) +
-                    (addLateCheckin ? 200 : 0)
-                  ).toLocaleString()}`
+                {addons.breakfast && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600">Breakfast Bundle</span>
+                    <span className="text-slate-800">+ ₱250</span>
+                  </div>
                 )}
-              </motion.button>
+                {addons.lateCheckin && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-600">Late Check-in</span>
+                    <span className="text-slate-800">+ ₱150</span>
+                  </div>
+                )}
+                <div className="border-t border-slate-200 pt-4 flex justify-between items-center">
+                  <span className="text-base font-bold text-island-green">Total</span>
+                  <span className="text-xl font-black text-island-green">
+                    ₱{(
+                      (selectedSpot.price || 0) * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24))) +
+                      (addons.breakfast ? 250 : 0) +
+                      (addons.lateCheckin ? 150 : 0)
+                    ).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Confirm Button */}
+              <div className="pt-4 pb-8">
+                <motion.button 
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => handleBook(selectedSpot, selectedSpot.type || 'spot')}
+                  disabled={bookingStatus[selectedSpot.id] === 'loading' || bookingStatus[selectedSpot.id] === 'success'}
+                  className="w-full bg-island-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-island-green/20 hover:shadow-island-green/40 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                >
+                  {bookingStatus[selectedSpot.id] === 'success' ? (
+                    <><CheckCircle2 size={22} /> Booking Confirmed</>
+                  ) : bookingStatus[selectedSpot.id] === 'loading' ? (
+                    <RefreshCw size={22} className="animate-spin" />
+                  ) : (
+                    <>Book now — ₱{(
+                      (selectedSpot.price || 0) * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24))) +
+                      (addons.breakfast ? 250 : 0) +
+                      (addons.lateCheckin ? 150 : 0)
+                    ).toLocaleString()}</>
+                  )}
+                </motion.button>
+              </div>
             </div>
           </motion.div>
         )}
@@ -977,6 +938,110 @@ export default function MobileAppView() {
     </div>
   );
 }
+
+function MonthCalendar({ checkIn, checkOut, onSelectCheckIn, onSelectCheckOut }: { 
+  checkIn: Date; checkOut: Date; 
+  onSelectCheckIn: (d: Date) => void; onSelectCheckOut: (d: Date) => void 
+}) {
+  const [viewDate, setViewDate] = useState(new Date(2026, 5, 1));
+  const [selecting, setSelecting] = useState<'checkin' | 'checkout'>('checkin');
+
+  const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const emptyDays = Array.from({ length: firstDayOfMonth }, (_, i) => i);
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const isInRange = (d: Date) => d > checkIn && d < checkOut;
+  const isSameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
+
+  const handleDayClick = (day: number) => {
+    const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
+    if (selecting === 'checkin') {
+      onSelectCheckIn(date);
+      setSelecting('checkout');
+    } else {
+      if (date <= checkIn) {
+        onSelectCheckIn(date);
+        setSelecting('checkout');
+      } else {
+        onSelectCheckOut(date);
+        setSelecting('checkin');
+      }
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+      <div className="flex items-center justify-between mb-6">
+        <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1))} className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-island-green hover:text-white transition-all">
+          <ChevronLeft size={18} strokeWidth={3} />
+        </button>
+        <div className="text-center">
+          <span className="text-base font-bold text-island-green tracking-tight">{viewDate.toLocaleString('default', { month: 'long' })}</span>
+          <span className="text-base font-bold text-slate-400 ml-2">{viewDate.getFullYear()}</span>
+        </div>
+        <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))} className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-island-green hover:text-white transition-all">
+          <ChevronRightIcon size={18} strokeWidth={3} />
+        </button>
+      </div>
+
+      <div className="flex items-center justify-center gap-4 mb-6">
+        <button onClick={() => setSelecting('checkin')} className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${selecting === 'checkin' ? 'bg-island-green text-white shadow-lg' : 'bg-slate-50 text-slate-500'}`}>
+          Check-in
+        </button>
+        <button onClick={() => setSelecting('checkout')} className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${selecting === 'checkout' ? 'bg-island-green text-white shadow-lg' : 'bg-slate-50 text-slate-500'}`}>
+          Check-out
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {dayNames.map(d => (
+          <div key={d} className="text-center text-[10px] font-semibold text-slate-400 py-1">{d}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {emptyDays.map(i => <div key={`e-${i}`} />)}
+        {days.map(d => {
+          const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), d);
+          const isCI = isSameDay(date, checkIn);
+          const isCO = isSameDay(date, checkOut);
+          const inRange = isInRange(date);
+          const isPast = date < new Date(2026, 5, 14);
+          return (
+            <button
+              key={d}
+              onClick={() => !isPast && handleDayClick(d)}
+              disabled={isPast}
+              className={`p-2 text-sm font-semibold rounded-full transition-all relative
+                ${isCI || isCO ? 'bg-island-green text-white shadow-lg scale-105 z-10' : ''}
+                ${inRange ? 'bg-island-green/10 text-island-green' : ''}
+                ${!isCI && !isCO && !inRange && !isPast ? 'text-slate-700 hover:bg-slate-50' : ''}
+                ${isPast ? 'text-slate-200 cursor-not-allowed' : ''}
+              `}
+            >
+              {d}
+            </button>
+          );
+        })}
+      </div>
+      <div className="flex justify-between mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400 font-medium">
+        <span>Check-in: <strong className="text-island-green">{checkIn.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</strong></span>
+        <span>Check-out: <strong className="text-island-green">{checkOut.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</strong></span>
+      </div>
+    </div>
+  );
+}
+
+const spotImageGallery = (spot: any) => {
+  const images = [
+    spot.image,
+    'https://images.unsplash.com/photo-1540541338287-41700207def5?auto=format&fit=crop&q=80&w=800',
+    'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&q=80&w=800',
+    'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=800',
+  ];
+  return images;
+};
 
 function ProfileItem({ icon: Icon, label, count, onClick }: any) {
   return (
