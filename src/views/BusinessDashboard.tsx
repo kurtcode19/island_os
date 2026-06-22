@@ -19,7 +19,14 @@ import {
   Users,
   Hotel,
   Car,
-  Ship
+  Ship,
+  RefreshCw,
+  DollarSign,
+  ShoppingBag,
+  AlertTriangle,
+  CheckCircle2,
+  Plus,
+  Clock
 } from 'lucide-react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -27,6 +34,8 @@ import { StatCard } from '../components/shared/StatCard';
 import { SidebarItem } from '../components/shared/SidebarItem';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { motion } from 'motion/react';
+import { toast } from 'sonner';
 
 // Business Modules
 import AnalyticsModule from '../components/business/AnalyticsModule';
@@ -90,8 +99,42 @@ export default function BusinessDashboard() {
   const typeLabel = config?.label || 'Business';
   const TypeIcon = businessType ? typeIcons[businessType] || LayoutDashboard : LayoutDashboard;
 
+  const [showManualEarnings, setShowManualEarnings] = useState(false);
+  const [manualAmount, setManualAmount] = useState('');
+  const [manualProduct, setManualProduct] = useState('');
+
+  const handleManualEarningsSubmit = () => {
+    if (!manualAmount || !manualProduct) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+    toast.success(`₱${Number(manualAmount).toLocaleString()} recorded for ${manualProduct}`);
+    setManualAmount('');
+    setManualProduct('');
+    setShowManualEarnings(false);
+  };
+
   const AnalyticsHome = () => (
     <div className="space-y-12">
+      {/* Inventory Update Notification */}
+      {businessType === 'shop' && (
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-[2.5rem] p-8 flex items-start gap-6">
+          <div className="w-14 h-14 rounded-2xl bg-amber-200 flex items-center justify-center text-amber-700 shrink-0">
+            <AlertTriangle size={28} strokeWidth={2.5} />
+          </div>
+          <div className="flex-1">
+            <h4 className="text-lg font-black text-amber-900 tracking-tighter mb-2">Update Your Product Availability</h4>
+            <p className="text-amber-800 font-medium text-sm leading-relaxed mb-4">
+              For accurate inventory tracking, please update your product availability every 3 days. 
+              Walk-in purchases may affect stock levels not recorded in the system.
+            </p>
+            <Link to="/business/inventory" className="inline-flex items-center gap-2 px-6 py-3 bg-amber-800 text-white rounded-2xl text-xs font-bold hover:bg-amber-900 transition-all">
+              <RefreshCw size={16} /> Update Now
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <StatCard label="Weekly Revenue" value="₱84,200" change="+12.5%" isPositive={true} icon={CreditCard} color="emerald" />
         <StatCard label="Active Bookings" value="18" change="+4.3%" isPositive={true} icon={Calendar} color="ocean" />
@@ -126,7 +169,58 @@ export default function BusinessDashboard() {
             <Star size={240} strokeWidth={1} />
           </div>
         </div>
+        {/* Manual Earnings / Product Sold Card */}
+        <div className="bg-white p-12 rounded-[3.5rem] border-2 border-slate-100 shadow-xl relative overflow-hidden group">
+          <div className="relative z-10">
+            <h3 className="text-3xl font-black text-island-volcanic tracking-tighter mb-4">Manual Update</h3>
+            <p className="text-slate-500 font-medium mb-10">Record offline sales that were not captured by the system.</p>
+            <button onClick={() => setShowManualEarnings(true)} className="btn-primary inline-flex items-center gap-3 px-8 py-4 rounded-2xl">
+              <DollarSign size={20} strokeWidth={3} />
+              Add Manual Entry
+            </button>
+          </div>
+          <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity rotate-12 group-hover:rotate-0 duration-700">
+            <ShoppingBag size={240} strokeWidth={1} />
+          </div>
+        </div>
       </div>
+
+      {/* Manual Earnings Modal */}
+      {showManualEarnings && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-island-volcanic/60 backdrop-blur-sm" onClick={() => setShowManualEarnings(false)} />
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative w-full max-w-md bg-white rounded-[2.5rem] p-8 shadow-2xl"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-island-green">Record Offline Sale</h3>
+              <button onClick={() => setShowManualEarnings(false)} className="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:text-island-coral transition-all">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-4 mb-8">
+              <div>
+                <label className="text-xs font-bold text-slate-500 mb-1.5 block">Product/Service Name</label>
+                <input type="text" value={manualProduct} onChange={e => setManualProduct(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 text-sm font-semibold text-slate-800"
+                  placeholder="e.g., Fresh Lanzones" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-500 mb-1.5 block">Amount Earned (₱)</label>
+                <input type="number" value={manualAmount} onChange={e => setManualAmount(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 text-sm font-semibold text-slate-800"
+                  placeholder="0" />
+              </div>
+            </div>
+            <button onClick={handleManualEarningsSubmit}
+              className="w-full bg-island-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-island-green/20 hover:shadow-island-green/40 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+              <CheckCircle2 size={20} /> Record Sale
+            </button>
+          </motion.div>
+        </div>
+      )}
 
       <div className="bg-white p-12 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl">
         <div className="flex justify-between items-center mb-10">

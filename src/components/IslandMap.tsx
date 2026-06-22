@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { toast } from 'sonner';
-import { MapPin, Navigation, BookOpen, Crosshair, ExternalLink, Sparkles, X } from 'lucide-react';
+import { MapPin, Navigation, BookOpen, Crosshair, ExternalLink, Sparkles, X, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Fix for default marker icons in Leaflet with CDN links
@@ -26,6 +26,7 @@ const locations = [
     image: '/images/hero-sunken.png',
     bookingUrl: '#book-sunken-cemetery',
     googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=Sunken+Cemetery+Catarman',
+    openSchedule: 'Open daily, 6:00 AM - 6:00 PM',
   },
   {
     id: 'church-ruins',
@@ -35,6 +36,7 @@ const locations = [
     image: '/images/old-spanish-church-ruins-big-tree.jpg',
     bookingUrl: '#book-church-ruins',
     googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=Old+Church+Ruins+Catarman',
+    openSchedule: 'Open daily, 8:00 AM - 5:00 PM',
   },
   {
     id: 'tuasan-falls',
@@ -44,6 +46,7 @@ const locations = [
     image: '/images/tuasan.jpg',
     bookingUrl: '#book-tuasan',
     googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=Tuasan+Falls+Catarman',
+    openSchedule: 'Open daily, 7:00 AM - 5:00 PM',
   },
   {
     id: 'soda-park',
@@ -53,6 +56,7 @@ const locations = [
     image: '/images/borasoda.png',
     bookingUrl: '#book-soda-park',
     googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=Bura+Soda+Water+Park+Catarman',
+    openSchedule: 'Open daily, 8:00 AM - 7:00 PM',
   },
   {
     id: 'sto-nino',
@@ -62,6 +66,7 @@ const locations = [
     image: '/images/sto.nino.jpg',
     bookingUrl: '#book-sto-nino',
     googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=Sto.+Nino+Cold+Spring+Catarman',
+    openSchedule: 'Open daily, 7:00 AM - 6:00 PM',
   },
 ];
 
@@ -192,9 +197,13 @@ const IslandMap: React.FC = () => {
                     <div>
                       <span className="text-[10px] font-black uppercase tracking-[0.4em] text-island-emerald mb-3 block">Heritage Node</span>
                       <h2 className="text-4xl font-black text-island-volcanic tracking-tighter mb-4 leading-none">{selectedLocation.name}</h2>
-                      <p className="text-island-green/60 text-base font-medium leading-relaxed mb-8">
+                      <p className="text-island-green/60 text-base font-medium leading-relaxed mb-4">
                         {selectedLocation.description}
                       </p>
+                      <div className="flex items-center gap-2 mb-6 text-sm font-semibold text-island-sunset bg-amber-50 p-3 rounded-2xl border border-amber-100">
+                        <Clock size={16} strokeWidth={3} />
+                        <span>{selectedLocation.openSchedule}</span>
+                      </div>
                     </div>
                     <div className="flex gap-4">
                       <a

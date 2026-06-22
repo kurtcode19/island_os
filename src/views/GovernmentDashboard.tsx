@@ -150,7 +150,7 @@ export default function GovernmentDashboard() {
                 <Tooltip 
                   contentStyle={{ borderRadius: '2rem', border: 'none', boxShadow: '0 25px 50px -12px rgba(6,78,59,0.2)', padding: '20px' }}
                 />
-                <Line type="monotone" dataKey="visitors" stroke="#10B981" strokeWidth={5} dot={{ r: 6, fill: '#10B981', strokeWidth: 4, stroke: '#fff' }} activeDot={{ r: 10, shadow: '0 0 20px rgba(16,185,129,0.5)' }} />
+                <Line type="monotone" dataKey="visitors" stroke="#10B981" strokeWidth={5} dot={{ r: 6, fill: '#10B981', strokeWidth: 4, stroke: '#fff' }} activeDot={{ r: 10 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

@@ -1,6 +1,22 @@
-import { Ship, Car, Bike } from 'lucide-react';
+import { Ship, Car, Bike, Plane } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-export const transportOptions = [
+export interface TransportOption {
+  id: string;
+  title: string;
+  provider: string;
+  route: string;
+  duration: string;
+  price: number;
+  businessId: string;
+  icon: LucideIcon;
+  color: string;
+  tab: 'to' | 'from' | 'within';
+  hasRoundtrip?: boolean;
+  maxPassengers?: number;
+}
+
+export const transportOptions: TransportOption[] = [
   {
     id: 'trans_1',
     title: 'Fast Craft Ferry',
@@ -11,6 +27,51 @@ export const transportOptions = [
     businessId: 'ferry_co',
     icon: Ship,
     color: 'bg-island-ocean',
+    tab: 'to',
+    hasRoundtrip: true,
+    maxPassengers: 200,
+  },
+  {
+    id: 'trans_6',
+    title: 'RORO Ferry',
+    provider: '2GO / Cokaliong',
+    route: 'Balingoan ↔ Benoni',
+    duration: '1.5 hours',
+    price: 300,
+    businessId: 'ferry_co',
+    icon: Ship,
+    color: 'bg-blue-500',
+    tab: 'to',
+    hasRoundtrip: true,
+    maxPassengers: 500,
+  },
+  {
+    id: 'trans_4',
+    title: 'Fast Craft Ferry',
+    provider: 'SuperCat / OceanJet',
+    route: 'Benoni → Balingoan',
+    duration: '45 mins',
+    price: 450,
+    businessId: 'ferry_co',
+    icon: Ship,
+    color: 'bg-island-ocean',
+    tab: 'from',
+    hasRoundtrip: true,
+    maxPassengers: 200,
+  },
+  {
+    id: 'trans_7',
+    title: 'RORO Ferry',
+    provider: '2GO / Cokaliong',
+    route: 'Benoni → Balingoan',
+    duration: '1.5 hours',
+    price: 300,
+    businessId: 'ferry_co',
+    icon: Ship,
+    color: 'bg-blue-500',
+    tab: 'from',
+    hasRoundtrip: true,
+    maxPassengers: 500,
   },
   {
     id: 'trans_2',
@@ -22,6 +83,8 @@ export const transportOptions = [
     businessId: 'van_rentals_inc',
     icon: Car,
     color: 'bg-island-emerald',
+    tab: 'within',
+    maxPassengers: 10,
   },
   {
     id: 'trans_3',
@@ -33,6 +96,21 @@ export const transportOptions = [
     businessId: 'local_bikes',
     icon: Bike,
     color: 'bg-island-coral',
+    tab: 'within',
+    maxPassengers: 2,
+  },
+  {
+    id: 'trans_5',
+    title: 'Tricycle Hire',
+    provider: 'Catarman Tricycle Assoc.',
+    route: 'Within Catarman',
+    duration: 'Per Trip',
+    price: 150,
+    businessId: 'local_trike',
+    icon: Bike,
+    color: 'bg-island-sunset',
+    tab: 'within',
+    maxPassengers: 3,
   },
 ];
 

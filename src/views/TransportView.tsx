@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Ship, Car, Bike, MapPin, Clock, Calendar, ArrowRight, Info, ShieldCheck, Waves, Navigation, X, CheckCircle2, RefreshCw, Sparkles, AlertTriangle } from 'lucide-react';
+import { Ship, Car, Bike, MapPin, Clock, Calendar, ArrowRight, Info, ShieldCheck, Waves, Navigation, X, CheckCircle2, RefreshCw, Sparkles, AlertTriangle, Plane, Plus, Minus, Users, Truck, ArrowLeftRight, Baby } from 'lucide-react';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { transportOptions, schedules } from '../data/transport';
+import { transportOptions, schedules, type TransportOption } from '../data/transport';
 import DateGuestPicker from '../components/shared/DateGuestPicker';
 import { checkAvailability } from '../lib/capacityService';
 import { logEvent } from '../lib/auditService';
@@ -19,6 +19,11 @@ export default function TransportView() {
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedGuests, setSelectedGuests] = useState(1);
+  const [transportTab, setTransportTab] = useState<'to' | 'from' | 'within'>('to');
+  const [adultCount, setAdultCount] = useState(1);
+  const [childrenCount, setChildrenCount] = useState(0);
+  const [bringVehicle, setBringVehicle] = useState(false);
+  const [roundtrip, setRoundtrip] = useState(false);
 
   const handleBookTransport = async (transport: any) => {
     if (!user) {
@@ -42,6 +47,9 @@ export default function TransportView() {
     }
 
     try {
+      const guestTotal = adultCount + childrenCount;
+      const finalAmount = transport.price * (roundtrip ? 2 : 1) * guestTotal + (bringVehicle ? 500 : 0);
+
       const bookingData = {
         touristUid: user.uid,
         touristName: user.displayName || 'Anonymous',
@@ -51,8 +59,12 @@ export default function TransportView() {
         serviceType: 'transport',
         businessId: transport.businessId,
         date: selectedDate,
-        guests: selectedGuests,
-        amount: transport.price * selectedGuests,
+        guests: guestTotal,
+        adults: adultCount,
+        children: childrenCount,
+        roundtrip,
+        bringVehicle,
+        amount: finalAmount,
         status: 'pending',
         paymentStatus: 'UNPAID',
         createdAt: serverTimestamp(),
@@ -106,6 +118,28 @@ export default function TransportView() {
       </section>
 
       <div className="max-w-7xl mx-auto px-6 mt-20">
+        {/* Transport Tabs */}
+        <div className="flex gap-3 bg-stone-100 p-2 rounded-[2rem] border border-slate-200 shadow-inner w-fit mb-12">
+          {[
+            { id: 'to' as const, label: 'To Camiguin', icon: ArrowLeftRight },
+            { id: 'from' as const, label: 'From Camiguin', icon: ArrowLeftRight },
+            { id: 'within' as const, label: 'Within Camiguin', icon: MapPin },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setTransportTab(tab.id)}
+              className={`flex items-center gap-2 px-8 py-3 rounded-full text-xs font-bold tracking-wider transition-all ${
+                transportTab === tab.id
+                  ? 'sunset-gradient text-white shadow-xl shadow-island-sunset/20'
+                  : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              <tab.icon size={16} />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Booking Options */}
           <div className="lg:col-span-2 space-y-12">
@@ -114,7 +148,7 @@ export default function TransportView() {
               <h2 className="text-5xl md:text-6xl font-black text-island-volcanic tracking-tighter mb-12">Transit Options.</h2>
               
               <div className="grid grid-cols-1 gap-8">
-                {transportOptions.map((opt, idx) => (
+                {transportOptions.filter(o => o.tab === transportTab).map((opt, idx) => (
                   <motion.div
                     key={opt.id}
                     initial={{ opacity: 0, x: -20 }}
@@ -281,11 +315,78 @@ export default function TransportView() {
                   <ShieldCheck size={48} className="text-island-emerald opacity-20" />
                 </div>
 
-                <div className="mb-8">
+                {/* Travel Date & Guest Details */}
+                <div className="space-y-6 mb-8">
                   <DateGuestPicker
                     onDateChange={setSelectedDate}
                     onGuestsChange={setSelectedGuests}
                   />
+
+                  {/* Adult / Children Count */}
+                  <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 space-y-4">
+                    <h5 className="text-xs font-bold text-island-green flex items-center gap-2">
+                      <Users size={14} /> Passenger Details
+                    </h5>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-slate-700">Adults</span>
+                      <div className="flex items-center gap-4">
+                        <button onClick={() => setAdultCount(Math.max(1, adultCount - 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                          <Minus size={14} strokeWidth={3} />
+                        </button>
+                        <span className="w-6 text-center text-base font-bold text-island-green">{adultCount}</span>
+                        <button onClick={() => setAdultCount(Math.min(10, adultCount + 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                          <Plus size={14} strokeWidth={3} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-200/50">
+                      <div className="flex items-center gap-2">
+                        <Baby size={16} className="text-island-sunset" />
+                        <span className="text-sm font-semibold text-slate-700">Children</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <button onClick={() => setChildrenCount(Math.max(0, childrenCount - 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                          <Minus size={14} strokeWidth={3} />
+                        </button>
+                        <span className="w-6 text-center text-base font-bold text-island-green">{childrenCount}</span>
+                        <button onClick={() => setChildrenCount(Math.min(6, childrenCount + 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                          <Plus size={14} strokeWidth={3} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bring Vehicle & Roundtrip Options */}
+                  <div className="space-y-3">
+                    {transportTab !== 'within' && (
+                      <label className="flex items-center justify-between p-4 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer hover:border-island-green/30 transition-all">
+                        <div className="flex items-center gap-3">
+                          <Truck size={18} className="text-island-emerald" />
+                          <span className="text-sm font-semibold text-slate-700">Bring a vehicle?</span>
+                        </div>
+                        <div
+                          onClick={() => setBringVehicle(!bringVehicle)}
+                          className={`w-10 h-6 rounded-full transition-all relative ${bringVehicle ? 'bg-island-emerald' : 'bg-slate-200'}`}
+                        >
+                          <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all shadow-sm ${bringVehicle ? 'left-5' : 'left-1'}`} />
+                        </div>
+                      </label>
+                    )}
+                    {selectedTransport && selectedTransport.hasRoundtrip && (
+                      <label className="flex items-center justify-between p-4 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer hover:border-island-green/30 transition-all">
+                        <div className="flex items-center gap-3">
+                          <ArrowLeftRight size={18} className="text-island-emerald" />
+                          <span className="text-sm font-semibold text-slate-700">Roundtrip booking?</span>
+                        </div>
+                        <div
+                          onClick={() => setRoundtrip(!roundtrip)}
+                          className={`w-10 h-6 rounded-full transition-all relative ${roundtrip ? 'bg-island-emerald' : 'bg-slate-200'}`}
+                        >
+                          <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all shadow-sm ${roundtrip ? 'left-5' : 'left-1'}`} />
+                        </div>
+                      </label>
+                    )}
+                  </div>
                 </div>
 
                 {bookingStatus === 'success' ? (
@@ -310,7 +411,7 @@ export default function TransportView() {
                     ) : (
                       <Sparkles size={24} strokeWidth={2.5} />
                     )}
-                    Confirm Booking
+                    {roundtrip ? 'Book Roundtrip' : 'Confirm Booking'}
                   </button>
                 )}
               </div>

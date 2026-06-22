@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Hotel, Star, MapPin, Wifi, Coffee, Wind, Waves, ArrowRight, Search, Filter, CheckCircle2, Sparkles, RefreshCw, CalendarDays, Plus, Minus, Sun, Moon, X, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { Hotel, Star, MapPin, Wifi, Coffee, Wind, Waves, ArrowRight, Search, Filter, CheckCircle2, Sparkles, RefreshCw, CalendarDays, Plus, Minus, Sun, Moon, X, ChevronLeft, ChevronRight, Users, Gift, Baby, Utensils, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
-import { accommodations } from '../data/accommodations';
+import { accommodations, type PromoPackage } from '../data/accommodations';
 
 function BookingCalendar({ checkIn, checkOut, onSelectCheckIn, onSelectCheckOut }: { 
   checkIn: Date; checkOut: Date; 
@@ -82,8 +82,28 @@ export default function StayView() {
   const [selectedHotel, setSelectedHotel] = useState<typeof accommodations[0] | null>(null);
   const [checkIn, setCheckIn] = useState(new Date(2026, 5, 15));
   const [checkOut, setCheckOut] = useState(new Date(2026, 5, 18));
-  const [guests, setGuests] = useState(2);
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
+  const [tweens, setTweens] = useState(0);
   const [addons, setAddons] = useState({ breakfast: false, lateCheckin: false });
+  const [breakfastPeople, setBreakfastPeople] = useState(2);
+  const [selectedPromo, setSelectedPromo] = useState<PromoPackage | null>(null);
+  const [expandedPromo, setExpandedPromo] = useState<string | null>(null);
+
+  const calculateTotal = (hotel: typeof accommodations[0]) => {
+    const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
+    let total = 0;
+    if (selectedPromo) {
+      total = selectedPromo.price;
+    } else {
+      total = hotel.price * nights;
+      total += children * (hotel.childPrice || 0) * nights;
+      total += tweens * (hotel.tweenPrice || 0) * nights;
+      total += addons.breakfast ? 250 * breakfastPeople : 0;
+      total += addons.lateCheckin ? 150 : 0;
+    }
+    return total;
+  };
 
   const handleBook = async (hotel: typeof accommodations[0]) => {
     if (!user) {
@@ -95,7 +115,7 @@ export default function StayView() {
     setTestError(null);
 
     const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
-    const total = hotel.price * nights + (addons.breakfast ? 250 : 0) + (addons.lateCheckin ? 150 : 0);
+    const total = calculateTotal(hotel);
 
     try {
       await addDoc(collection(db, 'bookings'), {
@@ -106,6 +126,11 @@ export default function StayView() {
         serviceType: 'stay',
         businessId: hotel.businessId,
         date: `${checkIn.toLocaleDateString()} - ${checkOut.toLocaleDateString()}`,
+        adults,
+        children,
+        tweens,
+        breakfastPeople: addons.breakfast ? breakfastPeople : 0,
+        promoPackage: selectedPromo ? selectedPromo.name : null,
         status: 'pending',
         paymentStatus: 'UNPAID',
         amount: total,
@@ -115,6 +140,10 @@ export default function StayView() {
       setTimeout(() => {
         setBookingStatus(prev => ({ ...prev, [hotel.id]: 'idle' }));
         setSelectedHotel(null);
+        setSelectedPromo(null);
+        setChildren(0);
+        setTweens(0);
+        setBreakfastPeople(2);
       }, 3000);
     } catch (error: any) {
       console.error("Booking error:", error);
@@ -250,7 +279,7 @@ export default function StayView() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-8 mb-10 py-8 border-y-2 border-stone-50">
+                <div className="flex items-center gap-8 mb-6 py-8 border-y-2 border-stone-50">
                   <div className="flex items-center gap-3 text-slate-500 font-semibold text-xs tracking-tight">
                     <Wifi size={20} strokeWidth={3} className="text-island-emerald" /> Wifi
                   </div>
@@ -262,8 +291,72 @@ export default function StayView() {
                   </div>
                 </div>
 
+                {/* Promo Packages Toggle */}
+                {hotel.promoPackages && hotel.promoPackages.length > 0 && (
+                  <div className="mb-6">
+                    <button
+                      onClick={() => setExpandedPromo(expandedPromo === hotel.id ? null : hotel.id)}
+                      className="w-full flex items-center justify-between p-4 bg-island-emerald/5 rounded-2xl border border-island-emerald/10 hover:bg-island-emerald/10 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Gift size={18} className="text-island-emerald" />
+                        <span className="text-sm font-bold text-island-green">Promo Packages ({hotel.promoPackages.length})</span>
+                      </div>
+                      <ChevronDown size={20} className={`text-island-emerald transition-transform duration-300 ${expandedPromo === hotel.id ? 'rotate-180' : ''}`} />
+                    </button>
+                    <AnimatePresence>
+                      {expandedPromo === hotel.id && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pt-4 space-y-4">
+                            {hotel.promoPackages.map((pkg) => (
+                              <div key={pkg.id} className="bg-white border-2 border-island-emerald/20 rounded-2xl p-5 shadow-sm">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div>
+                                    <h4 className="text-lg font-black text-island-volcanic tracking-tighter">{pkg.name}</h4>
+                                    <p className="text-xs text-slate-500 font-medium mt-1">{pkg.description}</p>
+                                  </div>
+                                  <span className="text-2xl font-black text-island-volcanic">₱{pkg.price.toLocaleString()}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                  <span className="px-3 py-1 bg-stone-50 rounded-full text-[10px] font-bold text-slate-500 border border-slate-100">
+                                    <Users size={12} className="inline mr-1" />{pkg.persons} pax
+                                  </span>
+                                  <span className="px-3 py-1 bg-stone-50 rounded-full text-[10px] font-bold text-slate-500 border border-slate-100">
+                                    <CalendarDays size={12} className="inline mr-1" />{pkg.days}D/{pkg.nights}N
+                                  </span>
+                                </div>
+                                <div className="space-y-1 mb-4">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Inclusions:</span>
+                                  {pkg.inclusions.map((inc, i) => (
+                                    <div key={i} className="flex items-center gap-2 text-xs text-slate-600 font-medium">
+                                      <CheckCircle2 size={12} className="text-island-emerald shrink-0" />
+                                      <span>{inc}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setSelectedHotel(hotel); setSelectedPromo(pkg); }}
+                                  className="w-full bg-island-emerald text-white py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-island-green transition-all"
+                                >
+                                  Book This Package
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+
                 <button 
-                  onClick={() => setSelectedHotel(hotel)}
+                  onClick={() => { setSelectedHotel(hotel); setSelectedPromo(null); }}
                   disabled={bookingStatus[hotel.id] === 'success'}
                   className="w-full bg-island-green text-white py-6 rounded-3xl font-bold text-xs uppercase tracking-widest hover:shadow-xl hover:shadow-island-green/20 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -295,7 +388,7 @@ export default function StayView() {
                   <h3 className="text-xl font-bold text-island-green tracking-tight">{selectedHotel.name}</h3>
                   <p className="text-xs text-slate-400 font-medium">₱{selectedHotel.price.toLocaleString()} / night</p>
                 </div>
-                <button onClick={() => { setSelectedHotel(null); setAddons({ breakfast: false, lateCheckin: false }); }}
+                <button onClick={() => { setSelectedHotel(null); setSelectedPromo(null); setAddons({ breakfast: false, lateCheckin: false }); setChildren(0); setTweens(0); setBreakfastPeople(2); }}
                   className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:bg-island-green hover:text-white transition-all">
                   <X size={18} strokeWidth={3} />
                 </button>
@@ -315,19 +408,63 @@ export default function StayView() {
                   <h4 className="text-sm font-bold text-island-green mb-3 flex items-center gap-2">
                     <Users size={16} className="text-island-emerald" /> Guests
                   </h4>
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-slate-700">Adults</span>
+                      <div>
+                        <span className="text-sm font-semibold text-slate-700">Adults</span>
+                        <span className="text-[10px] text-slate-400 block font-medium">Max {selectedHotel.maxAdults}</span>
+                      </div>
                       <div className="flex items-center gap-4">
-                        <button onClick={() => setGuests(Math.max(1, guests - 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                        <button onClick={() => setAdults(Math.max(1, adults - 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
                           <Minus size={14} strokeWidth={3} />
                         </button>
-                        <span className="w-6 text-center text-base font-bold text-island-green">{guests}</span>
-                        <button onClick={() => setGuests(Math.min(10, guests + 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                        <span className="w-6 text-center text-base font-bold text-island-green">{adults}</span>
+                        <button onClick={() => setAdults(Math.min(selectedHotel.maxAdults, adults + 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
                           <Plus size={14} strokeWidth={3} />
                         </button>
                       </div>
                     </div>
+                    {selectedHotel.childPrice && (
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-200/50">
+                        <div className="flex items-center gap-2">
+                          <Baby size={16} className="text-island-sunset" />
+                          <span className="text-sm font-semibold text-slate-700">Children</span>
+                          <span className="text-[10px] text-slate-400 font-medium">₱{selectedHotel.childPrice}/night</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <button onClick={() => setChildren(Math.max(0, children - 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                            <Minus size={14} strokeWidth={3} />
+                          </button>
+                          <span className="w-6 text-center text-base font-bold text-island-green">{children}</span>
+                          <button onClick={() => setChildren(Math.min(4, children + 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                            <Plus size={14} strokeWidth={3} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {selectedHotel.tweenPrice && (
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-200/50">
+                        <div className="flex items-center gap-2">
+                          <Users size={16} className="text-island-sunset" />
+                          <span className="text-sm font-semibold text-slate-700">Tweens</span>
+                          <span className="text-[10px] text-slate-400 font-medium">₱{selectedHotel.tweenPrice}/night</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <button onClick={() => setTweens(Math.max(0, tweens - 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                            <Minus size={14} strokeWidth={3} />
+                          </button>
+                          <span className="w-6 text-center text-base font-bold text-island-green">{tweens}</span>
+                          <button onClick={() => setTweens(Math.min(4, tweens + 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                            <Plus size={14} strokeWidth={3} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {adults + children + tweens > selectedHotel.maxAdults && (
+                      <div className="pt-2 text-[10px] text-island-coral font-semibold flex items-center gap-1">
+                        <span>Total guests exceeds max capacity of {selectedHotel.maxAdults}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -336,60 +473,95 @@ export default function StayView() {
                   <h4 className="text-sm font-bold text-island-green mb-3">Add-ons</h4>
                   <div className="space-y-2">
                     {[
-                      { id: 'breakfast', label: 'Breakfast Bundle', price: 250, icon: Coffee },
+                      { id: 'breakfast', label: 'Breakfast Bundle', price: 250, icon: Utensils },
                       { id: 'lateCheckin', label: 'Late Check-in', price: 150, icon: Moon },
                     ].map(item => (
-                      <button key={item.id} onClick={() => setAddons(prev => ({ ...prev, [item.id]: !(prev as any)[item.id] }))}
-                        className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
-                          (addons as any)[item.id] ? 'border-island-green bg-island-green/5' : 'border-slate-100 bg-white hover:border-slate-200'
-                        }`}>
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${(addons as any)[item.id] ? 'bg-island-green text-white' : 'bg-slate-50 text-slate-400'}`}>
-                            <item.icon size={18} strokeWidth={2.5} />
+                      <div key={item.id} className={`rounded-2xl border-2 transition-all ${
+                        (addons as any)[item.id] ? 'border-island-green bg-island-green/5' : 'border-slate-100 bg-white'
+                      }`}>
+                        <button onClick={() => setAddons(prev => ({ ...prev, [item.id]: !(prev as any)[item.id] }))}
+                          className="w-full flex items-center justify-between p-4"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${(addons as any)[item.id] ? 'bg-island-green text-white' : 'bg-slate-50 text-slate-400'}`}>
+                              <item.icon size={18} strokeWidth={2.5} />
+                            </div>
+                            <div className="text-left">
+                              <span className="block text-sm font-semibold text-slate-800">{item.label}</span>
+                              <span className="text-[10px] text-slate-400 font-medium">+ ₱{item.price}</span>
+                            </div>
                           </div>
-                          <div className="text-left">
-                            <span className="block text-sm font-semibold text-slate-800">{item.label}</span>
-                            <span className="text-[10px] text-slate-400 font-medium">+ ₱{item.price}</span>
+                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${(addons as any)[item.id] ? 'bg-island-green border-island-green text-white' : 'border-slate-300'}`}>
+                            {(addons as any)[item.id] && <CheckCircle2 size={12} strokeWidth={4} />}
                           </div>
-                        </div>
-                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${(addons as any)[item.id] ? 'bg-island-green border-island-green text-white' : 'border-slate-300'}`}>
-                          {(addons as any)[item.id] && <CheckCircle2 size={12} strokeWidth={4} />}
-                        </div>
-                      </button>
+                        </button>
+                        {(addons as any)[item.id] && item.id === 'breakfast' && (
+                          <div className="px-4 pb-4 flex items-center justify-between border-t border-island-green/10 pt-3">
+                            <span className="text-xs font-semibold text-slate-600">For how many people?</span>
+                            <div className="flex items-center gap-3">
+                              <button onClick={() => setBreakfastPeople(Math.max(1, breakfastPeople - 1))} className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                                <Minus size={12} strokeWidth={3} />
+                              </button>
+                              <span className="w-5 text-center text-sm font-bold text-island-green">{breakfastPeople}</span>
+                              <button onClick={() => setBreakfastPeople(Math.min(adults + children + tweens, breakfastPeople + 1))} className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                                <Plus size={12} strokeWidth={3} />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Total */}
                 <div className="bg-island-green/5 rounded-2xl p-5 border border-island-green/10 space-y-3">
-                  <div className="flex justify-between text-sm text-slate-600">
-                    <span>₱{selectedHotel.price.toLocaleString()} x {Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))} nights</span>
-                    <span className="font-semibold">₱{(selectedHotel.price * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))).toLocaleString()}</span>
-                  </div>
-                  {addons.breakfast && <div className="flex justify-between text-sm text-slate-600"><span>Breakfast Bundle</span><span>+ ₱250</span></div>}
-                  {addons.lateCheckin && <div className="flex justify-between text-sm text-slate-600"><span>Late Check-in</span><span>+ ₱150</span></div>}
+                  {selectedPromo ? (
+                    <div className="flex justify-between text-sm text-slate-600">
+                      <span>{selectedPromo.name} ({selectedPromo.days}D/{selectedPromo.nights}N)</span>
+                      <span className="font-semibold">₱{selectedPromo.price.toLocaleString()}</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between text-sm text-slate-600">
+                        <span>₱{selectedHotel.price.toLocaleString()} x {Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))} nights</span>
+                        <span className="font-semibold">₱{(selectedHotel.price * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))).toLocaleString()}</span>
+                      </div>
+                      {children > 0 && selectedHotel.childPrice && (
+                        <div className="flex justify-between text-sm text-slate-600"><span>Children ({children} x ₱{selectedHotel.childPrice})</span><span>+ ₱{(children * selectedHotel.childPrice * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))).toLocaleString()}</span></div>
+                      )}
+                      {tweens > 0 && selectedHotel.tweenPrice && (
+                        <div className="flex justify-between text-sm text-slate-600"><span>Tweens ({tweens} x ₱{selectedHotel.tweenPrice})</span><span>+ ₱{(tweens * selectedHotel.tweenPrice * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))).toLocaleString()}</span></div>
+                      )}
+                      {addons.breakfast && <div className="flex justify-between text-sm text-slate-600"><span>Breakfast Bundle x {breakfastPeople}</span><span>+ ₱{(250 * breakfastPeople).toLocaleString()}</span></div>}
+                      {addons.lateCheckin && <div className="flex justify-between text-sm text-slate-600"><span>Late Check-in</span><span>+ ₱150</span></div>}
+                    </>
+                  )}
                   <div className="border-t border-island-green/10 pt-3 flex justify-between items-center">
                     <span className="text-base font-bold text-island-green">Total</span>
-                    <span className="text-xl font-black text-island-green">₱{(
-                      selectedHotel.price * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24))) +
-                      (addons.breakfast ? 250 : 0) + (addons.lateCheckin ? 150 : 0)
-                    ).toLocaleString()}</span>
+                    <span className="text-xl font-black text-island-green">₱{calculateTotal(selectedHotel).toLocaleString()}</span>
                   </div>
                 </div>
 
                 {/* Confirm */}
-                <button onClick={() => handleBook(selectedHotel)}
-                  disabled={bookingStatus[selectedHotel.id] === 'loading' || bookingStatus[selectedHotel.id] === 'success'}
-                  className="w-full bg-island-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-island-green/20 hover:shadow-island-green/40 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-                >
-                  {bookingStatus[selectedHotel.id] === 'success' ? (
-                    <><CheckCircle2 size={22} /> Confirmed</>
-                  ) : bookingStatus[selectedHotel.id] === 'loading' ? (
-                    <RefreshCw size={22} className="animate-spin" />
-                  ) : (
-                    <><CalendarDays size={20} /> Book now</>
-                  )}
-                </button>
+                {adults + children + tweens > selectedHotel.maxAdults ? (
+                  <div className="w-full bg-rose-50 text-island-coral py-5 rounded-2xl font-bold text-xs text-center border-2 border-rose-100">
+                    Guest limit exceeded. Max {selectedHotel.maxAdults} guests.
+                  </div>
+                ) : (
+                  <button onClick={() => handleBook(selectedHotel)}
+                    disabled={bookingStatus[selectedHotel.id] === 'loading' || bookingStatus[selectedHotel.id] === 'success'}
+                    className="w-full bg-island-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-island-green/20 hover:shadow-island-green/40 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                  >
+                    {bookingStatus[selectedHotel.id] === 'success' ? (
+                      <><CheckCircle2 size={22} /> Confirmed</>
+                    ) : bookingStatus[selectedHotel.id] === 'loading' ? (
+                      <RefreshCw size={22} className="animate-spin" />
+                    ) : (
+                      <><CalendarDays size={20} /> Book now</>
+                    )}
+                  </button>
+                )}
               </div>
             </motion.div>
           </div>

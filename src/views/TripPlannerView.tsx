@@ -692,7 +692,7 @@ export default function TripPlannerView() {
                                       : 'bg-island-volcanic text-white hover:bg-island-emerald'
                                   }`}
                                 >
-                                  {bookingStatus[`${day.day}-${act.activity}-pass`] === 'success' ? <><CheckCircle2 size={18} md:size={24} /> Saved!</> : <><Ticket size={18} md:size={24} /> Save to Pass</>}
+                                  {bookingStatus[`${day.day}-${act.activity}-pass`] === 'success' ? <><CheckCircle2 size={24} /> Saved!</> : <><Ticket size={24} /> Save to Pass</>}
                                 </motion.button>
                                 <motion.button 
                                   whileHover={{ scale: 1.02 }}
@@ -701,7 +701,7 @@ export default function TripPlannerView() {
                                   disabled={bookingStatus[`${day.day}-${act.activity}-transport`] === 'loading' || bookingStatus[`${day.day}-${act.activity}-transport`] === 'success'}
                                   className="flex-1 bg-white border-2 md:border-4 border-slate-50 text-island-volcanic rounded-2xl md:rounded-[2rem] py-5 md:py-0 flex items-center justify-center gap-3 md:gap-4 hover:border-island-volcanic transition-all shadow-xl"
                                 >
-                                  {bookingStatus[`${day.day}-${act.activity}-transport`] === 'success' ? <CheckCircle2 size={20} md:size={24} className="text-island-emerald" /> : <Car size={24} md:size={28} />}
+                                  {bookingStatus[`${day.day}-${act.activity}-transport`] === 'success' ? <CheckCircle2 size={24} className="text-island-emerald" /> : <Car size={28} />}
                                   <span className="sm:hidden font-black uppercase tracking-widest text-[10px]">Transport</span>
                                 </motion.button>
                               </div>
@@ -718,7 +718,7 @@ export default function TripPlannerView() {
                   <div className="bg-island-emerald p-8 md:p-16 rounded-[3rem] md:rounded-[5rem] text-white shadow-[0_50px_100px_-20px_rgba(16,185,129,0.3)] relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-white/10 rounded-full translate-x-16 -translate-y-16 md:translate-x-32 md:-translate-y-32 animate-pulse" />
                     <div className="relative z-10 text-center space-y-6 md:space-y-8">
-                      <ShieldCheck size={48} md:size={80} className="mx-auto text-white/40 mb-6 md:mb-10" />
+                      <ShieldCheck size={80} className="mx-auto text-white/40 mb-6 md:mb-10" />
                       <h3 className="text-4xl md:text-7xl font-black uppercase tracking-tighter italic">Review Your <br /> Itinerary</h3>
                       <p className="text-white/80 font-medium text-xs md:text-sm max-w-md mx-auto">Save all activities to your pass and finalize your Catarman adventure.</p>
                       <motion.button 
