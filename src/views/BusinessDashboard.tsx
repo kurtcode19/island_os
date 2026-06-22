@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   Calendar, 
@@ -16,12 +16,17 @@ import {
   ArrowUpRight,
   TrendingUp,
   CreditCard,
-  Users
+  Users,
+  Hotel,
+  Car,
+  Ship
 } from 'lucide-react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { StatCard } from '../components/shared/StatCard';
 import { SidebarItem } from '../components/shared/SidebarItem';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 // Business Modules
 import AnalyticsModule from '../components/business/AnalyticsModule';
@@ -32,63 +37,83 @@ import ReviewsModule from '../components/business/ReviewsModule';
 import SettingsModule from '../components/business/SettingsModule';
 import CheckInView from './CheckInView';
 
+import { businesses as staticBusinesses } from '../data/businesses';
+import { BusinessType, BUSINESS_TYPE_CONFIGS } from '../types';
+
+const typeIcons: Record<string, any> = {
+  accommodation: Hotel,
+  rental: Car,
+  transport: Ship,
+};
+
 export default function BusinessDashboard() {
   const { logout, profile } = useAuth();
   const location = useLocation();
+  const [businessType, setBusinessType] = useState<BusinessType | null>(null);
+  const [businessName, setBusinessName] = useState('Business');
+
+  useEffect(() => {
+    if (!profile?.businessId) return;
+
+    const loadBusinessType = async () => {
+      try {
+        const bizDoc = await getDoc(doc(db, 'businesses', profile.businessId!));
+        if (bizDoc.exists()) {
+          const data = bizDoc.data();
+          setBusinessType(data.businessType as BusinessType);
+          setBusinessName(data.name || 'Business');
+          return;
+        }
+      } catch {}
+      const staticBiz = staticBusinesses.find(b => b.id === profile.businessId);
+      if (staticBiz) {
+        setBusinessType(staticBiz.businessType);
+        setBusinessName(staticBiz.name);
+      }
+    };
+
+    loadBusinessType();
+  }, [profile?.businessId]);
+
+  const config = businessType ? BUSINESS_TYPE_CONFIGS[businessType] : null;
+  const modules = config?.modules || ['analytics', 'bookings', 'inventory', 'tours', 'reviews', 'checkin'];
+
+  const sidebarItems = [
+    { icon: BarChart3, label: 'Dashboard', to: '/business', show: true },
+    { icon: Calendar, label: 'Bookings', to: '/business/bookings', show: modules.includes('bookings') },
+    { icon: Package, label: 'Inventory', to: '/business/inventory', show: modules.includes('inventory') },
+    { icon: Compass, label: 'Tours', to: '/business/tours', show: modules.includes('tours') },
+    { icon: Star, label: 'Reviews', to: '/business/reviews', show: modules.includes('reviews') },
+    { icon: Scan, label: 'Check-In Scanner', to: '/business/checkin', show: modules.includes('checkin') },
+  ].filter(item => item.show);
+
+  const typeLabel = config?.label || 'Business';
+  const TypeIcon = businessType ? typeIcons[businessType] || LayoutDashboard : LayoutDashboard;
 
   const AnalyticsHome = () => (
     <div className="space-y-12">
-      {/* High Level Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <StatCard 
-          label="Weekly Revenue" 
-          value="₱84,200" 
-          change="+12.5%" 
-          isPositive={true} 
-          icon={CreditCard} 
-          color="emerald" 
-        />
-        <StatCard 
-          label="Active Bookings" 
-          value="18" 
-          change="+4.3%" 
-          isPositive={true} 
-          icon={Calendar} 
-          color="ocean" 
-        />
-        <StatCard 
-          label="Guest Satisfaction" 
-          value="4.9/5" 
-          change="+0.2" 
-          isPositive={true} 
-          icon={Star} 
-          color="purple" 
-        />
-        <StatCard 
-          label="System Status" 
-          value="Active" 
-          change="Optimum" 
-          isPositive={true} 
-          icon={TrendingUp} 
-          color="coral" 
-        />
+        <StatCard label="Weekly Revenue" value="₱84,200" change="+12.5%" isPositive={true} icon={CreditCard} color="emerald" />
+        <StatCard label="Active Bookings" value="18" change="+4.3%" isPositive={true} icon={Calendar} color="ocean" />
+        <StatCard label="Guest Satisfaction" value="4.9/5" change="+0.2" isPositive={true} icon={Star} color="purple" />
+        <StatCard label="System Status" value="Active" change="Optimum" isPositive={true} icon={TrendingUp} color="coral" />
       </div>
 
-      {/* Quick Access Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        <div className="bg-white p-12 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl relative overflow-hidden group">
-          <div className="relative z-10">
-            <h3 className="text-3xl font-black text-island-volcanic tracking-tighter mb-4">Inventory</h3>
-            <p className="text-slate-500 font-medium mb-10">You have 4 items running low on stock.</p>
-            <Link to="/business/inventory" className="btn-primary inline-flex items-center gap-3 px-8 py-4 rounded-2xl">
-              Manage Inventory <ArrowUpRight size={20} strokeWidth={3} />
-            </Link>
+        {modules.includes('inventory') && (
+          <div className="bg-white p-12 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl relative overflow-hidden group">
+            <div className="relative z-10">
+              <h3 className="text-3xl font-black text-island-volcanic tracking-tighter mb-4">Inventory</h3>
+              <p className="text-slate-500 font-medium mb-10">You have 4 items running low on stock.</p>
+              <Link to="/business/inventory" className="btn-primary inline-flex items-center gap-3 px-8 py-4 rounded-2xl">
+                Manage Inventory <ArrowUpRight size={20} strokeWidth={3} />
+              </Link>
+            </div>
+            <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity rotate-12 group-hover:rotate-0 duration-700">
+              <Package size={240} strokeWidth={1} />
+            </div>
           </div>
-          <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity rotate-12 group-hover:rotate-0 duration-700">
-            <Package size={240} strokeWidth={1} />
-          </div>
-        </div>
-
+        )}
         <div className="emerald-gradient p-12 rounded-[3.5rem] shadow-xl relative overflow-hidden group">
           <div className="relative z-10">
             <h3 className="text-3xl font-black text-white tracking-tighter mb-4">Reviews</h3>
@@ -103,7 +128,6 @@ export default function BusinessDashboard() {
         </div>
       </div>
 
-      {/* Recent Activity Mini-Module */}
       <div className="bg-white p-12 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl">
         <div className="flex justify-between items-center mb-10">
           <h3 className="text-3xl font-black text-island-volcanic tracking-tighter">Recent Activity</h3>
@@ -111,9 +135,9 @@ export default function BusinessDashboard() {
         </div>
         <div className="space-y-8">
           {[
-            { user: 'Juan Dela Cruz', action: 'Confirmed booking for Sunken Cemetery Dive', time: '2 mins ago', icon: Calendar },
-            { user: 'Sarah Wilson', action: 'Added a 5-star review for Beachfront Resort', time: '1 hour ago', icon: Star },
-            { user: 'System', action: 'Inventory node: "Diving Gear Set" updated', time: '3 hours ago', icon: Package },
+            { user: 'Juan Dela Cruz', action: `Confirmed booking for ${businessName}`, time: '2 mins ago', icon: Calendar },
+            { user: 'Sarah Wilson', action: 'Added a 5-star review', time: '1 hour ago', icon: Star },
+            { user: 'System', action: 'Dashboard node synchronized', time: '3 hours ago', icon: Package },
           ].map((item, idx) => (
             <div key={idx} className="flex items-center gap-6 p-6 rounded-3xl hover:bg-stone-50 transition-all border border-transparent hover:border-stone-100">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-island-emerald border border-emerald-100">
@@ -132,26 +156,23 @@ export default function BusinessDashboard() {
 
   return (
     <div className="flex h-screen bg-[#F4F4F1] selection:bg-island-emerald/20 overflow-hidden">
-      {/* Sidebar - Sticky/Fixed via h-screen and overflow-hidden parent */}
       <aside className="w-[320px] bg-white border-r border-emerald-50 hidden lg:flex flex-col shadow-2xl shrink-0">
         <div className="p-10 flex-1 overflow-y-auto no-scrollbar">
           <div className="flex items-center gap-5 mb-16 px-4">
             <div className="w-14 h-14 rounded-2xl forest-gradient flex items-center justify-center text-white shadow-2xl border border-white/10">
-              <LayoutDashboard size={32} strokeWidth={2.5} />
+              <TypeIcon size={32} strokeWidth={2.5} />
             </div>
             <div>
-              <h3 className="text-2xl font-black text-island-volcanic tracking-tighter leading-none mb-1">Business</h3>
-              <span className="text-xs text-island-emerald font-bold tracking-wider">Business</span>
+              <h3 className="text-2xl font-black text-island-volcanic tracking-tighter leading-none mb-1">{typeLabel}</h3>
+              <span className="text-xs text-island-emerald font-bold tracking-wider">{businessName}</span>
             </div>
           </div>
 
           <nav className="space-y-4">
-            <SidebarItem icon={BarChart3} label="Dashboard" to="/business" active={location.pathname === '/business'} />
-            <SidebarItem icon={Calendar} label="Bookings" to="/business/bookings" active={location.pathname.startsWith('/business/bookings')} />
-            <SidebarItem icon={Package} label="Inventory" to="/business/inventory" active={location.pathname.startsWith('/business/inventory')} />
-            <SidebarItem icon={Compass} label="Tours" to="/business/tours" active={location.pathname.startsWith('/business/tours')} />
-            <SidebarItem icon={Star} label="Reviews" to="/business/reviews" active={location.pathname.startsWith('/business/reviews')} />
-            <SidebarItem icon={Scan} label="Check-In Scanner" to="/business/checkin" active={location.pathname.startsWith('/business/checkin')} />
+            {sidebarItems.map(item => (
+              <SidebarItem key={item.to} icon={item.icon} label={item.label} to={item.to}
+                active={item.to === '/business' ? location.pathname === '/business' : location.pathname.startsWith(item.to)} />
+            ))}
           </nav>
         </div>
         
@@ -167,25 +188,19 @@ export default function BusinessDashboard() {
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header - Fixed at top of content */}
         <header className="bg-white/80 backdrop-blur-md border-b border-emerald-50 p-8 lg:px-12 z-30 shrink-0">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
             <div>
-              <span className="text-island-emerald font-bold tracking-wider text-xs mb-2 block">Business Dashboard</span>
-              <h1 className="text-4xl lg:text-5xl font-black text-island-volcanic tracking-tighter leading-none">Business <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-island-green">Dashboard.</span></h1>
+              <span className="text-island-emerald font-bold tracking-wider text-xs mb-2 block">{typeLabel} Dashboard</span>
+              <h1 className="text-4xl lg:text-5xl font-black text-island-volcanic tracking-tighter leading-none">{typeLabel} <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-island-green">Dashboard.</span></h1>
               <p className="text-slate-500 font-medium text-base mt-2">Welcome back, {profile?.name || 'Business'}</p>
             </div>
             
             <div className="flex items-center gap-6 w-full md:w-auto">
               <div className="relative flex-1 md:flex-none group">
                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-300 group-focus-within:text-island-emerald transition-colors" size={20} strokeWidth={3} />
-                <input 
-                  type="text" 
-                  placeholder="Search..." 
-                  className="pl-14 pr-6 py-4 bg-white border-2 border-emerald-50 rounded-2xl outline-none focus:ring-8 focus:ring-island-emerald/5 focus:border-island-emerald/20 transition-all w-full md:w-80 shadow-2xl"
-                />
+                <input type="text" placeholder="Search..." className="pl-14 pr-6 py-4 bg-white border-2 border-emerald-50 rounded-2xl outline-none focus:ring-8 focus:ring-island-emerald/5 focus:border-island-emerald/20 transition-all w-full md:w-80 shadow-2xl" />
               </div>
               <button className="w-14 h-14 bg-white border-2 border-emerald-50 rounded-2xl text-island-volcanic flex items-center justify-center relative shadow-2xl hover:bg-emerald-50 active:scale-90 transition-all group shrink-0">
                 <Bell size={24} strokeWidth={2.5} className="group-hover:text-island-emerald transition-colors" />
@@ -195,17 +210,16 @@ export default function BusinessDashboard() {
           </div>
         </header>
 
-        {/* Scrollable View Area */}
         <main className="flex-1 overflow-y-auto p-8 lg:p-12 no-scrollbar scroll-smooth">
           <div className="max-w-[1600px] mx-auto">
             <Routes>
               <Route path="/" element={<AnalyticsHome />} />
-              <Route path="/analytics" element={<AnalyticsModule />} />
-              <Route path="/bookings" element={<BookingsModule />} />
-              <Route path="/inventory" element={<InventoryModule />} />
-              <Route path="/tours" element={<ToursModule />} />
-              <Route path="/reviews" element={<ReviewsModule />} />
-              <Route path="/checkin" element={<CheckInView />} />
+              {modules.includes('analytics') && <Route path="/analytics" element={<AnalyticsModule />} />}
+              {modules.includes('bookings') && <Route path="/bookings" element={<BookingsModule />} />}
+              {modules.includes('inventory') && <Route path="/inventory" element={<InventoryModule />} />}
+              {modules.includes('tours') && <Route path="/tours" element={<ToursModule />} />}
+              {modules.includes('reviews') && <Route path="/reviews" element={<ReviewsModule />} />}
+              {modules.includes('checkin') && <Route path="/checkin" element={<CheckInView />} />}
               <Route path="/settings" element={<SettingsModule />} />
             </Routes>
           </div>
@@ -214,5 +228,3 @@ export default function BusinessDashboard() {
     </div>
   );
 }
-
-

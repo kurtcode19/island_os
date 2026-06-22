@@ -13,6 +13,7 @@ import firebaseConfig from '../firebase-applet-config.json';
 import { accommodations } from '../src/data/accommodations';
 import { transportOptions } from '../src/data/transport';
 import { locations } from '../src/data/locations';
+import { businesses } from '../src/data/businesses';
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -38,6 +39,18 @@ async function seed() {
   console.log('\n--- Locations ---');
   for (const item of locations) {
     await setDoc(doc(db, 'locations', String(item.id)), item);
+    console.log(`  ✅ ${item.name} (${item.id})`);
+  }
+
+  // Seed businesses
+  console.log('\n--- Businesses ---');
+  for (const item of businesses) {
+    await setDoc(doc(db, 'businesses', item.id), {
+      ...item,
+      ownerUid: '',
+      verified: false,
+      createdAt: new Date().toISOString(),
+    });
     console.log(`  ✅ ${item.name} (${item.id})`);
   }
 

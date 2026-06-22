@@ -109,9 +109,10 @@ export default function MobileAppView() {
   const [bookingStatus, setBookingStatus] = useState<{[key: string]: 'idle' | 'loading' | 'success'}>({});
   
   // Booking flow state
+  const today = new Date();
   const [showBooking, setShowBooking] = useState(false);
-  const [checkIn, setCheckIn] = useState<Date>(new Date(2026, 5, 15));
-  const [checkOut, setCheckOut] = useState<Date>(new Date(2026, 5, 18));
+  const [checkIn, setCheckIn] = useState<Date>(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1));
+  const [checkOut, setCheckOut] = useState<Date>(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3));
   const [guests, setGuests] = useState(2);
   const [addons, setAddons] = useState({ breakfast: false, lateCheckin: false });
   const [selectedImage, setSelectedImage] = useState(0);
@@ -156,7 +157,7 @@ export default function MobileAppView() {
     return () => unsubscribe();
   }, [user]);
 
-  const handleBook = async (item: any, type: 'stay' | 'transport' | 'spot') => {
+  const handleBook = async (item: any, type: string) => {
     if (!user) {
       login();
       return;
@@ -164,6 +165,10 @@ export default function MobileAppView() {
 
     const itemId = item.id;
     setBookingStatus(prev => ({ ...prev, [itemId]: 'loading' }));
+
+    const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
+    const baseAmount = type === 'rental' ? (item.rate || item.price || 150) : (item.price || 150);
+    const totalAmount = baseAmount * nights + (addons.breakfast ? 250 : 0) + (addons.lateCheckin ? 150 : 0);
 
     try {
       await addDoc(collection(db, 'bookings'), {
@@ -175,9 +180,12 @@ export default function MobileAppView() {
         serviceType: type,
         businessId: item.businessId || 'catarman_lgu',
         date: new Date().toLocaleDateString(),
+        checkInDate: checkIn.toISOString(),
+        checkOutDate: checkOut.toISOString(),
+        guests: guests,
         status: 'pending',
         paymentStatus: 'UNPAID',
-        amount: item.price || 150,
+        amount: totalAmount,
         createdAt: serverTimestamp()
       });
       
@@ -272,8 +280,8 @@ export default function MobileAppView() {
                         <motion.div 
                           key={`spot-${spot.id}`}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => setSelectedSpot({ ...spot, type: 'spot' })}
-                          className="group relative bg-white rounded-[3rem] border border-tropic-sand/40 overflow-hidden tropic-shadow-lg hover:tropic-shadow-xl transition-shadow p-4 cursor-pointer"
+                  onClick={() => setSelectedSpot({ ...spot, type: 'spot', serviceType: 'spot' })}
+                  className="group relative bg-white rounded-[3rem] border border-tropic-sand/40 overflow-hidden tropic-shadow-lg hover:tropic-shadow-xl transition-shadow p-4 cursor-pointer"
                         >
                           <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
                             <img src={spot.image} alt={spot.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" referrerPolicy="no-referrer" />
@@ -304,7 +312,7 @@ export default function MobileAppView() {
                         <motion.div 
                           key={`stay-${stay.id}`}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => setSelectedSpot({ ...stay, type: 'stay' })}
+                          onClick={() => setSelectedSpot({ ...stay, type: 'stay', serviceType: 'stay' })}
                           className="bg-white rounded-[3rem] border border-tropic-sand/40 overflow-hidden tropic-shadow-lg hover:tropic-shadow-xl transition-shadow p-4 cursor-pointer"
                         >
                           <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
@@ -344,7 +352,7 @@ export default function MobileAppView() {
                         <motion.div
                           key={vehicle.id}
                           whileTap={{ scale: 0.98 }}
-                          onClick={() => setSelectedSpot({ ...vehicle, type: 'rental', price: vehicle.rate })}
+                          onClick={() => setSelectedSpot({ ...vehicle, type: 'rental', serviceType: 'rental', price: vehicle.rate })}
                           className="bg-white rounded-[3rem] border border-tropic-sand/40 overflow-hidden tropic-shadow-lg hover:tropic-shadow-xl transition-shadow p-4 cursor-pointer"
                         >
                           <div className="relative h-56 rounded-[2.5rem] overflow-hidden mb-5">
@@ -418,7 +426,7 @@ export default function MobileAppView() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedSpot({ ...vehicle, type: 'rental', price: vehicle.rate })}
+                    onClick={() => setSelectedSpot({ ...vehicle, type: 'rental', serviceType: 'rental', price: vehicle.rate })}
                     className="bg-white rounded-[24px] border border-gray-100 overflow-hidden shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-lg)] transition-shadow"
                   >
                     <div className="relative h-44 overflow-hidden">
@@ -755,7 +763,7 @@ export default function MobileAppView() {
               <div className="pt-4 pb-8">
                 <motion.button 
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => handleBook(selectedSpot, selectedSpot.type || 'spot')}
+                  onClick={() => handleBook(selectedSpot, selectedSpot.serviceType || selectedSpot.type || 'spot')}
                   disabled={bookingStatus[selectedSpot.id] === 'loading' || bookingStatus[selectedSpot.id] === 'success'}
                   className="w-full bg-gradient-to-r from-tropic-green to-tropic-deep text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-tropic-green/20 hover:shadow-tropic-green/40 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                 >
@@ -823,7 +831,8 @@ function MonthCalendar({ checkIn, checkOut, onSelectCheckIn, onSelectCheckOut }:
   checkIn: Date; checkOut: Date; 
   onSelectCheckIn: (d: Date) => void; onSelectCheckOut: (d: Date) => void 
 }) {
-  const [viewDate, setViewDate] = useState(new Date(2026, 5, 1));
+  const today = new Date();
+  const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selecting, setSelecting] = useState<'checkin' | 'checkout'>('checkin');
 
   const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
@@ -887,7 +896,7 @@ function MonthCalendar({ checkIn, checkOut, onSelectCheckIn, onSelectCheckOut }:
           const isCI = isSameDay(date, checkIn);
           const isCO = isSameDay(date, checkOut);
           const inRange = isInRange(date);
-          const isPast = date < new Date(2026, 5, 14);
+          const isPast = date <= today;
           return (
             <button
               key={d}

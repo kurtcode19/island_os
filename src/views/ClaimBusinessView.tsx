@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Building2, CheckCircle2, ArrowRight, ShieldCheck, LayoutDashboard, Search, Sparkles, RefreshCw, Hotel, MapPin, Wifi } from 'lucide-react';
+import { Building2, CheckCircle2, ArrowRight, ShieldCheck, LayoutDashboard, Search, Sparkles, RefreshCw, Hotel, Car, Ship, ConciergeBell, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
-import { accommodations } from '../data/accommodations';
+import { businesses, BusinessEntry } from '../data/businesses';
+import { BusinessType, BUSINESS_TYPE_CONFIGS } from '../types';
 
-const activeBusinesses = accommodations
-  .filter((a, idx, self) => self.findIndex(b => b.businessId === a.businessId) === idx)
-  .map(a => ({
-    id: a.businessId,
-    name: a.name,
-    type: a.type,
-    tags: a.tags.slice(0, 2)
-  }));
+const typeIcons: Record<BusinessType, any> = {
+  accommodation: Hotel,
+  rental: Car,
+  transport: Ship,
+  service: ConciergeBell,
+  shop: ShoppingBag,
+};
 
 export default function ClaimBusinessView() {
   const { user, profile } = useAuth();
@@ -22,19 +22,39 @@ export default function ClaimBusinessView() {
   const [customId, setCustomId] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [selectedType, setSelectedType] = useState<BusinessType | 'all'>('all');
 
-  const handleClaim = async (businessId: string) => {
+  const filteredBusinesses = selectedType === 'all'
+    ? businesses
+    : businesses.filter(b => b.businessType === selectedType);
+
+  const handleClaim = async (biz: BusinessEntry) => {
     if (!user || !profile) return;
-    
+
     setLoading(true);
     try {
       const userRef = doc(db, 'users', user.uid);
       await setDoc(userRef, {
         ...profile,
         role: 'BUSINESS',
-        businessId: businessId
+        businessId: biz.id,
       }, { merge: true });
-      
+
+      const businessRef = doc(db, 'businesses', biz.id);
+      await setDoc(businessRef, {
+        id: biz.id,
+        name: biz.name,
+        ownerUid: user.uid,
+        businessType: biz.businessType,
+        category: biz.category,
+        description: biz.description,
+        address: biz.location,
+        contact: biz.contact,
+        verified: false,
+        images: [biz.image],
+        createdAt: serverTimestamp(),
+      }, { merge: true });
+
       setSuccess(true);
       setTimeout(() => {
         navigate('/business');
@@ -45,6 +65,18 @@ export default function ClaimBusinessView() {
       setLoading(false);
     }
   };
+
+  const typeBadge = (type: BusinessType) => (
+    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
+      type === 'accommodation' ? 'text-purple-600 bg-purple-50 border-purple-100' :
+      type === 'rental' ? 'text-blue-600 bg-blue-50 border-blue-100' :
+      type === 'transport' ? 'text-cyan-600 bg-cyan-50 border-cyan-100' :
+      type === 'shop' ? 'text-orange-600 bg-orange-50 border-orange-100' :
+      'text-green-600 bg-green-50 border-green-100'
+    }`}>
+      {BUSINESS_TYPE_CONFIGS[type]?.label || type}
+    </span>
+  );
 
   return (
     <div className="min-h-screen bg-[#F0FDF4] pt-20 pb-32 selection:bg-island-emerald/20">
@@ -63,9 +95,9 @@ export default function ClaimBusinessView() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-10">
           {/* Custom ID Entry */}
-          <div className="bg-white p-10 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl">
+          <div className="md:col-span-2 bg-white p-10 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl">
             <h2 className="text-2xl font-black text-island-volcanic tracking-tighter mb-8">Manual Entry</h2>
             <div className="space-y-6">
               <div>
@@ -82,8 +114,11 @@ export default function ClaimBusinessView() {
                 </div>
               </div>
               <button 
-                onClick={() => handleClaim(customId)}
-                disabled={!customId || loading || success}
+                onClick={() => {
+                  const biz = businesses.find(b => b.id === customId);
+                  if (biz) handleClaim(biz);
+                }}
+                disabled={!customId || loading || success || !businesses.find(b => b.id === customId)}
                 className="btn-primary w-full py-6 rounded-2xl text-sm"
               >
                 {loading ? (
@@ -94,34 +129,65 @@ export default function ClaimBusinessView() {
                   <>Claim Business <ArrowRight size={20} strokeWidth={3} /></>
                 )}
               </button>
+              {customId && !businesses.find(b => b.id === customId) && (
+                <p className="text-[10px] text-island-coral font-medium text-center">Business ID not found in directory</p>
+              )}
             </div>
           </div>
 
-          {/* Active Businesses */}
-          <div className="bg-white p-10 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl">
+          {/* Active Businesses Directory */}
+          <div className="md:col-span-3 bg-white p-10 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl">
             <h2 className="text-2xl font-black text-island-volcanic tracking-tighter mb-2">Active Directory</h2>
-            <p className="text-island-green/60 font-medium text-sm mb-8">Select a business to claim and manage its bookings.</p>
+            <p className="text-island-green/60 font-medium text-sm mb-4">Select a business to claim and manage.</p>
+
+            {/* Type filter */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              <button
+                onClick={() => setSelectedType('all')}
+                className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
+                  selectedType === 'all' ? 'bg-island-emerald text-white' : 'bg-emerald-50 text-island-green/60 hover:bg-emerald-100'
+                }`}
+              >
+                All
+              </button>
+              {(['accommodation', 'rental', 'transport'] as BusinessType[]).map(type => (
+                <button
+                  key={type}
+                  onClick={() => setSelectedType(type)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
+                    selectedType === type ? 'bg-island-emerald text-white' : 'bg-emerald-50 text-island-green/60 hover:bg-emerald-100'
+                  }`}
+                >
+                  {React.createElement(typeIcons[type], { size: 14 })}
+                  {BUSINESS_TYPE_CONFIGS[type]?.label || type}
+                </button>
+              ))}
+            </div>
+
             <div className="space-y-4 max-h-[500px] overflow-y-auto no-scrollbar pr-2">
-              {activeBusinesses.length === 0 && (
-                <p className="text-slate-400 text-sm text-center py-10">No businesses available yet.</p>
+              {filteredBusinesses.length === 0 && (
+                <p className="text-slate-400 text-sm text-center py-10">No businesses available in this category.</p>
               )}
-              {activeBusinesses.map((biz) => (
+              {filteredBusinesses.map((biz) => (
                 <button
                   key={biz.id}
-                  onClick={() => handleClaim(biz.id)}
+                  onClick={() => handleClaim(biz)}
                   disabled={loading || success}
                   className="w-full flex items-center justify-between p-6 rounded-2xl bg-stone-50 hover:bg-emerald-50/50 border-2 border-transparent hover:border-island-emerald/20 transition-all group shadow-sm active:scale-[0.98]"
                 >
-                  <div className="text-left">
-                    <p className="text-sm font-black text-island-volcanic leading-none mb-1">{biz.name}</p>
-                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-2">{biz.type}</p>
-                    <div className="flex gap-2">
-                      {biz.tags.map(tag => (
+                  <div className="text-left flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <p className="text-sm font-black text-island-volcanic leading-none truncate">{biz.name}</p>
+                      {typeBadge(biz.businessType)}
+                    </div>
+                    <p className="text-[9px] text-slate-400 font-medium mb-2">{biz.location}</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {biz.tags.slice(0, 3).map(tag => (
                         <span key={tag} className="text-[8px] font-bold text-island-emerald bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">{tag}</span>
                       ))}
                     </div>
                   </div>
-                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-emerald-200 group-hover:text-island-emerald shadow-sm group-hover:shadow-md transition-all shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-emerald-200 group-hover:text-island-emerald shadow-sm group-hover:shadow-md transition-all shrink-0 ml-4">
                     <ArrowRight size={16} strokeWidth={3} />
                   </div>
                 </button>

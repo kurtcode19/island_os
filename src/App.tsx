@@ -1,6 +1,6 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
-import { onAuthStateChanged, User as FirebaseUser, signInWithPopup, signInWithRedirect } from 'firebase/auth';
+import { onAuthStateChanged, User as FirebaseUser, signInWithPopup, signInWithRedirect, signInAnonymously } from 'firebase/auth';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { Toaster, toast } from 'sonner';
 import { auth, db, googleProvider, handleFirestoreError, OperationType } from './firebase';
@@ -9,6 +9,7 @@ import { AuthContext } from './context/AuthContext';
 import { AppRoutes } from './AppRoutes';
 import { createPass } from './lib/passService';
 import { logEvent } from './lib/auditService';
+import { isNativePlatform } from './lib/capacitorAuth';
 
 export default function App() {
   const [role, setRole] = useState<UserRole>('TOURIST');
@@ -86,6 +87,24 @@ export default function App() {
 
   const login = async () => {
     console.log('Current Origin:', window.location.origin);
+    
+    const native = await isNativePlatform();
+    if (native) {
+      try {
+        await signInAnonymously(auth);
+        toast.success('Signed in as guest');
+        return;
+      } catch (anonError: any) {
+        console.warn('Anonymous auth not available, trying Google redirect:', anonError.message);
+        try {
+          await signInWithRedirect(auth, googleProvider);
+        } catch (redirectError: any) {
+          toast.error(`Sign-in failed: ${redirectError.message}`);
+        }
+        return;
+      }
+    }
+
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error: any) {

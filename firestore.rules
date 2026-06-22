@@ -66,6 +66,40 @@ service cloud.firestore {
       allow write: if isAuthenticated();
     }
 
+    match /businesses/{businessId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    match /passes/{uid} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(uid);
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if hasRole('BUSINESS') || hasRole('LGU');
+    }
+
+    match /incidents/{incidentId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if hasRole('LGU');
+      allow create: if isAuthenticated();
+    }
+
+    match /inventory_items/{itemId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /services_{serviceType}/{id} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
     match /test/connection {
       allow read: if true;
     }
