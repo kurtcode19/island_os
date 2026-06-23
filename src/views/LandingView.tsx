@@ -318,7 +318,7 @@ export default function LandingView() {
             <p className="text-xl text-slate-500 font-medium leading-relaxed max-w-md">
               Catarman offers a profound journey through Camiguin's volcanic history and vibrant local culture. From spiritual landmarks to hidden waterfalls.
             </p>
-            <button className="bg-island-volcanic text-white px-10 py-5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-3 hover:scale-105 transition-all shadow-xl">
+            <button onClick={() => navigate('/how-it-works')} className="bg-island-volcanic text-white px-10 py-5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-3 hover:scale-105 transition-all shadow-xl">
               Learn More <ArrowRight size={18} />
             </button>
           </div>
@@ -362,7 +362,7 @@ export default function LandingView() {
               <p className="text-slate-400 text-sm font-medium leading-relaxed max-w-xs ml-auto">
                 Official municipal experiences verified by the Catarman Tourism Office.
               </p>
-              <button className="bg-island-volcanic text-white px-10 py-5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-3 hover:scale-105 transition-all shadow-xl">
+              <button onClick={() => navigate('/locations')} className="bg-island-volcanic text-white px-10 py-5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-3 hover:scale-105 transition-all shadow-xl">
                 See All <ArrowRight size={18} />
               </button>
             </div>
@@ -514,17 +514,17 @@ export default function LandingView() {
               <div className="space-y-8">
                 <h4 className="text-xs font-bold tracking-wider text-slate-400">Explore</h4>
                 <ul className="space-y-4 text-sm font-semibold tracking-tight">
-                  <li><a href="#" className="hover:text-island-emerald transition-all">Destinations</a></li>
-                  <li><a href="#" className="hover:text-island-emerald transition-all">Experiences</a></li>
-                  <li><a href="#" className="hover:text-island-emerald transition-all">Itineraries</a></li>
+                  <li><button onClick={() => navigate('/locations')} className="hover:text-island-emerald transition-all">Destinations</button></li>
+                  <li><button onClick={() => navigate('/stay')} className="hover:text-island-emerald transition-all">Experiences</button></li>
+                  <li><button onClick={() => navigate('/planner')} className="hover:text-island-emerald transition-all">Itineraries</button></li>
                 </ul>
               </div>
               <div className="space-y-8">
                 <h4 className="text-xs font-bold tracking-wider text-slate-400">Company</h4>
                 <ul className="space-y-4 text-sm font-semibold tracking-tight">
-                  <li><a href="#" className="hover:text-island-emerald transition-all">About Us</a></li>
-                  <li><a href="#" className="hover:text-island-emerald transition-all">Careers</a></li>
-                  <li><a href="#" className="hover:text-island-emerald transition-all">Contact</a></li>
+                  <li><button onClick={() => navigate('/how-it-works')} className="hover:text-island-emerald transition-all">About Us</button></li>
+                  <li><button className="hover:text-island-emerald transition-all cursor-default opacity-50">Careers</button></li>
+                  <li><button className="hover:text-island-emerald transition-all cursor-default opacity-50">Contact</button></li>
                 </ul>
               </div>
             </div>
@@ -533,8 +533,8 @@ export default function LandingView() {
           <div className="pt-20 border-t border-slate-50 flex justify-between items-center text-xs font-semibold tracking-tight text-slate-400">
             <p>© 2026 Catarman eSuroy</p>
             <div className="flex gap-10">
-              <a href="#" className="hover:text-island-volcanic transition-colors">Instagram</a>
-              <a href="#" className="hover:text-island-volcanic transition-colors">Facebook</a>
+              <span className="text-slate-300 cursor-default">Instagram</span>
+              <span className="text-slate-300 cursor-default">Facebook</span>
             </div>
           </div>
         </div>

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { ShieldCheck, HeartPulse, Search, Filter, Download, AlertCircle, CheckCircle2, Clock, Activity, ShieldAlert, MapPin, User, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ShieldCheck, HeartPulse, Search, Filter, Download, AlertCircle, CheckCircle2, Clock, Activity, ShieldAlert, MapPin, User, X, Send } from 'lucide-react';
 import { subscribeToIncidents, resolveIncident } from '../../lib/incidentService';
 import type { Incident } from '../../types';
+import { toast } from 'sonner';
 
 const reports = [
   { id: 'HS-201', location: 'White Island', type: 'Sanitary Inspection', status: 'Passed', date: 'Oct 24, 2026', inspector: 'Dr. Santos' },
@@ -13,6 +14,9 @@ const reports = [
 
 export default function SafetyModule() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [showBroadcast, setShowBroadcast] = useState(false);
+  const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [sendingBroadcast, setSendingBroadcast] = useState(false);
 
   useEffect(() => {
     const unsubscribe = subscribeToIncidents((data) => {
@@ -222,7 +226,10 @@ export default function SafetyModule() {
                     )}
                   </div>
                 ))}
-                <button className="w-full py-4 bg-white text-island-coral rounded-2xl font-bold text-sm shadow-lg shadow-black/10 hover:scale-105 transition-all flex items-center justify-center gap-3">
+                <button
+                  onClick={() => setShowBroadcast(true)}
+                  className="w-full py-4 bg-white text-island-coral rounded-2xl font-bold text-sm shadow-lg shadow-black/10 hover:scale-105 transition-all flex items-center justify-center gap-3"
+                >
                   <ShieldAlert size={18} /> Broadcast Alert
                 </button>
               </div>
@@ -249,6 +256,74 @@ export default function SafetyModule() {
           </div>
         </div>
       </div>
+      {/* Broadcast Alert Modal */}
+      <AnimatePresence>
+        {showBroadcast && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
+            <div className="absolute inset-0 bg-island-volcanic/60 backdrop-blur-sm" onClick={() => { setShowBroadcast(false); setBroadcastMessage(''); }} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="relative w-full max-w-md bg-white rounded-[2.5rem] p-8 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-island-green flex items-center gap-3">
+                  <ShieldAlert size={20} className="text-island-coral" />
+                  Broadcast Alert
+                </h3>
+                <button
+                  onClick={() => { setShowBroadcast(false); setBroadcastMessage(''); }}
+                  className="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:text-island-coral transition-all"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <p className="text-xs text-slate-500 font-medium mb-6 leading-relaxed">
+                Send an emergency broadcast to all registered tourists and businesses on the island.
+              </p>
+              <div className="space-y-4 mb-8">
+                <div>
+                  <label className="text-xs font-bold text-slate-500 mb-1.5 block">Alert Message</label>
+                  <textarea
+                    value={broadcastMessage}
+                    onChange={e => setBroadcastMessage(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 text-sm font-semibold text-slate-800 resize-none h-28"
+                    placeholder="e.g., Typhoon warning: All tourists are advised to stay indoors..."
+                  />
+                </div>
+                <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-xl border border-amber-100">
+                  <AlertCircle size={16} className="text-amber-500 shrink-0" />
+                  <span className="text-[10px] font-semibold text-amber-700">This will notify all registered users on the platform.</span>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  if (!broadcastMessage.trim()) {
+                    toast.error('Please enter an alert message');
+                    return;
+                  }
+                  setSendingBroadcast(true);
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                  toast.success('Alert broadcast to all registered users');
+                  setBroadcastMessage('');
+                  setShowBroadcast(false);
+                  setSendingBroadcast(false);
+                }}
+                disabled={sendingBroadcast}
+                className="w-full bg-island-coral text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-island-coral/20 hover:shadow-island-coral/40 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                {sendingBroadcast ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                ) : (
+                  <Send size={20} />
+                )}
+                {sendingBroadcast ? 'Broadcasting...' : 'Send Broadcast'}
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Bed, 
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react';
 
 export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'mobile' }) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('stays');
   
   const tabs = [
@@ -77,7 +79,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
             </div>
           </div>
 
-          <button className="w-full bg-gradient-to-r from-tropic-emerald to-tropic-ocean text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
+          <button onClick={() => navigate(`/${activeTab === 'stays' ? 'stay' : activeTab === 'cars' ? 'rentals' : activeTab === 'things' ? 'locations' : 'stay'}`)} className="w-full bg-gradient-to-r from-tropic-emerald to-tropic-ocean text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
             <Search size={18} />
             Search Experiences
           </button>
@@ -158,7 +160,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
           </div>
         </div>
 
-        <button className="w-full lg:w-auto px-12 py-8 bg-island-volcanic text-white rounded-3xl font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-island-volcanic/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4">
+        <button onClick={() => navigate(`/${activeTab === 'stays' ? 'stay' : activeTab === 'cars' ? 'rentals' : activeTab === 'things' ? 'locations' : 'stay'}`)} className="w-full lg:w-auto px-12 py-8 bg-island-volcanic text-white rounded-3xl font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-island-volcanic/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4">
           <Search size={22} />
           Search
         </button>

@@ -23,7 +23,8 @@ import {
    Scan,
    ChevronRight,
    BarChart3,
-   X
+   X,
+   ArrowUpRight
 } from 'lucide-react';
 import { 
   PieChart, Pie, Cell, 
@@ -353,10 +354,17 @@ export default function GovernmentDashboard() {
           <SidebarItem icon={Settings} label="Settings" to="/government/settings" active={location.pathname.startsWith('/government/settings')} />
           <Link 
             to="/"
+            className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.75rem] text-xs font-semibold tracking-tight text-slate-400 bg-stone-50 hover:bg-emerald-50 hover:text-island-emerald transition-all duration-300 border border-transparent hover:border-emerald-100"
+          >
+            <ArrowUpRight size={22} strokeWidth={3} />
+            Back to Site
+          </Link>
+          <Link 
+            to="/"
             className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.75rem] text-xs font-semibold tracking-tight text-slate-400 bg-stone-50 hover:bg-rose-50 hover:text-island-coral transition-all duration-300 border border-transparent hover:border-rose-100"
           >
             <X size={22} strokeWidth={3} />
-            Terminate
+            Logout
           </Link>
         </div>
       </aside>

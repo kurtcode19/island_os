@@ -329,6 +329,20 @@ export default function MyBookingsView() {
                               )}
                               Pay Now
                             </button>
+                            <button
+                              onClick={async () => {
+                                if (!window.confirm('Cancel this booking?')) return;
+                                try {
+                                  await updateDoc(doc(db, 'bookings', booking.id), { status: 'cancelled' });
+                                } catch (error) {
+                                  handleFirestoreError(error, OperationType.UPDATE, `bookings/${booking.id}`);
+                                }
+                              }}
+                              className="flex items-center justify-center gap-2 py-4 bg-white border-2 border-rose-200 text-island-coral rounded-[2rem] text-[10px] font-bold tracking-wider hover:bg-rose-50 transition-all"
+                            >
+                              <XCircle size={16} strokeWidth={3} />
+                              Cancel Booking
+                            </button>
                             <p className="text-[10px] text-center text-slate-400 font-semibold tracking-tight opacity-60">Demo payment simulation</p>
                           </>
                         )}

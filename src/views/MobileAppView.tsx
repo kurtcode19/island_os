@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Compass,
   User,
-  QrCode,
   Heart,
   Star,
   NavigationArrow,
@@ -29,7 +28,10 @@ import {
   Sun,
   Moon
 } from '@phosphor-icons/react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { locations } from '../data/locations';
+import { businesses } from '../data/businesses';
+import { transportOptions, schedules } from '../data/transport';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp, onSnapshot, query, where, orderBy, doc, updateDoc } from 'firebase/firestore';
@@ -116,6 +118,20 @@ export default function MobileAppView() {
   const [guests, setGuests] = useState(2);
   const [addons, setAddons] = useState({ breakfast: false, lateCheckin: false });
   const [selectedImage, setSelectedImage] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredSpots = spots.filter(s =>
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const filteredAccommodations = accommodations.filter(a =>
+    a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    a.type.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const filteredVehicles = rentalVehicles.filter(v =>
+    v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    v.type.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const isDesktop = window.innerWidth >= 768;
 
@@ -123,7 +139,7 @@ export default function MobileAppView() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    if (tab && ['explore', 'map', 'rentals', 'services', 'pass', 'profile'].includes(tab)) {
+    if (tab && ['explore', 'map', 'rentals', 'services', 'pass', 'profile', 'shops', 'transport', 'planner'].includes(tab)) {
       setActiveTab(tab);
       setShowOnboarding(false);
     } else if (!tab) {
@@ -250,7 +266,7 @@ export default function MobileAppView() {
 
               <div className="px-6 pt-6 space-y-8 pb-40">
                 {/* Search Bar (replaces old SearchWidget) */}
-                <SearchBar />
+                <SearchBar onSearch={setSearchQuery} onFilter={() => {}} />
 
                 {/* Category Pills */}
                 <CategoryPills
@@ -276,7 +292,7 @@ export default function MobileAppView() {
                   <div className="space-y-8">
                     {/* Spot Cards */}
                     {(selectedCategory === 'All' || ['Heritage', 'Nature'].includes(selectedCategory)) && 
-                      spots.filter(s => selectedCategory === 'All' || s.category === selectedCategory).map((spot) => (
+                      filteredSpots.filter(s => selectedCategory === 'All' || s.category === selectedCategory).map((spot) => (
                         <motion.div 
                           key={`spot-${spot.id}`}
                           whileTap={{ scale: 0.98 }}
@@ -308,7 +324,7 @@ export default function MobileAppView() {
 
                     {/* Stay Cards */}
                     {(selectedCategory === 'All' || selectedCategory === 'Stay') && 
-                      accommodations.map((stay) => (
+                      filteredAccommodations.map((stay) => (
                         <motion.div 
                           key={`stay-${stay.id}`}
                           whileTap={{ scale: 0.98 }}
@@ -348,7 +364,7 @@ export default function MobileAppView() {
                   </div>
                   <div className="space-y-8">
                     {(selectedCategory === 'All' || selectedCategory === 'Rentals') && 
-                      rentalVehicles.map((vehicle) => (
+                      filteredVehicles.map((vehicle) => (
                         <motion.div
                           key={vehicle.id}
                           whileTap={{ scale: 0.98 }}
@@ -467,6 +483,128 @@ export default function MobileAppView() {
             </motion.div>
           )}
 
+          {activeTab === 'shops' && (
+            <motion.div
+              key="shops"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="px-6 pb-40"
+            >
+              <div className="pt-6 mb-6">
+                <Header
+                  title="Local&#10;Shops"
+                  subtitle="Support Local"
+                  showNotification
+                />
+              </div>
+              <div className="space-y-5">
+                {businesses.filter(b => b.businessType === 'shop').map((shop, idx) => (
+                  <motion.div
+                    key={shop.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="bg-white rounded-[24px] border border-gray-100 overflow-hidden shadow-[var(--shadow-sm)]"
+                    onClick={() => navigate('/shops')}
+                  >
+                    <div className="p-5">
+                      <h3 className="text-xl font-black text-tropic-green tracking-tighter mb-2">{shop.name}</h3>
+                      <p className="text-xs text-tropic-green/50 font-medium mb-3">{shop.location} • {shop.category}</p>
+                      <p className="text-xs text-tropic-green/60 font-medium leading-relaxed">{shop.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'transport' && (
+            <motion.div
+              key="transport"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="px-6 pb-40"
+            >
+              <div className="pt-6 mb-6">
+                <Header
+                  title="Getting&#10;Around"
+                  subtitle="Island Transport"
+                  showNotification
+                />
+              </div>
+              <div className="space-y-4">
+                {transportOptions.map((option, idx) => (
+                  <motion.div
+                    key={option.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="bg-white rounded-[24px] border border-gray-100 overflow-hidden shadow-[var(--shadow-sm)]"
+                    onClick={() => navigate('/transport')}
+                  >
+                    <div className="p-5">
+                      <h3 className="text-xl font-black text-tropic-green tracking-tighter mb-2">{option.title}</h3>
+                      <p className="text-xs text-tropic-green/50 font-medium mb-1">{option.provider} • {option.route}</p>
+                      <span className="text-lg font-black text-tropic-emerald">₱{option.price.toLocaleString()}</span>
+                      <span className="text-xs text-tropic-green/40 font-medium ml-1">/ {option.duration}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'planner' && (
+            <motion.div
+              key="planner"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="px-6 pb-40"
+            >
+              <div className="pt-6 mb-6">
+                <Header
+                  title="AI Trip&#10;Planner"
+                  subtitle="Powered by Gemini"
+                  showNotification={false}
+                />
+              </div>
+              <div className="bg-gradient-to-br from-tropic-green to-tropic-deep rounded-[3rem] p-8 text-white text-center shadow-2xl mb-8">
+                <Sparkle size={48} className="mx-auto mb-6 text-tropic-sunset" weight="fill" />
+                <h3 className="text-2xl font-black tracking-tighter mb-3">Plan with AI</h3>
+                <p className="text-sm text-white/70 font-medium leading-relaxed mb-8">
+                  Tell us your preferences and our AI will craft a personalized Catarman itinerary.
+                </p>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate('/planner')}
+                  className="w-full bg-white text-tropic-green py-5 rounded-2xl font-bold text-sm shadow-xl flex items-center justify-center gap-3"
+                >
+                  <Sparkle size={20} weight="fill" />
+                  Start Planning
+                </motion.button>
+              </div>
+              <div className="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-[var(--shadow-sm)]">
+                <h4 className="text-lg font-black text-tropic-green tracking-tighter mb-4">How it works</h4>
+                <div className="space-y-4">
+                  {[
+                    { step: '1', text: 'Tell us your travel dates and group size' },
+                    { step: '2', text: 'Choose your interests and travel style' },
+                    { step: '3', text: 'AI generates a day-by-day itinerary' },
+                    { step: '4', text: 'Book activities directly from the plan' },
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-4">
+                      <div className="w-8 h-8 rounded-full bg-tropic-emerald/10 text-tropic-emerald font-black text-xs flex items-center justify-center shrink-0">
+                        {item.step}
+                      </div>
+                      <span className="text-xs font-semibold text-tropic-green/70">{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {activeTab === 'pass' && (
             <motion.div 
               key="pass"
@@ -487,7 +625,14 @@ export default function MobileAppView() {
                 <div className="absolute top-8 right-8 w-8 h-8 border-t-4 border-r-4 border-tropic-emerald rounded-tr-xl"></div>
                 <div className="absolute bottom-8 left-8 w-8 h-8 border-b-4 border-l-4 border-tropic-emerald rounded-bl-xl"></div>
                 <div className="absolute bottom-8 right-8 w-8 h-8 border-b-4 border-r-4 border-tropic-emerald rounded-br-xl"></div>
-                <QrCode size={200} weight='thin' className="text-tropic-green" />
+                <QRCodeCanvas
+                  value={user?.uid ? `islandos://pass/${user.uid}` : 'islandos://pass/guest'}
+                  size={200}
+                  bgColor="#ffffff"
+                  fgColor="#064E3B"
+                  level="M"
+                  includeMargin
+                />
               </div>
 
               <div className="w-full bg-gradient-to-br from-tropic-green to-tropic-deep p-10 rounded-[3.5rem] text-white shadow-2xl relative border border-white/10 overflow-hidden">
@@ -506,7 +651,7 @@ export default function MobileAppView() {
                 <div className="flex justify-between items-end relative z-10">
                   <div className="space-y-1">
                     <span className="block text-[10px] font-semibold text-white/40 tracking-tight">Pass ID</span>
-                    <span className="font-mono text-xs font-black tracking-widest text-tropic-sunset">TRV-P-2026-001</span>
+                    <span className="font-mono text-xs font-black tracking-widest text-tropic-sunset">TRV-P-{user?.uid?.slice(-6).toUpperCase() || 'GUEST'}</span>
                   </div>
                   <div className="px-5 py-2 bg-gradient-to-r from-tropic-sunset to-tropic-coral text-white rounded-full text-[10px] font-bold tracking-wider">
                     Active

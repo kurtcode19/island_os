@@ -32,8 +32,8 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { StatCard } from '../components/shared/StatCard';
 import { SidebarItem } from '../components/shared/SidebarItem';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { doc, getDoc, collection, addDoc, serverTimestamp, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../firebase';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
 
@@ -84,6 +84,38 @@ export default function BusinessDashboard() {
     loadBusinessType();
   }, [profile?.businessId]);
 
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [previousBookingIds, setPreviousBookingIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!profile?.businessId) return;
+
+    const q = query(
+      collection(db, 'bookings'),
+      where('businessId', '==', profile.businessId),
+      where('status', '==', 'pending'),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const currentIds = new Set(snapshot.docs.map(d => d.id));
+      setUnreadCount(currentIds.size);
+
+      snapshot.docChanges().forEach((change: any) => {
+        if (change.type === 'added' && previousBookingIds.size > 0 && !previousBookingIds.has(change.doc.id)) {
+          const data = change.doc.data();
+          toast.success(
+            `New booking from ${data.touristName || 'a guest'} for ${data.serviceName || 'a service'}`,
+            { duration: 5000 }
+          );
+        }
+      });
+      setPreviousBookingIds(currentIds);
+    });
+
+    return () => unsubscribe();
+  }, [profile?.businessId]);
+
   const config = businessType ? BUSINESS_TYPE_CONFIGS[businessType] : null;
   const modules = config?.modules || ['analytics', 'bookings', 'inventory', 'tours', 'reviews', 'checkin'];
 
@@ -103,15 +135,29 @@ export default function BusinessDashboard() {
   const [manualAmount, setManualAmount] = useState('');
   const [manualProduct, setManualProduct] = useState('');
 
-  const handleManualEarningsSubmit = () => {
+  const handleManualEarningsSubmit = async () => {
     if (!manualAmount || !manualProduct) {
       toast.error('Please fill in all fields');
       return;
     }
-    toast.success(`₱${Number(manualAmount).toLocaleString()} recorded for ${manualProduct}`);
-    setManualAmount('');
-    setManualProduct('');
-    setShowManualEarnings(false);
+    if (!profile?.businessId) {
+      toast.error('No business ID found');
+      return;
+    }
+    try {
+      await addDoc(collection(db, 'manual_earnings'), {
+        businessId: profile.businessId,
+        product: manualProduct,
+        amount: Number(manualAmount),
+        recordedAt: serverTimestamp(),
+      });
+      toast.success(`₱${Number(manualAmount).toLocaleString()} recorded for ${manualProduct}`);
+      setManualAmount('');
+      setManualProduct('');
+      setShowManualEarnings(false);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'manual_earnings');
+    }
   };
 
   const AnalyticsHome = () => (
@@ -272,12 +318,19 @@ export default function BusinessDashboard() {
         
         <div className="p-10 border-t-2 border-stone-50 space-y-4">
           <SidebarItem icon={Settings} label="Settings" to="/business/settings" active={location.pathname.startsWith('/business/settings')} />
+          <Link
+            to="/"
+            className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.75rem] text-xs font-semibold tracking-tight text-slate-400 bg-stone-50 hover:bg-emerald-50 hover:text-island-emerald transition-all duration-300 border border-transparent hover:border-emerald-100"
+          >
+            <ArrowUpRight size={22} strokeWidth={3} />
+            Back to Site
+          </Link>
           <button 
             onClick={() => logout()}
             className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.75rem] text-xs font-semibold tracking-tight text-slate-400 bg-stone-50 hover:bg-rose-50 hover:text-island-coral transition-all duration-300 border border-transparent hover:border-rose-100"
           >
             <LogOut size={22} strokeWidth={3} />
-            Terminate
+            Logout
           </button>
         </div>
       </aside>
@@ -298,7 +351,11 @@ export default function BusinessDashboard() {
               </div>
               <button className="w-14 h-14 bg-white border-2 border-emerald-50 rounded-2xl text-island-volcanic flex items-center justify-center relative shadow-2xl hover:bg-emerald-50 active:scale-90 transition-all group shrink-0">
                 <Bell size={24} strokeWidth={2.5} className="group-hover:text-island-emerald transition-colors" />
-                <span className="absolute top-3.5 right-3.5 w-3 h-3 bg-island-coral rounded-full border-2 border-white ring-4 ring-rose-500/10"></span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[22px] h-[22px] bg-island-coral text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1.5 border-2 border-white shadow-lg">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </button>
             </div>
           </div>

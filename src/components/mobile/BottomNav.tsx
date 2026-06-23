@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Compass, MapPin, CreditCard, User, Motorcycle } from '@phosphor-icons/react';
+import { Compass, MapPin, CreditCard, User, Motorcycle, Sparkle, ShoppingBag, Anchor } from '@phosphor-icons/react';
 
 interface BottomNavProps {
   activeTab: string;
@@ -9,16 +9,19 @@ interface BottomNavProps {
 const navItems = [
   { id: 'explore', icon: Compass },
   { id: 'map', icon: MapPin },
+  { id: 'shops', icon: ShoppingBag },
+  { id: 'transport', icon: Anchor },
   { id: 'rentals', icon: Motorcycle },
+  { id: 'planner', icon: Sparkle },
   { id: 'pass', icon: CreditCard },
   { id: 'profile', icon: User },
 ];
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
-    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-md">
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[96%] max-w-lg">
       <nav
-        className="bg-white/80 backdrop-blur-md rounded-[28px] p-2 flex items-center justify-around shadow-[var(--shadow-lg)] border border-white/20"
+        className="bg-white/80 backdrop-blur-md rounded-[28px] p-1.5 flex items-center justify-around shadow-[var(--shadow-lg)] border border-white/20"
         aria-label="Main navigation"
       >
         {navItems.map((item) => (
@@ -26,7 +29,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
             key={item.id}
             onClick={() => onTabChange(item.id)}
             aria-label={item.id}
-            className="relative p-4 group"
+            className="relative p-2.5 group"
           >
             {activeTab === item.id && (
               <motion.div
@@ -41,7 +44,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
                 activeTab === item.id ? 'text-white' : 'text-[var(--muted)]/50 group-hover:text-[var(--muted)]'
               }`}
             >
-              <item.icon size={22} weight={activeTab === item.id ? 'bold' : 'regular'} />
+              <item.icon size={18} weight={activeTab === item.id ? 'bold' : 'regular'} />
             </motion.div>
           </button>
         ))}
