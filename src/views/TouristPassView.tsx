@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { QRCodeSVG } from 'qrcode.react';
-import { ShieldCheck, Ticket, MapPin, Calendar, User, Info, CheckCircle2, ArrowRight, Smartphone, Download, Sparkles } from 'lucide-react';
+import { UilShieldCheck, UilTicket, UilMapMarker, UilCalendar, UilUser, UilInfoCircle, UilCheckCircle, UilArrowRight, UilMobileAndroid, UilDownloadAlt, UilStar } from '@/icons';
 import { useAuth } from '../context/AuthContext';
 import { subscribeToPass } from '../lib/passService';
 import type { TouristPass } from '../types';
@@ -69,11 +69,11 @@ export default function TouristPassView() {
             >
               <div className="volcanic-gradient rounded-[3rem] p-12 text-white text-center relative overflow-hidden mb-10 border border-white/10">
                 <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
-                  <Sparkles size={150} className="translate-x-10 -translate-y-10 rotate-12" />
+                  <UilStar size="150" className="translate-x-10 -translate-y-10 rotate-12" />
                 </div>
                 <div className="relative z-10">
                   <div className="w-24 h-24 bg-white/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 backdrop-blur-3xl border border-white/20 shadow-2xl">
-                    <Ticket size={48} strokeWidth={2} />
+                    <UilTicket size="48" />
                   </div>
                   <h3 className="text-3xl font-black tracking-tighter">Catarman <br /> <span className="text-island-emerald">Pass.</span></h3>
                   <p className="text-white/40 text-[10px] font-bold tracking-wider mt-3">Verified Pass</p>
@@ -93,11 +93,11 @@ export default function TouristPassView() {
                       />
                     ) : (
                       <div className="w-[200px] h-[200px] flex items-center justify-center text-slate-300">
-                        <Info size={64} strokeWidth={1} />
+                        <UilInfoCircle size="64" />
                       </div>
                     )}
                     <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
-                      <ShieldCheck size={120} />
+                      <UilShieldCheck size="120" />
                     </div>
                   </div>
                 </div>
@@ -106,7 +106,7 @@ export default function TouristPassView() {
                   <div className="flex justify-between items-center py-5 border-b-2 border-stone-50">
                     <div className="flex items-center gap-4">
                       <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center text-island-emerald">
-                        <User size={18} strokeWidth={3} />
+                        <UilUser size="18" />
                       </div>
                       <span className="text-sm font-black text-island-volcanic">
                         {pass?.displayName || user?.displayName || 'Guest'}
@@ -117,7 +117,7 @@ export default function TouristPassView() {
                   <div className="flex justify-between items-center py-5 border-b-2 border-stone-50">
                     <div className="flex items-center gap-4">
                       <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center text-island-emerald">
-                        <Calendar size={18} strokeWidth={3} />
+                        <UilCalendar size="18" />
                       </div>
                       <span className="text-sm font-black text-island-volcanic">
                         {pass ? formatDate(pass.expiresAt) : '—'}
@@ -128,7 +128,7 @@ export default function TouristPassView() {
                   <div className="flex justify-between items-center py-5 border-b-2 border-stone-50">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center text-island-emerald">
-                        <Info size={18} strokeWidth={3} />
+                        <UilInfoCircle size="18" />
                       </div>
                       <div>
                         <span className="text-xs font-bold text-island-volcanic block leading-tight">
@@ -158,7 +158,7 @@ export default function TouristPassView() {
                   }}
                   className="btn-volcanic w-full py-6 rounded-[2rem]"
                 >
-                  <Download size={20} strokeWidth={3} /> Export Pass
+                  <UilDownloadAlt size="20" /> Export Pass
                 </button>
               </div>
             </motion.div>
@@ -175,14 +175,14 @@ export default function TouristPassView() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {[
-                  { title: 'Quick Entry', desc: 'Skip the lines at all major heritage and nature attractions.', icon: CheckCircle2, color: 'bg-emerald-50 text-island-emerald' },
-                  { title: 'Transit Access', desc: 'Link your ferry and transport bookings for seamless travel.', icon: Ticket, color: 'bg-blue-50 text-blue-500' },
-                  { title: 'Safety First', desc: 'Integrated health and safety info for your peace of mind.', icon: ShieldCheck, color: 'bg-rose-50 text-island-coral' },
-                  { title: 'Local Perks', desc: 'Exclusive discounts at partner shops and marketplaces.', icon: MapPin, color: 'bg-amber-50 text-island-sunset' },
+                  { title: 'Quick Entry', desc: 'Skip the lines at all major heritage and nature attractions.', icon: UilCheckCircle, color: 'bg-emerald-50 text-island-emerald' },
+                  { title: 'Transit Access', desc: 'Link your ferry and transport bookings for seamless travel.', icon: UilTicket, color: 'bg-blue-50 text-blue-500' },
+                  { title: 'Safety First', desc: 'Integrated health and safety info for your peace of mind.', icon: UilShieldCheck, color: 'bg-rose-50 text-island-coral' },
+                  { title: 'Local Perks', desc: 'Exclusive discounts at partner shops and marketplaces.', icon: UilMapMarker, color: 'bg-amber-50 text-island-sunset' },
                 ].map((benefit, idx) => (
                   <div key={idx} className="bg-white p-10 rounded-[3rem] border-2 border-slate-100 shadow-xl flex flex-col gap-8 group hover:shadow-2xl transition-all duration-500">
                     <div className={`w-16 h-16 rounded-2xl ${benefit.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-                      <benefit.icon size={32} strokeWidth={2.5} />
+                      <benefit.icon size="32" />
                     </div>
                     <div>
                       <h4 className="text-2xl font-black text-island-volcanic mb-3 tracking-tight">{benefit.title}</h4>
@@ -195,7 +195,7 @@ export default function TouristPassView() {
 
             <div className="bg-white p-16 rounded-[4rem] border-2 border-slate-100 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 opacity-5 pointer-events-none">
-                <Smartphone size={300} className="translate-x-10 -translate-y-10" />
+                <UilMobileAndroid size="300" className="translate-x-10 -translate-y-10" />
               </div>
               <h3 className="text-4xl font-black text-island-volcanic mb-12 tracking-tighter">How It Works.</h3>
               <div className="space-y-12">
@@ -221,7 +221,7 @@ export default function TouristPassView() {
             <div className="emerald-gradient p-16 rounded-[4.5rem] text-white shadow-3xl border border-white/10 flex flex-col md:flex-row items-center gap-12 relative overflow-hidden">
                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_70%)]"></div>
               <div className="w-24 h-24 rounded-3xl bg-white/20 backdrop-blur-3xl flex items-center justify-center text-white shrink-0 shadow-2xl border border-white/20">
-                <Smartphone size={48} strokeWidth={2} />
+                <UilMobileAndroid size="48" />
               </div>
               <div className="flex-1 text-center md:text-left relative z-10">
                 <h3 className="text-4xl font-black mb-3 tracking-tighter leading-none">Mobile First.</h3>

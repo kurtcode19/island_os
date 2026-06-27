@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Bike, Car, Truck, Store, MapPin, Clock, Users, CheckCircle2, X, Calendar, RefreshCw, ArrowRight, Star, Phone } from 'lucide-react';
+import { UilCar, UilTruck, UilStore, UilMapMarker, UilClock, UilUsersAlt, UilCheckCircle, UilTimes, UilCalendar, UilRefresh, UilArrowRight, UilStar, UilPhone } from '@/icons';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from '../context/AuthContext';
@@ -71,7 +71,7 @@ export default function RentalsView() {
                   <div className="absolute inset-0 p-8 flex flex-col justify-end">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center text-white">
-                        <Store size={24} />
+                        <UilStore size="24" />
                       </div>
                       <div>
                         <h2 className="text-3xl font-black text-white tracking-tighter">{merchant.name}</h2>
@@ -79,9 +79,9 @@ export default function RentalsView() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4 text-xs text-white/60">
-                      <span className="flex items-center gap-1"><MapPin size={12} /> {merchant.location}</span>
-                      <span className="flex items-center gap-1"><Star size={12} className="text-amber-400" fill="#FBBF24" /> {merchant.rating}</span>
-                      <span className="flex items-center gap-1"><Phone size={12} /> {merchant.contact}</span>
+                      <span className="flex items-center gap-1"><UilMapMarker size="12" /> {merchant.location}</span>
+                      <span className="flex items-center gap-1"><UilStar size="12" className="text-amber-400" /> {merchant.rating}</span>
+                      <span className="flex items-center gap-1"><UilPhone size="12" /> {merchant.contact}</span>
                     </div>
                   </div>
                 </div>
@@ -130,7 +130,7 @@ export default function RentalsView() {
                             {vehicle.type} • {vehicle.transmission}
                           </div>
                           <div className="flex gap-4 text-xs text-slate-500 font-medium">
-                            <span className="flex items-center gap-1.5"><Users size={14} /> {vehicle.capacity} seats</span>
+                            <span className="flex items-center gap-1.5"><UilUsersAlt size="14" /> {vehicle.capacity} seats</span>
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {vehicle.features.map((f, i) => (
@@ -161,7 +161,7 @@ export default function RentalsView() {
             onClick={(e) => e.stopPropagation()}
           >
             <button onClick={() => setSelectedVehicle(null)} className="absolute top-6 right-6 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">
-              <X size={18} />
+              <UilTimes size="18" />
             </button>
 
             <div className="flex items-center gap-4 mb-8">
@@ -177,13 +177,13 @@ export default function RentalsView() {
             <div className="space-y-6">
               <div className="flex gap-4">
                 <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 rounded-2xl text-xs font-semibold text-slate-600">
-                  <Users size={16} /> {selectedVehicle.capacity} seats
+                  <UilUsersAlt size="16" /> {selectedVehicle.capacity} seats
                 </div>
                 <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 rounded-2xl text-xs font-semibold text-slate-600">
-                  <Clock size={16} /> {selectedVehicle.rateUnit}
+                  <UilClock size="16" /> {selectedVehicle.rateUnit}
                 </div>
                 <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 rounded-2xl text-xs font-semibold text-slate-600">
-                  <CheckCircle2 size={16} /> {selectedVehicle.available} left
+                  <UilCheckCircle size="16" /> {selectedVehicle.available} left
                 </div>
               </div>
 
@@ -192,7 +192,7 @@ export default function RentalsView() {
                 <div className="grid grid-cols-2 gap-2">
                   {selectedVehicle.features.map((f: string, i: number) => (
                     <div key={i} className="flex items-center gap-2 px-3 py-2 bg-emerald-50 rounded-xl">
-                      <CheckCircle2 size={12} className="text-island-emerald shrink-0" />
+                      <UilCheckCircle size="12" className="text-island-emerald shrink-0" />
                       <span className="text-[11px] font-semibold text-slate-600">{f}</span>
                     </div>
                   ))}
@@ -226,11 +226,11 @@ export default function RentalsView() {
                 className="w-full bg-island-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl hover:shadow-lg active:scale-95 transition-all disabled:opacity-50"
               >
                 {bookingStatus === 'success' ? (
-                  <><CheckCircle2 size={20} className="inline mr-2" /> Booked!</>
+                  <><UilCheckCircle size="20" className="inline mr-2" /> Booked!</>
                 ) : bookingStatus === 'loading' ? (
-                  <><RefreshCw size={20} className="inline mr-2 animate-spin" /> Booking...</>
+                  <><UilRefresh size="20" className="inline mr-2 animate-spin" /> Booking...</>
                 ) : (
-                  <><ArrowRight size={20} className="inline mr-2" /> Book Now — ₱{(selectedVehicle.rate * rentDays).toLocaleString()}</>
+                  <><UilArrowRight size="20" className="inline mr-2" /> Book Now — ₱{(selectedVehicle.rate * rentDays).toLocaleString()}</>
                 )}
               </button>
             </div>

@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { ArrowLeft } from '@phosphor-icons/react';
+import { UilArrowLeft } from '@/icons';
 
 interface OnboardingHeroProps {
   imageUrl: string;
@@ -52,7 +52,7 @@ export function OnboardingHero({ imageUrl, title, subtitle, onExplore, onBack }:
               aria-label="Go back"
               className="w-11 h-11 rounded-full bg-white/15 backdrop-blur-xl border border-white/25 flex items-center justify-center text-white hover:bg-white/25 transition-all shrink-0"
             >
-              <ArrowLeft size={20} />
+              <UilArrowLeft size="20" />
             </button>
           )}
           <button

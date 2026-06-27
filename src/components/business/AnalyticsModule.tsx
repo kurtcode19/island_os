@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { BarChart3, TrendingUp, Users, CreditCard, Calendar, ArrowUpRight, ArrowDownRight, Download, Filter } from 'lucide-react';
+import { UilChartBar as BarChart3, UilChartGrowth as TrendingUp, UilUsersAlt as Users, UilCreditCard as CreditCard, UilCalendar as Calendar, UilArrowUpRight as ArrowUpRight, UilArrowDownRight as ArrowDownRight, UilDownloadAlt as Download, UilFilter as Filter } from '@/icons';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell, PieChart, Pie
@@ -36,10 +36,10 @@ export default function AnalyticsModule() {
         </div>
         <div className="flex gap-4 w-full md:w-auto">
           <button className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
-            <Filter size={18} /> Filter
+            <Filter size="18" /> Filter
           </button>
           <button className="flex-1 md:flex-none px-6 py-3 btn-primary">
-            <Download size={18} /> Export Report
+            <Download size="18" /> Export Report
           </button>
         </div>
       </div>
@@ -61,10 +61,10 @@ export default function AnalyticsModule() {
           >
             <div className="flex justify-between items-start mb-6">
               <div className={`p-4 rounded-2xl bg-island-${stat.color}/10 text-island-${stat.color}`}>
-                <stat.icon size={24} />
+                <stat.icon size="24" />
               </div>
               <div className={`flex items-center gap-1 text-[10px] font-bold px-3 py-1.5 rounded-full ${stat.isPositive ? 'bg-island-emerald/10 text-island-emerald' : 'bg-island-coral/10 text-island-coral'}`}>
-                {stat.isPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                {stat.isPositive ? <ArrowUpRight size="14" /> : <ArrowDownRight size="14" />}
                 {stat.change}
               </div>
             </div>

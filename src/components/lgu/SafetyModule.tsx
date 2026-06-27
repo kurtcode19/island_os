@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShieldCheck, HeartPulse, Search, Filter, Download, AlertCircle, CheckCircle2, Clock, Activity, ShieldAlert, MapPin, User, X, Send } from 'lucide-react';
+import { UilShieldCheck as ShieldCheck, UilHeartbeat as HeartPulse, UilSearch as Search, UilFilter as Filter, UilDownloadAlt as Download, UilExclamationCircle as AlertCircle, UilCheckCircle as CheckCircle2, UilClock as Clock, UilHeartbeat as Activity, UilShieldExclamation as ShieldAlert, UilMapMarker as MapPin, UilUser as User, UilTimes as X, UilMessage as Send } from '@/icons';
 import { subscribeToIncidents, resolveIncident } from '../../lib/incidentService';
 import type { Incident } from '../../types';
 import { toast } from 'sonner';
@@ -46,10 +46,10 @@ export default function SafetyModule() {
         </div>
         <div className="flex gap-4 w-full md:w-auto">
           <button className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
-            <Download size={18} /> Export Reports
+            <Download size="18" /> Export Reports
           </button>
           <button className="flex-1 md:flex-none px-6 py-3 btn-primary">
-            <ShieldCheck size={18} /> New Inspection
+            <ShieldCheck size="18" /> New Inspection
           </button>
         </div>
       </div>
@@ -65,7 +65,7 @@ export default function SafetyModule() {
           <div key={idx} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <div className="flex justify-between items-start mb-6">
               <div className={`p-4 rounded-2xl bg-island-${stat.color}/10 text-island-${stat.color}`}>
-                <stat.icon size={24} />
+                <stat.icon size="24" />
               </div>
               <div className={`flex items-center gap-1 text-[10px] font-bold px-3 py-1.5 rounded-full ${stat.isPositive ? 'bg-island-emerald/10 text-island-emerald' : 'bg-island-coral/10 text-island-coral'}`}>
                 {stat.change}
@@ -107,7 +107,7 @@ export default function SafetyModule() {
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
                   incident.type === 'sos' ? 'bg-island-coral/20 text-island-coral' : 'bg-amber-500/20 text-amber-500'
                 }`}>
-                  {incident.type === 'sos' ? <AlertCircle size={24} /> : <ShieldAlert size={24} />}
+                  {incident.type === 'sos' ? <AlertCircle size="24" /> : <ShieldAlert size="24" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
@@ -129,11 +129,11 @@ export default function SafetyModule() {
                   <div className="flex items-center gap-4 text-xs text-slate-400">
                     {incident.lat !== 0 && (
                       <span className="flex items-center gap-1">
-                        <MapPin size={12} /> {incident.lat.toFixed(4)}, {incident.lng.toFixed(4)}
+                        <MapPin size="12" /> {incident.lat.toFixed(4)}, {incident.lng.toFixed(4)}
                       </span>
                     )}
                     <span className="flex items-center gap-1">
-                      <User size={12} /> {incident.touristUid?.substring(0, 8)}...
+                      <User size="12" /> {incident.touristUid?.substring(0, 8)}...
                     </span>
                   </div>
                 </div>
@@ -158,7 +158,7 @@ export default function SafetyModule() {
             <h3 className="text-2xl font-serif font-bold text-island-green italic">Inspection <span className="not-italic text-island-emerald">Reports</span></h3>
             <div className="flex gap-4">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size="16" />
                 <input 
                   type="text" 
                   placeholder="Search reports..." 
@@ -166,7 +166,7 @@ export default function SafetyModule() {
                 />
               </div>
               <button className="p-2 bg-slate-50 border border-slate-100 rounded-xl text-slate-600 hover:bg-slate-100 transition-all">
-                <Filter size={18} />
+                <Filter size="18" />
               </button>
             </div>
           </div>
@@ -175,7 +175,7 @@ export default function SafetyModule() {
               <div key={report.id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-slate-50/50 rounded-2xl border border-slate-50 hover:border-island-emerald/20 transition-all cursor-pointer group">
                 <div className="flex items-center gap-5 mb-4 md:mb-0">
                   <div className={`w-14 h-14 rounded-2xl bg-island-emerald/10 flex items-center justify-center text-island-emerald group-hover:bg-island-emerald/20 transition-colors`}>
-                    <ShieldCheck size={24} />
+                    <ShieldCheck size="24" />
                   </div>
                   <div>
                     <h4 className="font-bold text-island-green text-lg">{report.location}</h4>
@@ -216,7 +216,7 @@ export default function SafetyModule() {
                 {activeIncidents.slice(0, 3).map((inc) => (
                   <div key={inc.id} className="p-4 bg-white/10 rounded-2xl border border-white/10">
                     <div className="flex items-center gap-3 mb-2">
-                      {inc.type === 'sos' ? <AlertCircle size={18} /> : <ShieldAlert size={18} />}
+                      {inc.type === 'sos' ? <AlertCircle size="18" /> : <ShieldAlert size="18" />}
                       <span className="font-bold text-sm">{inc.type === 'sos' ? 'SOS Alert' : 'Report'}</span>
                       <span className="ml-auto text-[10px] text-white/60">{inc.touristName}</span>
                     </div>
@@ -230,7 +230,7 @@ export default function SafetyModule() {
                   onClick={() => setShowBroadcast(true)}
                   className="w-full py-4 bg-white text-island-coral rounded-2xl font-bold text-sm shadow-lg shadow-black/10 hover:scale-105 transition-all flex items-center justify-center gap-3"
                 >
-                  <ShieldAlert size={18} /> Broadcast Alert
+                  <ShieldAlert size="18" /> Broadcast Alert
                 </button>
               </div>
             </div>
@@ -269,14 +269,14 @@ export default function SafetyModule() {
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-island-green flex items-center gap-3">
-                  <ShieldAlert size={20} className="text-island-coral" />
+                  <ShieldAlert size="20" className="text-island-coral" />
                   Broadcast Alert
                 </h3>
                 <button
                   onClick={() => { setShowBroadcast(false); setBroadcastMessage(''); }}
                   className="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:text-island-coral transition-all"
                 >
-                  <X size={16} />
+                  <X size="16" />
                 </button>
               </div>
               <p className="text-xs text-slate-500 font-medium mb-6 leading-relaxed">
@@ -293,7 +293,7 @@ export default function SafetyModule() {
                   />
                 </div>
                 <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-xl border border-amber-100">
-                  <AlertCircle size={16} className="text-amber-500 shrink-0" />
+                  <AlertCircle size="16" className="text-amber-500 shrink-0" />
                   <span className="text-[10px] font-semibold text-amber-700">This will notify all registered users on the platform.</span>
                 </div>
               </div>
@@ -316,7 +316,7 @@ export default function SafetyModule() {
                 {sendingBroadcast ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
                 ) : (
-                  <Send size={20} />
+                  <Send size="20" />
                 )}
                 {sendingBroadcast ? 'Broadcasting...' : 'Send Broadcast'}
               </button>

@@ -11,7 +11,6 @@ import MobileAppView from './views/MobileAppView';
 import StayView from './views/StayView';
 import TransportView from './views/TransportView';
 import TouristPassView from './views/TouristPassView';
-import ShopsView from './views/ShopsView';
 import LocationsView from './views/LocationsView';
 import MyBookingsView from './views/MyBookingsView';
 import ClaimBusinessView from './views/ClaimBusinessView';
@@ -71,7 +70,6 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
                     <Route path="/how-it-works" element={<HowItWorksView />} />
                     <Route path="/stay" element={<StayView />} />
                     <Route path="/transport" element={<TransportView />} />
-                    <Route path="/shops" element={<ShopsView />} />
                     <Route path="/locations" element={<LocationsView />} />
                     <Route path="/rentals" element={<RentalsView />} />
                     <Route path="/planner" element={<TripPlannerView />} />

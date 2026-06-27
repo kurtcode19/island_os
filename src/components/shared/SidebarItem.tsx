@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom';
-import type { LucideIcon } from 'lucide-react';
-
 interface SidebarItemProps {
-  icon: LucideIcon;
+  icon: any;
   label: string;
   to: string;
   active?: boolean;
@@ -18,7 +16,7 @@ export function SidebarItem({ icon: Icon, label, to, active = false }: SidebarIt
           : 'text-island-green/40 bg-transparent hover:bg-emerald-50/50 hover:text-island-green'
       }`}
     >
-      <Icon size={22} strokeWidth={active ? 3 : 2.5} />
+      <Icon size="22" />
       {label}
     </Link>
   );

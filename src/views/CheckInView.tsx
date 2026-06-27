@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
-import { CheckCircle2, XCircle, User, MapPin, Calendar, Ship, ArrowLeft, RefreshCw } from 'lucide-react';
+import { UilCheckCircle, UilTimesCircle, UilUser, UilMapMarker, UilCalendar, UilShip, UilArrowLeft, UilRefresh } from '@/icons';
 import QRScanner from '../components/shared/QRScanner';
 import { verifyPass, getActiveBookingsForTourist, checkIn, departTourist } from '../lib/checkinService';
 import { useAuth } from '../context/AuthContext';
@@ -150,7 +150,7 @@ export default function CheckInView() {
             exit={{ opacity: 0 }}
             className="flex justify-center py-12"
           >
-            <RefreshCw size={32} className="animate-spin text-island-emerald" />
+            <UilRefresh size="32" className="animate-spin text-island-emerald" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -165,7 +165,7 @@ export default function CheckInView() {
           <div className="bg-white rounded-[3rem] border border-slate-100 p-10 shadow-sm">
             <div className="flex items-center gap-6 mb-8">
               <div className="w-16 h-16 rounded-full bg-island-emerald/10 flex items-center justify-center text-island-emerald">
-                <User size={32} strokeWidth={2.5} />
+                <UilUser size="32" />
               </div>
               <div>
                 <h3 className="text-2xl font-black text-island-volcanic tracking-tighter">{scannedPass.displayName}</h3>
@@ -192,13 +192,13 @@ export default function CheckInView() {
                   >
                     <div className="flex items-center gap-6">
                       <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-island-emerald shadow-sm">
-                        <MapPin size={24} strokeWidth={2.5} />
+                        <UilMapMarker size="24" />
                       </div>
                       <div>
                         <p className="text-lg font-black text-island-volcanic tracking-tight">{booking.serviceName}</p>
                         <div className="flex items-center gap-4 mt-1">
                           <span className="flex items-center gap-1 text-xs text-slate-400 font-medium">
-                            <Calendar size={12} /> {booking.date}
+                            <UilCalendar size="12" /> {booking.date}
                           </span>
                           <span className={`px-3 py-0.5 rounded-full text-[10px] font-bold ${
                             booking.status === 'confirmed' ? 'bg-island-emerald/10 text-island-emerald' :
@@ -219,15 +219,15 @@ export default function CheckInView() {
                           className="px-6 py-3 bg-island-emerald text-white rounded-2xl text-xs font-bold tracking-wider hover:bg-island-emerald/90 transition-all disabled:opacity-50 flex items-center gap-2"
                         >
                           {processingIds.has(booking.id) ? (
-                            <RefreshCw size={16} className="animate-spin" />
+                            <UilRefresh size="16" className="animate-spin" />
                           ) : (
-                            <><CheckCircle2 size={16} /> Check In</>
+                            <><UilCheckCircle size="16" /> Check In</>
                           )}
                         </button>
                       )}
                       {booking.status === 'checked_in' && (
                         <span className="px-4 py-2 bg-blue-50 text-blue-500 rounded-2xl text-xs font-bold flex items-center gap-1">
-                          <CheckCircle2 size={14} /> Checked In
+                          <UilCheckCircle size="14" /> Checked In
                         </span>
                       )}
                     </div>
@@ -245,9 +245,9 @@ export default function CheckInView() {
                     className="px-10 py-5 bg-island-coral text-white rounded-[2rem] text-sm font-bold tracking-wider hover:bg-island-coral/90 transition-all disabled:opacity-50 flex items-center gap-3 mx-auto"
                   >
                     {loading ? (
-                      <RefreshCw size={20} className="animate-spin" />
+                      <UilRefresh size="20" className="animate-spin" />
                     ) : (
-                      <><Ship size={20} /> Mark as Departed</>
+                      <><UilShip size="20" /> Mark as Departed</>
                     )}
                   </button>
                 ) : (
@@ -258,7 +258,7 @@ export default function CheckInView() {
 
             {error && (
               <div className="flex items-center gap-3 p-6 bg-island-coral/5 rounded-[2rem] border border-island-coral/10 mt-6">
-                <XCircle size={20} className="text-island-coral shrink-0" />
+                <UilTimesCircle size="20" className="text-island-coral shrink-0" />
                 <p className="text-island-coral text-sm font-medium">{error}</p>
               </div>
             )}
@@ -268,7 +268,7 @@ export default function CheckInView() {
             onClick={reset}
             className="flex items-center gap-3 px-8 py-4 bg-white border border-slate-100 rounded-2xl text-slate-500 font-bold text-sm hover:bg-slate-50 transition-all"
           >
-            <ArrowLeft size={20} /> Scan Another Pass
+            <UilArrowLeft size="20" /> Scan Another Pass
           </button>
         </motion.div>
       )}

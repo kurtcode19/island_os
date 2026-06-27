@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Star, Heart, ArrowLeft, MapPin, Clock, NavigationArrow, WifiHigh, Wind, Coffee, Sun } from '@phosphor-icons/react';
+import { UilStar, UilHeart, UilArrowLeft, UilMapMarker, UilClock, UilNavigator, UilWifi, UilWind, UilCoffee, UilSun } from '@/icons';
 
 interface DetailSpot {
   id: number;
@@ -48,20 +48,20 @@ export function DestinationDetail({ spot, images, onBack, onStartTrip }: Destina
             aria-label="Go back"
             className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center text-white border border-white/20 shadow-lg"
           >
-            <ArrowLeft size={20} />
+            <UilArrowLeft size="20" />
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.9 }}
             aria-label="Save to favorites"
             className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center text-white border border-white/20 shadow-lg hover:bg-rose-400/50 transition-colors"
           >
-            <Heart size={18} />
+            <UilHeart size="18" />
           </motion.button>
         </div>
 
         <div className="absolute bottom-5 left-5">
           <div className="flex items-center gap-1.5 text-white/80 text-[10px] font-semibold uppercase tracking-widest mb-1">
-            <MapPin size={12} />
+            <UilMapMarker size="12" />
             <span>{spot.category || 'Destination'}</span>
           </div>
           <h2 className="text-[28px] font-black text-white tracking-tighter leading-tight">{spot.name}</h2>
@@ -81,15 +81,15 @@ export function DestinationDetail({ spot, images, onBack, onStartTrip }: Destina
         {/* Stats Row */}
         <div className="flex gap-3 mb-6 pb-5 border-b border-gray-100">
           <div className="flex items-center gap-1.5 px-3 py-2 bg-[#F6F7F8] rounded-2xl">
-            <Clock size={14} className="text-[var(--accent-start)]" />
+            <UilClock size="14" className="text-[var(--accent-start)]" />
             <span className="text-[10px] font-semibold text-[var(--text)]">2-3 hrs</span>
           </div>
           <div className="flex items-center gap-1.5 px-3 py-2 bg-[#F6F7F8] rounded-2xl">
-            <NavigationArrow size={14} className="text-[var(--accent-end)]" />
+            <UilNavigator size="14" className="text-[var(--accent-end)]" />
             <span className="text-[10px] font-semibold text-[var(--text)]">{spot.distance || '1.2 km'}</span>
           </div>
           <div className="flex items-center gap-1.5 px-3 py-2 bg-[#F6F7F8] rounded-2xl">
-            <Star size={14} className="text-amber-400" />
+            <UilStar size="14" className="text-amber-400" />
             <span className="text-[10px] font-semibold text-[var(--text)]">{spot.rating || '4.9'} (245)</span>
           </div>
         </div>
@@ -123,13 +123,13 @@ export function DestinationDetail({ spot, images, onBack, onStartTrip }: Destina
               <h4 className="text-base font-bold text-[var(--text)] tracking-tight mb-4">Amenities</h4>
               <div className="grid grid-cols-4 gap-3">
                 {[
-                  { icon: WifiHigh, label: 'Wi-Fi' },
-                  { icon: Wind, label: 'AC' },
-                  { icon: Coffee, label: 'Breakfast' },
-                  { icon: Sun, label: 'Pool' },
+                  { icon: UilWifi, label: 'Wi-Fi' },
+                  { icon: UilWind, label: 'AC' },
+                  { icon: UilCoffee, label: 'Breakfast' },
+                  { icon: UilSun, label: 'Pool' },
                 ].map((item, i) => (
                   <div key={i} className="flex flex-col items-center gap-1.5 p-3 bg-[#F6F7F8] rounded-2xl">
-                    <item.icon size={16} className="text-[var(--accent-start)]" />
+                    <item.icon size="16" className="text-[var(--accent-start)]" />
                     <span className="text-[9px] font-semibold text-[var(--muted)]">{item.label}</span>
                   </div>
                 ))}
@@ -167,7 +167,7 @@ export function DestinationDetail({ spot, images, onBack, onStartTrip }: Destina
             <div className="flex items-center justify-between mb-5">
               <h4 className="text-base font-bold text-[var(--text)] tracking-tight">Guest Reviews</h4>
               <div className="flex items-center gap-1.5 text-amber-400">
-                <Star size={14} fill="#FFD166" />
+                <UilStar size="14" />
                 <span className="text-sm font-bold text-[var(--text)]">4.9</span>
               </div>
             </div>
@@ -195,7 +195,7 @@ export function DestinationDetail({ spot, images, onBack, onStartTrip }: Destina
                     <span className="text-sm font-bold text-[var(--text)]">{review.name}</span>
                     <div className="flex gap-0.5">
                       {Array.from({ length: review.rating }).map((_, si) => (
-                        <Star key={si} size={10} fill="#FFD166" className="text-amber-400" />
+                        <UilStar key={si} size="10" className="text-amber-400" />
                       ))}
                     </div>
                   </div>

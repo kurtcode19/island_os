@@ -2,45 +2,44 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Sparkles, 
-  Calendar, 
-  Compass, 
-  Wallet, 
-  MapPin, 
-  Clock, 
-  CheckCircle2, 
-  RefreshCw,
-  Star,
-  Info,
-  Waves,
-  Palmtree,
-  Anchor,
-  ArrowLeft,
-  ChevronRight,
-  Mountain,
-  Coffee,
-  Sun,
-  Coins,
-  Gem,
-  ArrowRight,
-  Users,
-  Car,
-  Zap,
-  Camera,
-  Utensils,
-  Map as MapIcon,
-  Heart,
-  CloudRain,
-  ShieldCheck,
-  Ticket,
-  Send,
-  User as UserIcon,
-  X,
-  CreditCard,
-  ArrowUpRight,
-  ZapOff,
-  Dna
-} from 'lucide-react';
+  UilCalendar, 
+  UilCompass, 
+  UilWallet, 
+  UilMapMarker, 
+  UilClock, 
+  UilCheckCircle, 
+  UilRefresh,
+  UilStar,
+  UilInfoCircle,
+  UilWater,
+  UilMap,
+  UilAnchor,
+  UilArrowLeft,
+  UilAngleRightB,
+  UilMountains,
+  UilCoffee,
+  UilSun,
+  UilCoins,
+  UilDollarAlt,
+  UilArrowRight,
+  UilUsersAlt,
+  UilCar,
+  UilBolt,
+  UilCamera,
+  UilUtensils,
+  UilMapPin,
+  UilHeart,
+  UilCloudRain,
+  UilShieldCheck,
+  UilTicket,
+  UilShareAlt,
+  UilUser,
+  UilTimes,
+  UilCreditCard,
+  UilArrowUpRight,
+  UilBoltSlash,
+  UilDna
+} from '@/icons';
 import { GoogleGenAI, Type } from "@google/genai";
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -279,10 +278,10 @@ export default function TripPlannerView() {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       className={`flex gap-6 ${role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
     >
-      <div className={`w-14 h-14 rounded-3xl flex items-center justify-center shrink-0 shadow-2xl border-4 ${
-        role === 'ai' ? 'bg-island-volcanic text-white border-island-emerald/20' : 'bg-white text-island-emerald border-slate-50'
+      <div className={`shrink-0 ${
+        role === 'ai' ? '' : 'w-14 h-14 rounded-3xl flex items-center justify-center bg-white text-island-emerald border-slate-50 shadow-2xl border-4'
       }`}>
-        {role === 'ai' ? <Sparkles size={26} strokeWidth={2.5} /> : <UserIcon size={26} strokeWidth={2.5} />}
+        {role === 'ai' ? <img src="/images/mascot.png" alt="" className="w-20 h-20 object-contain" /> : <UilUser size="26" />}
       </div>
       <div className={`max-w-[80%] p-8 rounded-[3rem] text-sm font-bold leading-relaxed shadow-2xl relative ${
         role === 'ai' 
@@ -319,7 +318,7 @@ export default function TripPlannerView() {
         <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-500 ${
           active ? 'bg-island-emerald text-white scale-110 shadow-lg' : 'bg-slate-50 text-slate-400 group-hover:bg-island-volcanic group-hover:text-white'
         }`}>
-          {Icon && <Icon className="w-6 h-6 md:w-8 md:h-8" strokeWidth={2.5} />}
+          {Icon && <Icon className="w-6 h-6 md:w-8 md:h-8" />}
         </div>
         <div>
           <span className={`block font-black text-[10px] md:text-xs uppercase tracking-[0.2em] mb-1 md:mb-2 transition-colors ${active ? 'text-island-emerald' : 'text-island-volcanic'}`}>{label}</span>
@@ -343,7 +342,7 @@ export default function TripPlannerView() {
                 key={d} 
                 onClick={() => { setDays(d); setStep('group'); }} 
                 label={`${d} ${d === 1 ? 'Cycle' : 'Cycles'}`}
-                icon={Calendar}
+                icon={UilCalendar}
                 description={`${d} ${d === 1 ? 'Day' : 'Days'} in Catarman`}
               />
             ))}
@@ -361,10 +360,10 @@ export default function TripPlannerView() {
           {step === 'group' && (
             <SelectionGrid title="Exploration Unit">
               {[
-                { id: 'Solo', icon: Compass, label: 'Solo', desc: 'Traveling alone' },
-                { id: 'Couple', icon: Heart, label: 'Couple', desc: 'Romantic getaway' },
-                { id: 'Family', icon: Users, label: 'Family', desc: 'Fun for everyone' },
-                { id: 'Friends', icon: Users, label: 'Friends', desc: 'Travel with friends' }
+                { id: 'Solo', icon: UilCompass, label: 'Solo', desc: 'Traveling alone' },
+                { id: 'Couple', icon: UilHeart, label: 'Couple', desc: 'Romantic getaway' },
+                { id: 'Family', icon: UilUsersAlt, label: 'Family', desc: 'Fun for everyone' },
+                { id: 'Friends', icon: UilUsersAlt, label: 'Friends', desc: 'Travel with friends' }
               ].map(g => (
                 <ChoiceButton 
                   key={g.id} 
@@ -389,9 +388,9 @@ export default function TripPlannerView() {
           {step === 'transport' && (
             <SelectionGrid title="Mobility Method">
               {[
-                { id: 'No Vehicle', icon: MapPin, label: 'Public Transport', desc: 'Tricycles & jeepneys' },
-                { id: 'Self-Drive', icon: Car, label: 'Self-Drive', desc: 'Scooter or van rental' },
-                { id: 'Private Tour', icon: ShieldCheck, label: 'Guided Tour', desc: 'Local expert guide' }
+                { id: 'No Vehicle', icon: UilMapMarker, label: 'Public Transport', desc: 'Tricycles & jeepneys' },
+                { id: 'Self-Drive', icon: UilCar, label: 'Self-Drive', desc: 'Scooter or van rental' },
+                { id: 'Private Tour', icon: UilShieldCheck, label: 'Guided Tour', desc: 'Local expert guide' }
               ].map(t => (
                 <ChoiceButton 
                   key={t.id} 
@@ -416,9 +415,9 @@ export default function TripPlannerView() {
           {step === 'pace' && (
             <SelectionGrid title="Pace">
               {[
-                { id: 'Relaxed', icon: Sun, label: 'Relaxed', desc: 'At our own pace' },
-                { id: 'Moderate', icon: Clock, label: 'Moderate', desc: 'A good mix' },
-                { id: 'Packed', icon: Zap, label: 'Packed', desc: 'See it all' }
+                { id: 'Relaxed', icon: UilSun, label: 'Relaxed', desc: 'At our own pace' },
+                { id: 'Moderate', icon: UilClock, label: 'Moderate', desc: 'A good mix' },
+                { id: 'Packed', icon: UilBolt, label: 'Packed', desc: 'See it all' }
               ].map(p => (
                 <ChoiceButton 
                   key={p.id} 
@@ -444,10 +443,10 @@ export default function TripPlannerView() {
             <div className="space-y-8 md:px-14">
               <div className="grid grid-cols-2 gap-5 mt-6">
                 {[
-                  { id: 'Photography', icon: Camera, label: 'Photography' },
-                  { id: 'Hidden Gems', icon: Gem, label: 'Hidden Gems' },
-                  { id: 'Local Food', icon: Utensils, label: 'Local Food' },
-                  { id: 'Extreme Hiking', icon: Mountain, label: 'Hiking' }
+                  { id: 'Photography', icon: UilCamera, label: 'Photography' },
+                  { id: 'Hidden Gems', icon: UilDollarAlt, label: 'Hidden Gems' },
+                  { id: 'Local Food', icon: UilUtensils, label: 'Local Food' },
+                  { id: 'Extreme Hiking', icon: UilMountains, label: 'Hiking' }
                 ].map(i => (
                   <ChoiceButton 
                     key={i.id} 
@@ -464,7 +463,7 @@ export default function TripPlannerView() {
                 onClick={() => setStep('style')}
                 className="w-full bg-island-volcanic text-white py-8 rounded-[3rem] font-bold tracking-wider text-xs shadow-2xl flex items-center justify-center gap-5 hover:bg-island-emerald transition-all"
               >
-                Continue <ArrowRight size={22} strokeWidth={3} />
+                Continue <UilArrowRight size="22" />
               </motion.button>
             </div>
           )}
@@ -481,9 +480,9 @@ export default function TripPlannerView() {
           {step === 'style' && (
             <SelectionGrid title="Travel Style">
               {[
-                { id: 'Adventure', icon: Mountain, label: 'Adventure', desc: 'Thrills & exploration' },
-                { id: 'Relax', icon: Sun, label: 'Relaxation', desc: 'Rest & recharge' },
-                { id: 'Foodie', icon: Coffee, label: 'Foodie', desc: 'Local flavors' }
+                { id: 'Adventure', icon: UilMountains, label: 'Adventure', desc: 'Thrills & exploration' },
+                { id: 'Relax', icon: UilSun, label: 'Relaxation', desc: 'Rest & recharge' },
+                { id: 'Foodie', icon: UilCoffee, label: 'Foodie', desc: 'Local flavors' }
               ].map(s => (
                 <ChoiceButton 
                   key={s.id} 
@@ -508,9 +507,9 @@ export default function TripPlannerView() {
           {step === 'budget' && (
             <SelectionGrid title="Budget">
               {[
-                { id: 'Budget', icon: Coins, label: 'Budget-Friendly', desc: 'Great value' },
-                { id: 'Moderate', icon: Wallet, label: 'Mid-Range', desc: 'Comfortable' },
-                { id: 'Luxury', icon: Gem, label: 'Premium', desc: 'No limit' }
+                { id: 'Budget', icon: UilCoins, label: 'Budget-Friendly', desc: 'Great value' },
+                { id: 'Moderate', icon: UilWallet, label: 'Mid-Range', desc: 'Comfortable' },
+                { id: 'Luxury', icon: UilDollarAlt, label: 'Premium', desc: 'No limit' }
               ].map(b => (
                 <ChoiceButton 
                   key={b.id} 
@@ -531,7 +530,7 @@ export default function TripPlannerView() {
                 onClick={generateTrip}
                 className="w-full bg-island-emerald text-white py-10 rounded-[4rem] font-bold tracking-wider text-sm shadow-[0_40px_80px_-20px_rgba(16,185,129,0.4)] flex items-center justify-center gap-6"
               >
-                <Sparkles size={28} strokeWidth={3} /> Build My Itinerary
+                <img src="/images/mascot.png" alt="" className="w-14 h-14 object-contain" /> Build My Itinerary
               </motion.button>
             </div>
           )}
@@ -554,7 +553,7 @@ export default function TripPlannerView() {
         <header className="px-10 py-10 flex items-center justify-between bg-white/95 backdrop-blur-3xl sticky top-0 z-40">
           <div className="flex items-center gap-6">
             <button onClick={() => navigate(isMobile ? '/mobile' : '/')} className="w-14 h-14 bg-slate-50 hover:bg-slate-100 text-island-volcanic transition-all rounded-2xl flex items-center justify-center border-2 border-slate-100 active:scale-90">
-              <ArrowLeft size={24} strokeWidth={3} />
+              <UilArrowLeft size="24" />
             </button>
             <div>
               <h1 className="text-3xl font-black text-island-volcanic tracking-tighter uppercase italic italic-no leading-none">AI Planner</h1>
@@ -578,10 +577,10 @@ export default function TripPlannerView() {
             <div className="h-full flex flex-col items-center justify-center text-center space-y-12 px-12">
               <div className="relative">
                 <div className="w-40 h-40 bg-island-volcanic text-island-emerald rounded-[4rem] flex items-center justify-center animate-pulse shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] border-4 border-white/10">
-                  <Dna size={80} strokeWidth={2} className="animate-spin-slow" />
+                  <UilDna size="80" className="animate-spin-slow" />
                 </div>
                 <div className="absolute -top-4 -right-4 w-16 h-16 bg-island-emerald rounded-3xl flex items-center justify-center text-white shadow-2xl">
-                  <Sparkles size={32} />
+                  <img src="/images/mascot.png" alt="" className="w-16 h-16 object-contain" />
                 </div>
               </div>
               <div className="space-y-6">
@@ -606,16 +605,16 @@ export default function TripPlannerView() {
                   <h2 className="text-6xl lg:text-8xl font-black text-island-volcanic tracking-tighter uppercase leading-[0.85] italic">Catarman <br /> <span className="not-italic text-island-emerald">Explorer</span></h2>
                   <div className="flex flex-wrap gap-4">
                     <div className="flex items-center gap-3 bg-island-volcanic text-white px-6 py-2.5 rounded-full border border-white/10 shadow-xl">
-                      <Calendar size={14} className="text-island-emerald" />
+                      <UilCalendar size="14" className="text-island-emerald" />
                       <span className="text-xs font-bold tracking-wider">{days} Days</span>
                     </div>
                     <div className="flex items-center gap-3 bg-white text-island-volcanic px-6 py-2.5 rounded-full border border-slate-100 shadow-xl text-xs font-bold tracking-wider">
-                      <Users size={14} /> {groupType}
+                      <UilUsersAlt size="14" /> {groupType}
                     </div>
                   </div>
                 </div>
                 <button onClick={() => setStep('duration')} className="w-20 h-20 rounded-3xl bg-slate-50 border-4 border-slate-100 flex items-center justify-center text-island-volcanic hover:bg-island-volcanic hover:text-white transition-all shadow-xl active:scale-90">
-                  <RefreshCw size={32} strokeWidth={2.5} />
+                  <UilRefresh size="32" />
                 </button>
               </div>
 
@@ -656,7 +655,7 @@ export default function TripPlannerView() {
                                 <div className="space-y-2 md:space-y-4">
                                   <h4 className="text-3xl md:text-5xl font-black text-island-volcanic tracking-tighter uppercase leading-[0.9] group-hover/card:text-island-emerald transition-colors italic">{act.activity}</h4>
                                   <div className="flex items-center gap-2 md:gap-4 text-slate-400">
-                                    <MapPin size={14} className="text-island-emerald" />
+                                    <UilMapMarker size="14" className="text-island-emerald" />
                                     <span className="text-xs md:text-sm font-semibold tracking-tight">{act.location}</span>
                                   </div>
                                 </div>
@@ -672,7 +671,7 @@ export default function TripPlannerView() {
                               <div className="bg-island-volcanic text-white p-5 md:p-8 rounded-2xl md:rounded-[3rem] mb-6 md:mb-12 flex flex-col md:flex-row gap-4 md:gap-8 md:items-center shadow-2xl relative overflow-hidden group/intel">
                                 <div className="absolute inset-0 bg-gradient-to-r from-island-emerald/20 to-transparent opacity-0 group-hover/intel:opacity-100 transition-opacity" />
                                 <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.5rem] bg-island-emerald text-white flex items-center justify-center shrink-0 shadow-lg relative z-10">
-                                  <Zap size={24} strokeWidth={2.5} />
+                                  <UilBolt size="24" />
                                 </div>
                                 <div className="relative z-10">
                                   <span className="text-[10px] font-semibold text-island-emerald tracking-tight mb-1 block">Why this works</span>
@@ -692,7 +691,7 @@ export default function TripPlannerView() {
                                       : 'bg-island-volcanic text-white hover:bg-island-emerald'
                                   }`}
                                 >
-                                  {bookingStatus[`${day.day}-${act.activity}-pass`] === 'success' ? <><CheckCircle2 size={24} /> Saved!</> : <><Ticket size={24} /> Save to Pass</>}
+                                  {bookingStatus[`${day.day}-${act.activity}-pass`] === 'success' ? <><UilCheckCircle size="24" /> Saved!</> : <><UilTicket size="24" /> Save to Pass</>}
                                 </motion.button>
                                 <motion.button 
                                   whileHover={{ scale: 1.02 }}
@@ -701,7 +700,7 @@ export default function TripPlannerView() {
                                   disabled={bookingStatus[`${day.day}-${act.activity}-transport`] === 'loading' || bookingStatus[`${day.day}-${act.activity}-transport`] === 'success'}
                                   className="flex-1 bg-white border-2 md:border-4 border-slate-50 text-island-volcanic rounded-2xl md:rounded-[2rem] py-5 md:py-0 flex items-center justify-center gap-3 md:gap-4 hover:border-island-volcanic transition-all shadow-xl"
                                 >
-                                  {bookingStatus[`${day.day}-${act.activity}-transport`] === 'success' ? <CheckCircle2 size={24} className="text-island-emerald" /> : <Car size={28} />}
+                                  {bookingStatus[`${day.day}-${act.activity}-transport`] === 'success' ? <UilCheckCircle size="24" className="text-island-emerald" /> : <UilCar size="28" />}
                                   <span className="sm:hidden font-black uppercase tracking-widest text-[10px]">Transport</span>
                                 </motion.button>
                               </div>
@@ -718,7 +717,7 @@ export default function TripPlannerView() {
                   <div className="bg-island-emerald p-8 md:p-16 rounded-[3rem] md:rounded-[5rem] text-white shadow-[0_50px_100px_-20px_rgba(16,185,129,0.3)] relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-white/10 rounded-full translate-x-16 -translate-y-16 md:translate-x-32 md:-translate-y-32 animate-pulse" />
                     <div className="relative z-10 text-center space-y-6 md:space-y-8">
-                      <ShieldCheck size={80} className="mx-auto text-white/40 mb-6 md:mb-10" />
+                      <UilShieldCheck size="80" className="mx-auto text-white/40 mb-6 md:mb-10" />
                       <h3 className="text-4xl md:text-7xl font-black uppercase tracking-tighter italic">Review Your <br /> Itinerary</h3>
                       <p className="text-white/80 font-medium text-xs md:text-sm max-w-md mx-auto">Save all activities to your pass and finalize your Catarman adventure.</p>
                       <motion.button 
@@ -783,7 +782,7 @@ export default function TripPlannerView() {
             onClick={() => navigate('/')}
             className="w-20 h-20 rounded-3xl bg-white/10 backdrop-blur-3xl border-2 border-white/20 flex items-center justify-center text-white shadow-3xl transition-all"
           >
-            <X size={32} strokeWidth={3} />
+            <UilTimes size="32" />
           </motion.button>
         </div>
 
@@ -814,14 +813,14 @@ function ProfileItem({ icon: Icon, label, count, onClick }: any) {
     >
       <div className="flex items-center gap-6">
         <div className="w-14 h-14 bg-emerald-50/50 text-island-green rounded-2xl flex items-center justify-center group-hover:emerald-gradient group-hover:text-white transition-all duration-500 border border-emerald-100">
-          <Icon size={26} strokeWidth={2.5} />
+          <Icon size="26" />
         </div>
         <span className="text-lg font-black text-island-green tracking-tighter">{label}</span>
       </div>
       {count ? (
         <span className="px-4 py-1.5 bg-island-emerald text-white rounded-full text-[10px] font-black shadow-xl">{count}</span>
       ) : (
-        <ChevronRight size={22} strokeWidth={3} className="text-emerald-100 group-hover:text-island-emerald group-hover:translate-x-1 transition-all" />
+        <UilAngleRightB size="22" className="text-emerald-100 group-hover:text-island-emerald group-hover:translate-x-1 transition-all" />
       )}
     </button>
   );

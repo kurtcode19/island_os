@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Hotel, Star, MapPin, Wifi, Coffee, Wind, Waves, ArrowRight, Search, Filter, CheckCircle2, Sparkles, RefreshCw, CalendarDays, Plus, Minus, Sun, Moon, X, ChevronLeft, ChevronRight, Users, Gift, Baby, Utensils, ChevronDown } from 'lucide-react';
+import { UilBuilding, UilStar, UilMapMarker, UilWifi, UilCoffee, UilWind, UilWater, UilArrowRight, UilSearch, UilFilter, UilCheckCircle, UilRefresh, UilCalendarAlt, UilPlus, UilMinus, UilSun, UilMoon, UilTimes, UilAngleLeftB, UilAngleRightB, UilUsersAlt, UilGift, UilUser, UilUtensils, UilAngleDown } from '@/icons';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -37,11 +37,11 @@ function BookingCalendar({ checkIn, checkOut, onSelectCheckIn, onSelectCheckOut 
     <div className="bg-white rounded-2xl p-5 border border-slate-100">
       <div className="flex items-center justify-between mb-5">
         <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1))} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-island-green hover:text-white transition-all">
-          <ChevronLeft size={16} strokeWidth={3} />
+          <UilAngleLeftB size="16" />
         </button>
         <span className="text-sm font-bold text-island-green">{viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
         <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-island-green hover:text-white transition-all">
-          <ChevronRight size={16} strokeWidth={3} />
+          <UilAngleRightB size="16" />
         </button>
       </div>
       <div className="flex gap-2 mb-3">
@@ -79,6 +79,7 @@ export default function StayView() {
   const [bookingStatus, setBookingStatus] = useState<{[key: string]: 'idle' | 'loading' | 'success'}>({});
   const [testError, setTestError] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedHotel, setSelectedHotel] = useState<typeof accommodations[0] | null>(null);
   const [checkIn, setCheckIn] = useState(new Date(2026, 5, 15));
   const [checkOut, setCheckOut] = useState(new Date(2026, 5, 18));
@@ -89,6 +90,13 @@ export default function StayView() {
   const [breakfastPeople, setBreakfastPeople] = useState(2);
   const [selectedPromo, setSelectedPromo] = useState<PromoPackage | null>(null);
   const [expandedPromo, setExpandedPromo] = useState<string | null>(null);
+
+  const types = ['All', ...new Set(accommodations.map(a => a.type))];
+  const filtered = accommodations.filter(a =>
+    (selectedTab === 'All' || a.type === selectedTab) &&
+    (a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     a.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase())))
+  );
 
   const calculateTotal = (hotel: typeof accommodations[0]) => {
     const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
@@ -195,15 +203,17 @@ export default function StayView() {
           className="bg-white p-4 rounded-[3rem] shadow-2xl flex flex-wrap md:flex-nowrap gap-4 items-center border border-slate-100"
         >
           <div className="flex-1 relative">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={24} strokeWidth={3} />
+            <UilSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size="24" />
             <input 
               type="text" 
               placeholder="Search by name or landmark..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-14 pr-6 py-5 bg-stone-50 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all font-bold text-slate-900"
             />
           </div>
           <button className="btn-secondary px-8 py-5 rounded-2xl">
-            <Filter size={20} strokeWidth={3} /> Filter Nodes
+            <UilFilter size="20" /> Filter Nodes
           </button>
           <button className="btn-volcanic px-12 py-5 rounded-2xl">
             Execute Search
@@ -223,12 +233,12 @@ export default function StayView() {
             <span className="text-island-coral font-bold tracking-wider text-xs mb-4 block">Availability Grid</span>
             <h2 className="text-5xl md:text-6xl font-black text-island-volcanic tracking-tighter">Verified Stays.</h2>
           </div>
-          <div className="flex gap-3 bg-stone-100 p-2 rounded-[2rem] border border-slate-200 shadow-inner">
-            {['All', 'Resorts', 'Homestays'].map((tab) => (
+          <div className="flex gap-3 bg-stone-100 p-2 rounded-[2rem] border border-slate-200 shadow-inner overflow-x-auto">
+            {types.map((tab) => (
               <button 
                 key={tab} 
                 onClick={() => setSelectedTab(tab)}
-                className={`px-8 py-3 rounded-full text-xs font-bold tracking-wider transition-all ${
+                className={`px-8 py-3 rounded-full text-xs font-bold tracking-wider whitespace-nowrap transition-all ${
                   selectedTab === tab 
                     ? 'sunset-gradient text-white shadow-xl shadow-island-sunset/20' 
                     : 'text-slate-400 hover:text-slate-600'
@@ -241,7 +251,12 @@ export default function StayView() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {accommodations.map((hotel, idx) => (
+          {filtered.length === 0 ? (
+            <div className="col-span-full text-center py-20">
+              <p className="text-2xl font-black text-slate-300 tracking-tighter">No stays found</p>
+              <p className="text-sm text-slate-400 mt-2">Try a different search or filter</p>
+            </div>
+          ) : filtered.map((hotel, idx) => (
             <motion.div
               key={hotel.id}
               initial={{ opacity: 0, y: 30 }}
@@ -257,7 +272,7 @@ export default function StayView() {
                   referrerPolicy="no-referrer"
                 />
                 <div className="absolute top-8 right-8 px-5 py-2.5 bg-white/90 backdrop-blur-xl rounded-2xl text-xs font-black flex items-center gap-2 text-island-volcanic shadow-2xl border border-white">
-                  <Star size={18} fill="#D97706" className="text-island-sunset" /> {hotel.rating}
+                  <UilStar size="18" className="text-island-sunset" /> {hotel.rating}
                 </div>
                 <div className="absolute bottom-8 left-8 flex gap-3">
                   {hotel.tags.slice(0, 2).map(tag => (
@@ -281,13 +296,13 @@ export default function StayView() {
                 
                 <div className="flex items-center gap-8 mb-6 py-8 border-y-2 border-stone-50">
                   <div className="flex items-center gap-3 text-slate-500 font-semibold text-xs tracking-tight">
-                    <Wifi size={20} strokeWidth={3} className="text-island-emerald" /> Wifi
+                    <UilWifi size="20" className="text-island-emerald" /> Wifi
                   </div>
                   <div className="flex items-center gap-3 text-slate-500 font-semibold text-xs tracking-tight">
-                    <Coffee size={20} strokeWidth={3} className="text-island-emerald" /> Breakfast
+                    <UilCoffee size="20" className="text-island-emerald" /> Breakfast
                   </div>
                   <div className="flex items-center gap-3 text-slate-500 font-semibold text-xs tracking-tight">
-                    <Wind size={20} strokeWidth={3} className="text-island-emerald" /> Climate
+                    <UilWind size="20" className="text-island-emerald" /> Climate
                   </div>
                 </div>
 
@@ -299,10 +314,10 @@ export default function StayView() {
                       className="w-full flex items-center justify-between p-4 bg-island-emerald/5 rounded-2xl border border-island-emerald/10 hover:bg-island-emerald/10 transition-all group"
                     >
                       <div className="flex items-center gap-3">
-                        <Gift size={18} className="text-island-emerald" />
+                        <UilGift size="18" className="text-island-emerald" />
                         <span className="text-sm font-bold text-island-green">Promo Packages ({hotel.promoPackages.length})</span>
                       </div>
-                      <ChevronDown size={20} className={`text-island-emerald transition-transform duration-300 ${expandedPromo === hotel.id ? 'rotate-180' : ''}`} />
+                      <UilAngleDown size="20" className={`text-island-emerald transition-transform duration-300 ${expandedPromo === hotel.id ? 'rotate-180' : ''}`} />
                     </button>
                     <AnimatePresence>
                       {expandedPromo === hotel.id && (
@@ -325,17 +340,17 @@ export default function StayView() {
                                 </div>
                                 <div className="flex flex-wrap gap-2 mb-4">
                                   <span className="px-3 py-1 bg-stone-50 rounded-full text-[10px] font-bold text-slate-500 border border-slate-100">
-                                    <Users size={12} className="inline mr-1" />{pkg.persons} pax
+                                    <UilUsersAlt size="12" className="inline mr-1" />{pkg.persons} pax
                                   </span>
                                   <span className="px-3 py-1 bg-stone-50 rounded-full text-[10px] font-bold text-slate-500 border border-slate-100">
-                                    <CalendarDays size={12} className="inline mr-1" />{pkg.days}D/{pkg.nights}N
+                                    <UilCalendarAlt size="12" className="inline mr-1" />{pkg.days}D/{pkg.nights}N
                                   </span>
                                 </div>
                                 <div className="space-y-1 mb-4">
                                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Inclusions:</span>
                                   {pkg.inclusions.map((inc, i) => (
                                     <div key={i} className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-                                      <CheckCircle2 size={12} className="text-island-emerald shrink-0" />
+                                      <UilCheckCircle size="12" className="text-island-emerald shrink-0" />
                                       <span>{inc}</span>
                                     </div>
                                   ))}
@@ -361,9 +376,9 @@ export default function StayView() {
                   className="w-full bg-island-green text-white py-6 rounded-3xl font-bold text-xs uppercase tracking-widest hover:shadow-xl hover:shadow-island-green/20 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {bookingStatus[hotel.id] === 'success' ? (
-                    <><CheckCircle2 size={24} strokeWidth={3} /> Reservation Confirmed</>
+                    <><UilCheckCircle size="24" /> Reservation Confirmed</>
                   ) : (
-                    <><CalendarDays size={20} /> Book Now</>
+                    <><UilCalendarAlt size="20" /> Book Now</>
                   )}
                 </button>
               </div>
@@ -390,7 +405,7 @@ export default function StayView() {
                 </div>
                 <button onClick={() => { setSelectedHotel(null); setSelectedPromo(null); setAddons({ breakfast: false, lateCheckin: false }); setChildren(0); setTweens(0); setBreakfastPeople(2); }}
                   className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:bg-island-green hover:text-white transition-all">
-                  <X size={18} strokeWidth={3} />
+                  <UilTimes size="18" />
                 </button>
               </div>
 
@@ -398,7 +413,7 @@ export default function StayView() {
                 {/* Calendar */}
                 <div>
                   <h4 className="text-sm font-bold text-island-green mb-3 flex items-center gap-2">
-                    <CalendarDays size={16} className="text-island-emerald" /> Select dates
+                    <UilCalendarAlt size="16" className="text-island-emerald" /> Select dates
                   </h4>
                   <BookingCalendar checkIn={checkIn} checkOut={checkOut} onSelectCheckIn={setCheckIn} onSelectCheckOut={setCheckOut} />
                 </div>
@@ -406,7 +421,7 @@ export default function StayView() {
                 {/* Guests */}
                 <div>
                   <h4 className="text-sm font-bold text-island-green mb-3 flex items-center gap-2">
-                    <Users size={16} className="text-island-emerald" /> Guests
+                    <UilUsersAlt size="16" className="text-island-emerald" /> Guests
                   </h4>
                   <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-4">
                     <div className="flex items-center justify-between">
@@ -416,28 +431,28 @@ export default function StayView() {
                       </div>
                       <div className="flex items-center gap-4">
                         <button onClick={() => setAdults(Math.max(1, adults - 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                          <Minus size={14} strokeWidth={3} />
+                          <UilMinus size="14" />
                         </button>
                         <span className="w-6 text-center text-base font-bold text-island-green">{adults}</span>
                         <button onClick={() => setAdults(Math.min(selectedHotel.maxAdults, adults + 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                          <Plus size={14} strokeWidth={3} />
+                          <UilPlus size="14" />
                         </button>
                       </div>
                     </div>
                     {selectedHotel.childPrice && (
                       <div className="flex items-center justify-between pt-3 border-t border-slate-200/50">
                         <div className="flex items-center gap-2">
-                          <Baby size={16} className="text-island-sunset" />
+                          <UilUser size="16" className="text-island-sunset" />
                           <span className="text-sm font-semibold text-slate-700">Children</span>
                           <span className="text-[10px] text-slate-400 font-medium">₱{selectedHotel.childPrice}/night</span>
                         </div>
                         <div className="flex items-center gap-4">
                           <button onClick={() => setChildren(Math.max(0, children - 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                            <Minus size={14} strokeWidth={3} />
+                            <UilMinus size="14" />
                           </button>
                           <span className="w-6 text-center text-base font-bold text-island-green">{children}</span>
                           <button onClick={() => setChildren(Math.min(4, children + 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                            <Plus size={14} strokeWidth={3} />
+                            <UilPlus size="14" />
                           </button>
                         </div>
                       </div>
@@ -445,17 +460,17 @@ export default function StayView() {
                     {selectedHotel.tweenPrice && (
                       <div className="flex items-center justify-between pt-3 border-t border-slate-200/50">
                         <div className="flex items-center gap-2">
-                          <Users size={16} className="text-island-sunset" />
+                          <UilUsersAlt size="16" className="text-island-sunset" />
                           <span className="text-sm font-semibold text-slate-700">Tweens</span>
                           <span className="text-[10px] text-slate-400 font-medium">₱{selectedHotel.tweenPrice}/night</span>
                         </div>
                         <div className="flex items-center gap-4">
                           <button onClick={() => setTweens(Math.max(0, tweens - 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                            <Minus size={14} strokeWidth={3} />
+                            <UilMinus size="14" />
                           </button>
                           <span className="w-6 text-center text-base font-bold text-island-green">{tweens}</span>
                           <button onClick={() => setTweens(Math.min(4, tweens + 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                            <Plus size={14} strokeWidth={3} />
+                            <UilPlus size="14" />
                           </button>
                         </div>
                       </div>
@@ -473,8 +488,8 @@ export default function StayView() {
                   <h4 className="text-sm font-bold text-island-green mb-3">Add-ons</h4>
                   <div className="space-y-2">
                     {[
-                      { id: 'breakfast', label: 'Breakfast Bundle', price: 250, icon: Utensils },
-                      { id: 'lateCheckin', label: 'Late Check-in', price: 150, icon: Moon },
+                      { id: 'breakfast', label: 'Breakfast Bundle', price: 250, icon: UilUtensils },
+                      { id: 'lateCheckin', label: 'Late Check-in', price: 150, icon: UilMoon },
                     ].map(item => (
                       <div key={item.id} className={`rounded-2xl border-2 transition-all ${
                         (addons as any)[item.id] ? 'border-island-green bg-island-green/5' : 'border-slate-100 bg-white'
@@ -484,7 +499,7 @@ export default function StayView() {
                         >
                           <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${(addons as any)[item.id] ? 'bg-island-green text-white' : 'bg-slate-50 text-slate-400'}`}>
-                              <item.icon size={18} strokeWidth={2.5} />
+                              <item.icon size="18" />
                             </div>
                             <div className="text-left">
                               <span className="block text-sm font-semibold text-slate-800">{item.label}</span>
@@ -492,7 +507,7 @@ export default function StayView() {
                             </div>
                           </div>
                           <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${(addons as any)[item.id] ? 'bg-island-green border-island-green text-white' : 'border-slate-300'}`}>
-                            {(addons as any)[item.id] && <CheckCircle2 size={12} strokeWidth={4} />}
+                            {(addons as any)[item.id] && <UilCheckCircle size="12" />}
                           </div>
                         </button>
                         {(addons as any)[item.id] && item.id === 'breakfast' && (
@@ -500,11 +515,11 @@ export default function StayView() {
                             <span className="text-xs font-semibold text-slate-600">For how many people?</span>
                             <div className="flex items-center gap-3">
                               <button onClick={() => setBreakfastPeople(Math.max(1, breakfastPeople - 1))} className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                                <Minus size={12} strokeWidth={3} />
+                                <UilMinus size="12" />
                               </button>
                               <span className="w-5 text-center text-sm font-bold text-island-green">{breakfastPeople}</span>
                               <button onClick={() => setBreakfastPeople(Math.min(adults + children + tweens, breakfastPeople + 1))} className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                                <Plus size={12} strokeWidth={3} />
+                                <UilPlus size="12" />
                               </button>
                             </div>
                           </div>
@@ -554,11 +569,11 @@ export default function StayView() {
                     className="w-full bg-island-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-island-green/20 hover:shadow-island-green/40 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                   >
                     {bookingStatus[selectedHotel.id] === 'success' ? (
-                      <><CheckCircle2 size={22} /> Confirmed</>
+                      <><UilCheckCircle size="22" /> Confirmed</>
                     ) : bookingStatus[selectedHotel.id] === 'loading' ? (
-                      <RefreshCw size={22} className="animate-spin" />
+                      <UilRefresh size="22" className="animate-spin" />
                     ) : (
-                      <><CalendarDays size={20} /> Book now</>
+                      <><UilCalendarAlt size="20" /> Book now</>
                     )}
                   </button>
                 )}

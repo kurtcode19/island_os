@@ -1,7 +1,7 @@
-import { Search, Calendar, CreditCard, Sparkles, MessageSquare, Brain, MapPin, type LucideIcon } from 'lucide-react';
+import { UilSearch, UilCalendar, UilCreditCard, UilStar, UilMessage, UilBrain, UilMapMarker } from '@/icons';
 
 export interface FlowStep {
-  icon: LucideIcon;
+  icon: any;
   title: string;
   description: string;
   gradient: string;
@@ -22,25 +22,25 @@ export const bookingFlow: ProcessFlowData = {
   description: 'From discovery to exploration in four simple steps.',
   steps: [
     {
-      icon: Search,
+      icon: UilSearch,
       title: 'Discover',
       description: 'Browse verified destinations, stays, and experiences across Catarman.',
       gradient: 'from-island-emerald to-emerald-600',
     },
     {
-      icon: Calendar,
+      icon: UilCalendar,
       title: 'Book',
       description: 'Select your dates and reserve your spot with a single click.',
       gradient: 'from-island-ocean to-cyan-600',
     },
     {
-      icon: CreditCard,
+      icon: UilCreditCard,
       title: 'Pay',
       description: 'Complete your booking securely. Your pass is activated instantly.',
       gradient: 'from-island-sunset to-amber-600',
     },
     {
-      icon: Sparkles,
+      icon: UilStar,
       title: 'Explore',
       description: 'Show your digital pass at any entry point and enjoy Catarman.',
       gradient: 'from-island-coral to-rose-600',
@@ -55,19 +55,19 @@ export const tripPlannerFlow: ProcessFlowData = {
   description: 'Answer a few questions and get a personalized itinerary in seconds.',
   steps: [
     {
-      icon: MessageSquare,
+      icon: UilMessage,
       title: 'Tell us your preferences',
       description: 'Duration, group size, budget, and interests — we\'ll handle the rest.',
       gradient: 'from-island-emerald to-emerald-600',
     },
     {
-      icon: Brain,
+      icon: UilBrain,
       title: 'AI generates your itinerary',
       description: 'Our Catarman AI creates a day-by-day plan with activities and transport.',
       gradient: 'from-island-ocean to-cyan-600',
     },
     {
-      icon: MapPin,
+      icon: UilMapMarker,
       title: 'Sync and explore',
       description: 'Book activities directly from your itinerary and start your adventure.',
       gradient: 'from-island-sunset to-amber-600',

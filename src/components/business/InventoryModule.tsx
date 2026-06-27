@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Package, Plus, Search, Filter, ChevronRight, LayoutGrid, List, CheckCircle2, XCircle, Clock, X, Users, Utensils, Wifi, Wind, ShowerHead, Snowflake, Refrigerator, Tv } from 'lucide-react';
+import { UilPackage as Package, UilPlus as Plus, UilSearch as Search, UilFilter as Filter, UilAngleRightB as ChevronRight, UilGrid as LayoutGrid, UilListUl as List, UilCheckCircle as CheckCircle2, UilTimesCircle as XCircle, UilClock as Clock, UilTimes as X, UilUsersAlt as Users, UilUtensils as Utensils, UilWifi as Wifi, UilWind as Wind, UilWater as ShowerHead, UilSnowflake as Snowflake, UilBox as Refrigerator, UilTvRetro as Tv } from '@/icons';
 import { useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
@@ -192,30 +192,30 @@ export default function InventoryModule() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="flex items-center gap-4 w-full md:w-auto">
           <div className="relative flex-1 md:flex-none">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size="18" />
             <input type="text" placeholder="Search inventory..." className="pl-12 pr-4 py-3 bg-white border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all w-full md:w-72 shadow-sm" />
           </div>
           <div className="flex bg-white border border-slate-100 rounded-2xl p-1 shadow-sm">
             <button onClick={() => setView('grid')} className={`p-2 rounded-xl transition-all ${view === 'grid' ? 'bg-island-emerald/10 text-island-emerald' : 'text-slate-400 hover:text-slate-600'}`}>
-              <LayoutGrid size={20} />
+              <LayoutGrid size="20" />
             </button>
             <button onClick={() => setView('list')} className={`p-2 rounded-xl transition-all ${view === 'list' ? 'bg-island-emerald/10 text-island-emerald' : 'text-slate-400 hover:text-slate-600'}`}>
-              <List size={20} />
+              <List size="20" />
             </button>
           </div>
         </div>
         <button onClick={() => { resetForm(); setShowForm(true); }} className="flex items-center gap-2 px-8 py-4 btn-primary">
-          <Plus size={20} /> Add New Item
+          <Plus size="20" /> Add New Item
         </button>
       </div>
 
       {items.length === 0 ? (
         <div className="text-center py-24 bg-white rounded-[3rem] border border-slate-100">
-          <Package size={64} className="mx-auto text-slate-200 mb-6" />
+          <Package size="64" className="mx-auto text-slate-200 mb-6" />
           <h3 className="text-2xl font-bold text-slate-400 mb-2">No inventory items yet</h3>
           <p className="text-slate-300 mb-8">Add your first item to start tracking inventory.</p>
           <button onClick={() => { resetForm(); setShowForm(true); }} className="btn-primary px-8 py-4 rounded-2xl inline-flex items-center gap-2">
-            <Plus size={20} /> Add Your First Item
+            <Plus size="20" /> Add Your First Item
           </button>
         </div>
       ) : (
@@ -226,7 +226,7 @@ export default function InventoryModule() {
               <motion.div key={item.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: idx * 0.05 }} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group">
                 <div className="flex justify-between items-start mb-6">
                   <div className="p-4 rounded-2xl bg-island-emerald/10 text-island-emerald">
-                    <Package size={24} />
+                    <Package size="24" />
                   </div>
                   <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${status.color}`}>
                     {status.label}
@@ -256,7 +256,7 @@ export default function InventoryModule() {
                       {item.inclusions.map((inc: any, i: number) => (
                         <div key={i} className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-1.5">
-                            <CheckCircle2 size={12} className="text-island-emerald" />
+                            <CheckCircle2 size="12" className="text-island-emerald" />
                             <span className="font-semibold text-slate-700">{inc.name}</span>
                             {inc.forPeople > 1 && <span className="text-slate-400">(for {inc.forPeople})</span>}
                           </div>
@@ -300,10 +300,10 @@ export default function InventoryModule() {
                   <span className="text-lg font-bold text-island-green">{item.price || '₱0'}</span>
                   <div className="flex gap-2">
                     <button onClick={() => openEdit(item)} className="text-island-emerald text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all">
-                      Edit <ChevronRight size={16} />
+                      Edit <ChevronRight size="16" />
                     </button>
                     <button onClick={() => handleDelete(item.id)} className="text-island-coral text-sm font-bold hover:opacity-70 transition-all">
-                      <X size={16} />
+                      <X size="16" />
                     </button>
                   </div>
                 </div>
@@ -327,7 +327,7 @@ export default function InventoryModule() {
               <div className="sticky top-0 bg-white z-10 px-8 pt-8 pb-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="text-xl font-bold text-island-green">{editingItem ? 'Edit' : 'Add New'} Inventory Item</h3>
                 <button onClick={() => { setShowForm(false); resetForm(); }} className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:bg-island-green hover:text-white transition-all">
-                  <X size={18} strokeWidth={3} />
+                  <X size="18" />
                 </button>
               </div>
 
@@ -371,7 +371,7 @@ export default function InventoryModule() {
                 {/* Guests to Cater Section */}
                 <div className="p-6 bg-stone-50 rounded-2xl border border-stone-100">
                   <h4 className="text-sm font-bold text-island-green mb-4 flex items-center gap-2">
-                    <Users size={16} className="text-island-emerald" /> Guests to Cater
+                    <Users size="16" className="text-island-emerald" /> Guests to Cater
                   </h4>
                   <div className="space-y-2 mb-4">
                     {formData.guests.map((g, i) => (
@@ -380,7 +380,7 @@ export default function InventoryModule() {
                         <div className="flex items-center gap-3">
                           <span className="text-sm font-bold text-island-green">₱{g.price.toLocaleString()}</span>
                           <button onClick={() => removeGuest(i)} className="text-island-coral hover:text-red-600 transition-colors">
-                            <X size={14} />
+                            <X size="14" />
                           </button>
                         </div>
                       </div>
@@ -402,20 +402,20 @@ export default function InventoryModule() {
                 {/* Inclusions Section */}
                 <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-100">
                   <h4 className="text-sm font-bold text-island-green mb-4 flex items-center gap-2">
-                    <Utensils size={16} className="text-island-emerald" /> Inclusions
+                    <Utensils size="16" className="text-island-emerald" /> Inclusions
                   </h4>
                   <div className="space-y-2 mb-4">
                     {formData.inclusions.map((inc, i) => (
                       <div key={i} className="flex items-center justify-between bg-white p-3 rounded-xl border border-emerald-100">
                         <div className="flex items-center gap-3">
-                          <CheckCircle2 size={14} className="text-island-emerald" />
+                          <CheckCircle2 size="14" className="text-island-emerald" />
                           <span className="text-sm font-semibold text-slate-700">{inc.name}</span>
                           {inc.forPeople > 1 && <span className="text-[10px] text-slate-400 font-medium">for {inc.forPeople} pax</span>}
                         </div>
                         <div className="flex items-center gap-3">
                           {inc.price > 0 && <span className="text-sm font-bold text-island-green">+₱{inc.price}</span>}
                           <button onClick={() => removeInclusion(i)} className="text-island-coral hover:text-red-600 transition-colors">
-                            <X size={14} />
+                            <X size="14" />
                           </button>
                         </div>
                       </div>

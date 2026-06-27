@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
-import { Users, Search, Filter, Download, UserCheck, UserX, MapPin, Calendar, Clock } from 'lucide-react';
+import { UilUsersAlt as Users, UilSearch as Search, UilFilter as Filter, UilDownloadAlt as Download, UilUserCheck as UserCheck, UilUserTimes as UserX, UilMapMarker as MapPin, UilCalendar as Calendar, UilClock as Clock } from '@/icons';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase';
 
@@ -61,7 +61,7 @@ export default function RegistryModule() {
             onClick={() => toast.success('Registry data export ready for download')}
             className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2"
           >
-            <Download size={18} /> Export Data
+            <Download size="18" /> Export Data
           </button>
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function RegistryModule() {
         ].map((stat, idx) => (
           <div key={idx} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-6">
             <div className={`p-4 rounded-2xl bg-island-${stat.color}/10 text-island-${stat.color}`}>
-              <stat.icon size={24} />
+              <stat.icon size="24" />
             </div>
             <div>
               <h4 className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">{stat.label}</h4>
@@ -89,7 +89,7 @@ export default function RegistryModule() {
       <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
         <div className="p-10 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="relative flex-1 w-full md:max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size="18" />
             <input 
               type="text" 
               placeholder="Search by name, ID, or email..." 
@@ -100,7 +100,7 @@ export default function RegistryModule() {
           </div>
           <div className="flex gap-4">
             <button className="p-3 bg-slate-50 border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-100 transition-all">
-              <Filter size={20} />
+              <Filter size="20" />
             </button>
           </div>
         </div>
@@ -139,13 +139,13 @@ export default function RegistryModule() {
                     </td>
                     <td className="px-10 py-6">
                       <div className="flex items-center gap-2 text-sm text-slate-600">
-                        <MapPin size={14} className="text-island-emerald" />
+                        <MapPin size="14" className="text-island-emerald" />
                         {tourist.serviceName}
                       </div>
                     </td>
                     <td className="px-10 py-6">
                       <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
-                        <Calendar size={14} />
+                        <Calendar size="14" />
                         {tourist.date}
                       </div>
                     </td>

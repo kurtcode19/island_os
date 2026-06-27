@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { User, Bell, Shield, CreditCard, Globe, Save, Camera, ChevronRight, Building2, MapPin, Phone, Mail, Tag, CheckCircle2, X } from 'lucide-react';
+import { UilUser as User, UilBell as Bell, UilShield as Shield, UilCreditCard as CreditCard, UilGlobe as Globe, UilSave as Save, UilCamera as Camera, UilAngleRightB as ChevronRight, UilBuilding as Building2, UilMapMarker as MapPin, UilPhone as Phone, UilEnvelopeAlt as Mail, UilTag as Tag, UilCheckCircle as CheckCircle2, UilTimes as X } from '@/icons';
 import { useAuth } from '../../context/AuthContext';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
@@ -89,7 +89,7 @@ export default function SettingsModule() {
           {saving ? (
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
           ) : (
-            <Save size={20} />
+            <Save size="20" />
           )}
           {saving ? 'Saving...' : 'Save Settings'}
         </button>
@@ -112,10 +112,10 @@ export default function SettingsModule() {
               }`}
             >
               <div className="flex items-center gap-4">
-                <item.icon size={20} strokeWidth={2.5} />
+                <item.icon size="20" />
                 {item.label}
               </div>
-              <ChevronRight size={16} strokeWidth={3} className={activeTab === item.id ? 'opacity-100' : 'opacity-0'} />
+              <ChevronRight size="16" className={activeTab === item.id ? 'opacity-100' : 'opacity-0'} />
             </button>
           ))}
         </div>
@@ -132,7 +132,7 @@ export default function SettingsModule() {
                         {initials}
                       </div>
                       <button className="absolute -bottom-2 -right-2 p-2.5 bg-island-emerald text-white rounded-xl shadow-md border-2 border-white hover:scale-110 transition-all">
-                        <Camera size={16} />
+                        <Camera size="16" />
                       </button>
                     </div>
                     <div>
@@ -151,35 +151,35 @@ export default function SettingsModule() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1.5">
-                        <Building2 size={12} /> Business Name
+                        <Building2 size="12" /> Business Name
                       </label>
                       <input type="text" value={businessName} onChange={e => setBusinessName(e.target.value)}
                         className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all font-bold text-island-green" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1.5">
-                        <Tag size={12} /> Business Type
+                        <Tag size="12" /> Business Type
                       </label>
                       <input type="text" value={config?.label || businessType || 'Business'} disabled
                         className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-island-green font-bold opacity-60 cursor-not-allowed" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1.5">
-                        <MapPin size={12} /> Location
+                        <MapPin size="12" /> Location
                       </label>
                       <input type="text" value={businessLocation} onChange={e => setBusinessLocation(e.target.value)}
                         className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all font-bold text-island-green" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1.5">
-                        <Phone size={12} /> Contact
+                        <Phone size="12" /> Contact
                       </label>
                       <input type="text" value={businessContact} onChange={e => setBusinessContact(e.target.value)}
                         className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all font-bold text-island-green" />
                     </div>
                     <div className="md:col-span-2 space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-1.5">
-                        <Mail size={12} /> Contact Email
+                        <Mail size="12" /> Contact Email
                       </label>
                       <input type="email" value={businessEmail} onChange={e => setBusinessEmail(e.target.value)}
                         className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all font-bold text-island-green" />
@@ -207,7 +207,7 @@ export default function SettingsModule() {
                   <div className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100">
                     <div className="flex items-center gap-4">
                       <div className="p-3 bg-white rounded-xl text-island-emerald shadow-sm">
-                        <Globe size={20} />
+                        <Globe size="20" />
                       </div>
                       <div>
                         <h4 className="font-bold text-island-green text-sm">Public Visibility</h4>
@@ -257,9 +257,9 @@ export default function SettingsModule() {
           {(activeTab === 'security' || activeTab === 'billing' || activeTab === 'integrations') && (
             <div className="bg-white p-16 rounded-[3rem] border border-slate-100 shadow-sm text-center">
               <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-6">
-                {activeTab === 'security' ? <Shield size={24} className="text-slate-300" /> :
-                 activeTab === 'billing' ? <CreditCard size={24} className="text-slate-300" /> :
-                 <Globe size={24} className="text-slate-300" />}
+                {activeTab === 'security' ? <Shield size="24" className="text-slate-300" /> :
+                 activeTab === 'billing' ? <CreditCard size="24" className="text-slate-300" /> :
+                 <Globe size="24" className="text-slate-300" />}
               </div>
               <h3 className="text-xl font-bold text-slate-400 mb-2 capitalize">{activeTab} Settings</h3>
               <p className="text-slate-300 text-sm">Coming soon in the next update.</p>

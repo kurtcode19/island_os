@@ -1,5 +1,4 @@
-import { Ship, Car, Bike, Plane } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { UilShip, UilCar } from '@/icons';
 
 export interface TransportOption {
   id: string;
@@ -9,7 +8,7 @@ export interface TransportOption {
   duration: string;
   price: number;
   businessId: string;
-  icon: LucideIcon;
+  icon: any;
   color: string;
   tab: 'to' | 'from' | 'within';
   hasRoundtrip?: boolean;
@@ -25,7 +24,7 @@ export const transportOptions: TransportOption[] = [
     duration: '45 mins',
     price: 450,
     businessId: 'ferry_co',
-    icon: Ship,
+    icon: UilShip,
     color: 'bg-island-ocean',
     tab: 'to',
     hasRoundtrip: true,
@@ -39,7 +38,7 @@ export const transportOptions: TransportOption[] = [
     duration: '1.5 hours',
     price: 300,
     businessId: 'ferry_co',
-    icon: Ship,
+    icon: UilShip,
     color: 'bg-blue-500',
     tab: 'to',
     hasRoundtrip: true,
@@ -53,7 +52,7 @@ export const transportOptions: TransportOption[] = [
     duration: '45 mins',
     price: 450,
     businessId: 'ferry_co',
-    icon: Ship,
+    icon: UilShip,
     color: 'bg-island-ocean',
     tab: 'from',
     hasRoundtrip: true,
@@ -67,7 +66,7 @@ export const transportOptions: TransportOption[] = [
     duration: '1.5 hours',
     price: 300,
     businessId: 'ferry_co',
-    icon: Ship,
+    icon: UilShip,
     color: 'bg-blue-500',
     tab: 'from',
     hasRoundtrip: true,
@@ -81,7 +80,7 @@ export const transportOptions: TransportOption[] = [
     duration: 'Full Day',
     price: 2500,
     businessId: 'van_rentals_inc',
-    icon: Car,
+    icon: UilCar,
     color: 'bg-island-emerald',
     tab: 'within',
     maxPassengers: 10,
@@ -94,7 +93,7 @@ export const transportOptions: TransportOption[] = [
     duration: '24 Hours',
     price: 500,
     businessId: 'local_bikes',
-    icon: Bike,
+    icon: UilCar,
     color: 'bg-island-coral',
     tab: 'within',
     maxPassengers: 2,
@@ -107,7 +106,7 @@ export const transportOptions: TransportOption[] = [
     duration: 'Per Trip',
     price: 150,
     businessId: 'local_trike',
-    icon: Bike,
+    icon: UilCar,
     color: 'bg-island-sunset',
     tab: 'within',
     maxPassengers: 3,

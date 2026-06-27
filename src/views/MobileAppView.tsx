@@ -1,33 +1,32 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Compass,
-  User,
-  Heart,
-  Star,
-  NavigationArrow,
-  Clock,
-  Bell,
-  Ticket,
-  MapPin,
-  Building,
-  CheckCircle,
-  CreditCard,
-  ShieldCheck,
-  Sparkle,
-  ArrowsClockwise,
-  Plus,
-  Minus,
-  CalendarBlank,
-  WifiHigh,
-  Wind,
-  Coffee,
-  ArrowLeft,
-  CaretLeft,
-  CaretRight,
-  Sun,
-  Moon
-} from '@phosphor-icons/react';
+  UilCompass,
+  UilUser,
+  UilHeart,
+  UilStar,
+  UilNavigator,
+  UilClock,
+  UilBell,
+  UilTicket,
+  UilMapMarker,
+  UilBuilding,
+  UilCheckCircle,
+  UilCreditCard,
+  UilShieldCheck,
+  UilSync,
+  UilPlus,
+  UilMinus,
+  UilCalendarAlt,
+  UilWifi,
+  UilWind,
+  UilCoffee,
+  UilArrowLeft,
+  UilAngleLeftB,
+  UilAngleRightB,
+  UilSun,
+  UilMoon
+} from '@/icons';
 import { QRCodeCanvas } from 'qrcode.react';
 import { locations } from '../data/locations';
 import { businesses } from '../data/businesses';
@@ -42,7 +41,6 @@ import IslandMap from '../components/IslandMap';
 import { OnboardingHero } from '../components/mobile/OnboardingHero';
 import { Header } from '../components/mobile/Header';
 import { SearchBar } from '../components/mobile/SearchBar';
-import { CategoryPills } from '../components/mobile/CategoryPills';
 import { CardCarousel } from '../components/mobile/CardCarousel';
 import { DestinationDetail } from '../components/mobile/DestinationDetail';
 import { BottomNav } from '../components/mobile/BottomNav';
@@ -104,7 +102,6 @@ export default function MobileAppView() {
   const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [activeTab, setActiveTab] = useState('explore');
-  const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedSpot, setSelectedSpot] = useState<any>(null);
   const [detailTab, setDetailTab] = useState('Details');
   const [bookings, setBookings] = useState<any[]>([]);
@@ -119,6 +116,12 @@ export default function MobileAppView() {
   const [addons, setAddons] = useState({ breakfast: false, lateCheckin: false });
   const [selectedImage, setSelectedImage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sectionFilter, setSectionFilter] = useState('All');
+  const [mobilityFilter, setMobilityFilter] = useState('Rentals');
+  const [selectedTransport, setSelectedTransport] = useState<any>(null);
+  const [transportDate, setTransportDate] = useState('');
+  const [transportGuests, setTransportGuests] = useState(1);
+  const [transportBookingStatus, setTransportBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
 
   const filteredSpots = spots.filter(s =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -139,7 +142,7 @@ export default function MobileAppView() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    if (tab && ['explore', 'map', 'rentals', 'services', 'pass', 'profile', 'shops', 'transport', 'planner'].includes(tab)) {
+    if (tab && ['explore', 'map', 'mobility', 'services', 'profile', 'planner'].includes(tab)) {
       setActiveTab(tab);
       setShowOnboarding(false);
     } else if (!tab) {
@@ -217,6 +220,40 @@ export default function MobileAppView() {
     }
   };
 
+  const handleBookTransport = async (item: any) => {
+    if (!user) { login(); return; }
+    if (!transportDate) return;
+    setTransportBookingStatus('loading');
+    try {
+      await addDoc(collection(db, 'bookings'), {
+        touristUid: user.uid,
+        touristName: user.displayName || 'Anonymous',
+        touristEmail: user.email || '',
+        serviceId: item.id,
+        serviceName: item.title,
+        serviceType: 'transport',
+        businessId: item.businessId || 'catarman_lgu',
+        date: transportDate,
+        guests: transportGuests,
+        route: item.route,
+        duration: item.duration,
+        amount: item.price * transportGuests,
+        status: 'pending',
+        paymentStatus: 'UNPAID',
+        createdAt: serverTimestamp()
+      });
+      setTransportBookingStatus('success');
+      setTimeout(() => {
+        setTransportBookingStatus('idle');
+        setSelectedTransport(null);
+        navigate('/mobile?tab=profile');
+      }, 2000);
+    } catch (error) {
+      setTransportBookingStatus('idle');
+      handleFirestoreError(error, OperationType.CREATE, 'bookings');
+    }
+  };
+
   const handlePay = async (bookingId: string) => {
     try {
       await updateDoc(doc(db, 'bookings', bookingId), {
@@ -268,21 +305,29 @@ export default function MobileAppView() {
                 {/* Search Bar (replaces old SearchWidget) */}
                 <SearchBar onSearch={setSearchQuery} onFilter={() => {}} />
 
-                {/* Category Pills */}
-                <CategoryPills
-                  categories={categories}
-                  selected={selectedCategory}
-                  onSelect={setSelectedCategory}
-                />
+                {/* Section Filter Toggle */}
+                <div className="flex gap-2 -mx-1 overflow-x-auto no-scrollbar">
+                  {['All', 'Spots', 'Stays', 'Vehicles'].map(s => (
+                    <button key={s} onClick={() => setSectionFilter(s)}
+                      className={`px-5 py-2.5 rounded-full text-xs font-black tracking-wider whitespace-nowrap transition-all ${
+                        sectionFilter === s ? 'bg-tropic-green text-white shadow-lg' : 'bg-tropic-sand/30 text-tropic-green/60 hover:text-tropic-green'
+                      }`}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
 
                 {/* Featured Carousel */}
-                <CardCarousel
-                  title="Trending Now"
-                  items={spots}
-                  onCardClick={(item) => setSelectedSpot({ ...item, type: 'spot' })}
-                />
+                {sectionFilter === 'All' && (
+                  <CardCarousel
+                    title="Trending Now"
+                    items={spots}
+                    onCardClick={(item) => setSelectedSpot({ ...item, type: 'spot' })}
+                  />
+                )}
 
                 {/* Popular Destinations Section */}
+                {sectionFilter !== 'Stays' && sectionFilter !== 'Vehicles' && (
                 <div>
                   <div className="flex justify-between items-center mb-8">
                     <h3 className="text-2xl font-black text-tropic-green tracking-tighter">Popular Destination</h3>
@@ -291,8 +336,7 @@ export default function MobileAppView() {
                   
                   <div className="space-y-8">
                     {/* Spot Cards */}
-                    {(selectedCategory === 'All' || ['Heritage', 'Nature'].includes(selectedCategory)) && 
-                      filteredSpots.filter(s => selectedCategory === 'All' || s.category === selectedCategory).map((spot) => (
+                    {filteredSpots.map((spot) => (
                         <motion.div 
                           key={`spot-${spot.id}`}
                           whileTap={{ scale: 0.98 }}
@@ -302,19 +346,19 @@ export default function MobileAppView() {
                           <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
                             <img src={spot.image} alt={spot.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" referrerPolicy="no-referrer" />
                             <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-2xl flex items-center gap-1.5 text-tropic-green tropic-shadow">
-                              <Star size={14} fill="#FFD166" className="text-tropic-sunset" />
+                              <UilStar size="14" className="text-tropic-sunset" />
                               <span className="text-xs font-black">{spot.rating}</span>
                             </div>
                             <button className="absolute top-5 right-5 w-10 h-10 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20 hover:bg-tropic-rose/60 transition-colors">
-                              <Heart size={18} />
+                              <UilHeart size="18" />
                             </button>
                             <div className="absolute bottom-5 right-5 w-12 h-12 bg-white/90 backdrop-blur-xl text-tropic-coral rounded-full flex items-center justify-center shadow-2xl group-hover:bg-tropic-coral group-hover:text-white transition-colors">
-                              <ArrowLeft className="rotate-[135deg]" size={20} weight='bold' />
+                              <UilArrowLeft className="rotate-[135deg]" size="20" />
                             </div>
                           </div>
                           <div className="px-4 pb-4">
                             <div className="flex items-center gap-1.5 text-[10px] font-black text-tropic-emerald uppercase tracking-widest mb-2">
-                              <MapPin size={12} weight='bold' />
+                              <UilMapMarker size="12" />
                               {spot.category}
                             </div>
                             <h4 className="text-3xl font-black text-tropic-green tracking-tighter">{spot.name}</h4>
@@ -323,8 +367,7 @@ export default function MobileAppView() {
                     ))}
 
                     {/* Stay Cards */}
-                    {(selectedCategory === 'All' || selectedCategory === 'Stay') && 
-                      filteredAccommodations.map((stay) => (
+                    {sectionFilter !== 'Spots' && sectionFilter !== 'Vehicles' && filteredAccommodations.map((stay) => (
                         <motion.div 
                           key={`stay-${stay.id}`}
                           whileTap={{ scale: 0.98 }}
@@ -334,11 +377,11 @@ export default function MobileAppView() {
                           <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
                             <img src={stay.image} alt={stay.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                             <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-2xl flex items-center gap-1.5 text-tropic-green tropic-shadow">
-                              <Star size={14} fill="#FFD166" className="text-tropic-sunset" />
+                              <UilStar size="14" className="text-tropic-sunset" />
                               <span className="text-xs font-black">{stay.rating}</span>
                             </div>
                             <div className="absolute bottom-5 right-5 w-12 h-12 bg-white/90 backdrop-blur-xl text-tropic-coral rounded-full flex items-center justify-center shadow-2xl group-hover:bg-tropic-coral group-hover:text-white transition-colors">
-                              <ArrowLeft className="rotate-[135deg]" size={20} weight='bold' />
+                              <UilArrowLeft className="rotate-[135deg]" size="20" />
                             </div>
                           </div>
                           <div className="px-4 pb-4 flex justify-between items-end">
@@ -355,16 +398,17 @@ export default function MobileAppView() {
                     ))}
                   </div>
                 </div>
+              )}
 
                 {/* Rental Vehicles Section */}
+                {sectionFilter !== 'Spots' && sectionFilter !== 'Stays' && (
                 <div>
                   <div className="flex justify-between items-center mb-8">
                     <h3 className="text-2xl font-black text-tropic-green tracking-tighter">Rental Vehicles</h3>
                     <button className="text-[10px] font-black text-white uppercase tracking-widest bg-tropic-green px-4 py-1.5 rounded-full hover:bg-tropic-emerald transition-colors">View All</button>
                   </div>
                   <div className="space-y-8">
-                    {(selectedCategory === 'All' || selectedCategory === 'Rentals') && 
-                      filteredVehicles.map((vehicle) => (
+                    {filteredVehicles.map((vehicle) => (
                         <motion.div
                           key={vehicle.id}
                           whileTap={{ scale: 0.98 }}
@@ -377,7 +421,7 @@ export default function MobileAppView() {
                               <span className="text-[10px] font-black">{vehicle.available} left</span>
                             </div>
                             <div className={`absolute top-4 right-4 w-10 h-10 ${vehicle.color} rounded-full flex items-center justify-center text-white shadow-lg`}>
-                              <vehicle.icon size={18} weight='regular' />
+                              <vehicle.icon size="18" />
                             </div>
                           </div>
                           <div className="px-4 pb-2 flex justify-between items-end">
@@ -402,6 +446,7 @@ export default function MobileAppView() {
                       ))}
                   </div>
                 </div>
+              )}
               </div>
             </motion.div>
           )}
@@ -417,16 +462,16 @@ export default function MobileAppView() {
             </motion.div>
           )}
 
-          {activeTab === 'rentals' && (
+          {activeTab === 'mobility' && (
             <motion.div
-              key="rentals"
+              key="mobility"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="px-6 pb-40"
             >
               <div className="pt-6 mb-6">
                 <Header
-                  title="Rental&#10;Vehicles"
+                  title="Getting&#10;Around"
                   subtitle="Island Mobility"
                   showNotification
                 />
@@ -434,6 +479,19 @@ export default function MobileAppView() {
               <div className="mb-6">
                 <SearchBar placeholder="Search vehicles..." />
               </div>
+
+              <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar">
+                {['Rentals', 'Transports'].map(s => (
+                  <button key={s} onClick={() => setMobilityFilter(s)}
+                    className={`px-5 py-2.5 rounded-full text-xs font-black tracking-wider whitespace-nowrap transition-all ${
+                      mobilityFilter === s ? 'bg-tropic-green text-white shadow-lg' : 'bg-tropic-sand/30 text-tropic-green/60 hover:text-tropic-green'
+                    }`}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+
+              {mobilityFilter === 'Rentals' && (
               <div className="space-y-5">
                 {rentalVehicles.map((vehicle, idx) => (
                   <motion.div
@@ -452,7 +510,7 @@ export default function MobileAppView() {
                         {vehicle.available} left
                       </div>
                       <div className={`absolute top-3 right-3 w-9 h-9 ${vehicle.color} rounded-full flex items-center justify-center text-white shadow-lg`}>
-                        <vehicle.icon size={16} weight='regular' />
+                        <vehicle.icon size="16" />
                       </div>
                       <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end">
                         <h3 className="text-xl font-black text-white tracking-tighter drop-shadow-lg">{vehicle.name}</h3>
@@ -480,58 +538,8 @@ export default function MobileAppView() {
                   </motion.div>
                 ))}
               </div>
-            </motion.div>
-          )}
-
-          {activeTab === 'shops' && (
-            <motion.div
-              key="shops"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="px-6 pb-40"
-            >
-              <div className="pt-6 mb-6">
-                <Header
-                  title="Local&#10;Shops"
-                  subtitle="Support Local"
-                  showNotification
-                />
-              </div>
-              <div className="space-y-5">
-                {businesses.filter(b => b.businessType === 'shop').map((shop, idx) => (
-                  <motion.div
-                    key={shop.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="bg-white rounded-[24px] border border-gray-100 overflow-hidden shadow-[var(--shadow-sm)]"
-                    onClick={() => navigate('/shops')}
-                  >
-                    <div className="p-5">
-                      <h3 className="text-xl font-black text-tropic-green tracking-tighter mb-2">{shop.name}</h3>
-                      <p className="text-xs text-tropic-green/50 font-medium mb-3">{shop.location} • {shop.category}</p>
-                      <p className="text-xs text-tropic-green/60 font-medium leading-relaxed">{shop.description}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {activeTab === 'transport' && (
-            <motion.div
-              key="transport"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="px-6 pb-40"
-            >
-              <div className="pt-6 mb-6">
-                <Header
-                  title="Getting&#10;Around"
-                  subtitle="Island Transport"
-                  showNotification
-                />
-              </div>
+              )}
+              {mobilityFilter === 'Transports' && (
               <div className="space-y-4">
                 {transportOptions.map((option, idx) => (
                   <motion.div
@@ -541,7 +549,7 @@ export default function MobileAppView() {
                     transition={{ delay: idx * 0.05 }}
                     whileTap={{ scale: 0.98 }}
                     className="bg-white rounded-[24px] border border-gray-100 overflow-hidden shadow-[var(--shadow-sm)]"
-                    onClick={() => navigate('/transport')}
+                    onClick={() => setSelectedTransport(option)}
                   >
                     <div className="p-5">
                       <h3 className="text-xl font-black text-tropic-green tracking-tighter mb-2">{option.title}</h3>
@@ -552,6 +560,103 @@ export default function MobileAppView() {
                   </motion.div>
                 ))}
               </div>
+              )}
+
+              {/* Transport Booking Modal */}
+              <AnimatePresence>
+                {selectedTransport && (
+                  <motion.div
+                    initial={{ y: '100%' }}
+                    animate={{ y: 0 }}
+                    exit={{ y: '100%' }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    className="absolute inset-0 bg-white z-[60] flex flex-col overflow-y-auto no-scrollbar"
+                  >
+                    <div className="sticky top-0 bg-white/95 backdrop-blur-3xl z-10 px-6 pt-6 pb-4 border-b border-gray-100">
+                      <div className="flex items-center gap-4">
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => setSelectedTransport(null)}
+                          className="w-11 h-11 bg-white/70 rounded-full flex items-center justify-center text-tropic-green border border-tropic-sand/30"
+                        >
+                          <UilArrowLeft size="20" />
+                        </motion.button>
+                        <div>
+                          <h3 className="text-lg font-bold text-tropic-green tracking-tight leading-tight">{selectedTransport.title}</h3>
+                          <p className="text-[10px] text-tropic-green/40 font-medium">{selectedTransport.provider}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="px-6 pt-6 space-y-6">
+                      <div className="flex items-center gap-4 text-tropic-green font-bold">
+                        <UilMapMarker size="20" className="text-tropic-emerald shrink-0" />
+                        <span className="text-sm">{selectedTransport.route}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-tropic-green font-bold">
+                        <UilClock size="20" className="text-tropic-emerald shrink-0" />
+                        <span className="text-sm">{selectedTransport.duration}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between p-6 bg-stone-50 rounded-3xl border border-slate-100">
+                        <div>
+                          <span className="text-[10px] font-semibold text-slate-400 tracking-tight mb-1 block">Fare</span>
+                          <span className="text-3xl font-black text-tropic-green tracking-tighter">₱{selectedTransport.price.toLocaleString()}</span>
+                        </div>
+                        <UilShieldCheck size="36" className="text-tropic-emerald opacity-20" />
+                      </div>
+
+                      <div className="space-y-4">
+                        <h4 className="text-sm font-bold text-tropic-green flex items-center gap-2">
+                          <UilCalendarAlt size="18" className="text-tropic-ocean" /> Select date
+                        </h4>
+                        <input type="date"
+                          value={transportDate}
+                          onChange={e => setTransportDate(e.target.value)}
+                          className="w-full bg-white rounded-2xl p-4 text-sm font-semibold text-tropic-green border-2 border-tropic-sand/30 focus:border-tropic-emerald outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <h4 className="text-sm font-bold text-tropic-green mb-4">Passengers</h4>
+                        <div className="bg-white rounded-3xl p-5 border border-tropic-sand/30">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-semibold text-tropic-green">Guests</span>
+                            <div className="flex items-center gap-4">
+                              <button onClick={() => setTransportGuests(Math.max(1, transportGuests - 1))}
+                                className="w-8 h-8 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all">
+                                <UilMinus size="14" />
+                              </button>
+                              <span className="w-8 text-center text-base font-bold text-tropic-green">{transportGuests}</span>
+                              <button onClick={() => setTransportGuests(Math.min(selectedTransport.maxPassengers || 10, transportGuests + 1))}
+                                className="w-8 h-8 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all">
+                                <UilPlus size="14" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 pb-8">
+                        <motion.button
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => handleBookTransport(selectedTransport)}
+                          disabled={!transportDate || transportBookingStatus === 'loading' || transportBookingStatus === 'success'}
+                          className="w-full bg-gradient-to-r from-tropic-green to-tropic-deep text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-tropic-green/20 hover:shadow-tropic-green/40 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                        >
+                          {transportBookingStatus === 'success' ? (
+                            <><UilCheckCircle size="22" /> Booking Confirmed</>
+                          ) : transportBookingStatus === 'loading' ? (
+                            <UilSync size="22" className="animate-spin" />
+                          ) : (
+                            <>Book — ₱{(selectedTransport.price * transportGuests).toLocaleString()}</>
+                          )}
+                        </motion.button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
 
@@ -570,7 +675,7 @@ export default function MobileAppView() {
                 />
               </div>
               <div className="bg-gradient-to-br from-tropic-green to-tropic-deep rounded-[3rem] p-8 text-white text-center shadow-2xl mb-8">
-                <Sparkle size={48} className="mx-auto mb-6 text-tropic-sunset" weight="fill" />
+                <img src="/images/mascot.png" alt="" className="w-24 h-24 mx-auto mb-6 object-contain" />
                 <h3 className="text-2xl font-black tracking-tighter mb-3">Plan with AI</h3>
                 <p className="text-sm text-white/70 font-medium leading-relaxed mb-8">
                   Tell us your preferences and our AI will craft a personalized Catarman itinerary.
@@ -580,7 +685,7 @@ export default function MobileAppView() {
                   onClick={() => navigate('/planner')}
                   className="w-full bg-white text-tropic-green py-5 rounded-2xl font-bold text-sm shadow-xl flex items-center justify-center gap-3"
                 >
-                  <Sparkle size={20} weight="fill" />
+                  <img src="/images/mascot.png" alt="" className="w-10 h-10 object-contain" />
                   Start Planning
                 </motion.button>
               </div>
@@ -605,62 +710,6 @@ export default function MobileAppView() {
             </motion.div>
           )}
 
-          {activeTab === 'pass' && (
-            <motion.div 
-              key="pass"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="px-6 flex flex-col items-center pb-40"
-            >
-              <header className="mb-14 text-center pt-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-tropic-emerald to-tropic-ocean text-white rounded-[2rem] flex items-center justify-center mx-auto mb-6 tropic-shadow-xl border border-white/20">
-                  <Ticket size={40} weight='regular' />
-                </div>
-                <h2 className="text-4xl font-black text-tropic-green tracking-tighter mb-2">Travel Pass</h2>
-                <p className="text-tropic-green/50 text-sm font-medium tracking-tight">Your digital travel pass</p>
-              </header>
-              
-              <div className="w-full aspect-square max-w-[320px] bg-white rounded-[4rem] border-8 border-tropic-sand/30 tropic-shadow-xl flex items-center justify-center relative group p-10 mb-12">
-                <div className="absolute top-8 left-8 w-8 h-8 border-t-4 border-l-4 border-tropic-emerald rounded-tl-xl"></div>
-                <div className="absolute top-8 right-8 w-8 h-8 border-t-4 border-r-4 border-tropic-emerald rounded-tr-xl"></div>
-                <div className="absolute bottom-8 left-8 w-8 h-8 border-b-4 border-l-4 border-tropic-emerald rounded-bl-xl"></div>
-                <div className="absolute bottom-8 right-8 w-8 h-8 border-b-4 border-r-4 border-tropic-emerald rounded-br-xl"></div>
-                <QRCodeCanvas
-                  value={user?.uid ? `islandos://pass/${user.uid}` : 'islandos://pass/guest'}
-                  size={200}
-                  bgColor="#ffffff"
-                  fgColor="#064E3B"
-                  level="M"
-                  includeMargin
-                />
-              </div>
-
-              <div className="w-full bg-gradient-to-br from-tropic-green to-tropic-deep p-10 rounded-[3.5rem] text-white shadow-2xl relative border border-white/10 overflow-hidden">
-                <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
-                  <Sparkle size={200} className="translate-x-12 -translate-y-12 rotate-12" />
-                </div>
-                <div className="flex justify-between items-start mb-10 relative z-10">
-                  <div>
-                    <span className="text-[10px] font-semibold text-white/40 tracking-tight mb-2 block">Passenger</span>
-                    <p className="text-2xl font-black tracking-tighter">{user?.displayName || 'Traveler'}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-white/10 backdrop-blur-2xl rounded-xl flex items-center justify-center border border-white/20">
-                    <ShieldCheck size={24} weight='bold' className="text-tropic-sunset" />
-                  </div>
-                </div>
-                <div className="flex justify-between items-end relative z-10">
-                  <div className="space-y-1">
-                    <span className="block text-[10px] font-semibold text-white/40 tracking-tight">Pass ID</span>
-                    <span className="font-mono text-xs font-black tracking-widest text-tropic-sunset">TRV-P-{user?.uid?.slice(-6).toUpperCase() || 'GUEST'}</span>
-                  </div>
-                  <div className="px-5 py-2 bg-gradient-to-r from-tropic-sunset to-tropic-coral text-white rounded-full text-[10px] font-bold tracking-wider">
-                    Active
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
           {activeTab === 'profile' && (
             <motion.div 
               key="profile"
@@ -673,10 +722,10 @@ export default function MobileAppView() {
                   {user?.photoURL ? (
                     <img src={user.photoURL} alt={user.displayName || ''} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
-                    <User size={60} className="text-tropic-sand/60" />
+                    <UilUser size="60" className="text-tropic-sand/60" />
                   )}
                   <div className="absolute -bottom-1 -right-1 w-10 h-10 bg-gradient-to-br from-tropic-emerald to-tropic-ocean text-white rounded-xl flex items-center justify-center border-4 border-white tropic-shadow-lg">
-                    <CheckCircle size={16} weight='fill' />
+                    <UilCheckCircle size="16" />
                   </div>
                 </div>
                 <h2 className="text-3xl font-black text-tropic-green tracking-tighter">
@@ -686,6 +735,43 @@ export default function MobileAppView() {
                   {profile?.role || 'TOURIST'}
                 </p>
               </header>
+
+              <div className="mb-10 px-2">
+                <div className="bg-gradient-to-br from-tropic-green to-tropic-deep p-6 rounded-[2.5rem] text-white shadow-xl relative border border-white/10 overflow-hidden">
+                  <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
+                    <UilStar size="120" className="translate-x-8 -translate-y-8 rotate-12" />
+                  </div>
+                  <div className="flex items-center justify-between mb-4 relative z-10">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-white/10 backdrop-blur-xl rounded-xl flex items-center justify-center border border-white/20">
+                        <UilShieldCheck size="20" className="text-tropic-sunset" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold tracking-tighter">{user?.displayName || 'Traveler'}</p>
+                        <span className="text-[9px] font-semibold text-white/40 tracking-tight">Travel Pass</span>
+                      </div>
+                    </div>
+                    <div className="px-3 py-1.5 bg-gradient-to-r from-tropic-sunset to-tropic-coral rounded-full text-[9px] font-bold tracking-wider">
+                      Active
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between relative z-10">
+                    <div>
+                      <span className="text-[8px] font-semibold text-white/40 tracking-tight">Pass ID</span>
+                      <p className="font-mono text-xs font-black tracking-widest text-tropic-sunset">TRV-P-{user?.uid?.slice(-6).toUpperCase() || 'GUEST'}</p>
+                    </div>
+                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                      <QRCodeCanvas
+                        value={user?.uid ? `islandos://pass/${user.uid}` : 'islandos://pass/guest'}
+                        size={48}
+                        bgColor="#ffffff"
+                        fgColor="#064E3B"
+                        level="M"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {!user ? (
                 <button 
@@ -707,7 +793,7 @@ export default function MobileAppView() {
                     <div className="space-y-4 max-h-[40vh] overflow-y-auto no-scrollbar pr-2">
                       {bookings.length === 0 ? (
                         <div className="py-16 bg-tropic-sand/30 rounded-[2.5rem] text-center border-2 border-dashed border-tropic-sand/50">
-                          <Sparkle className="mx-auto text-tropic-sand/50 mb-4" size={48} />
+                          <UilStar className="mx-auto text-tropic-sand/50 mb-4" size="48" />
                           <p className="text-[10px] font-semibold text-tropic-green/30 tracking-tight">No bookings yet</p>
                         </div>
                       ) : (
@@ -715,7 +801,7 @@ export default function MobileAppView() {
                           <div key={booking.id} className="p-6 bg-white rounded-[2rem] border border-tropic-sand/30 tropic-shadow relative overflow-hidden group">
                             {booking.paymentStatus === 'PAID' && (
                                <div className="absolute top-0 right-0 w-14 h-14 bg-gradient-to-br from-tropic-emerald to-tropic-ocean text-white rounded-bl-[2rem] flex items-center justify-center tropic-shadow-lg">
-                                 <CheckCircle size={24} weight='bold' />
+                                 <UilCheckCircle size="24" />
                                </div>
                             )}
                             <div className="mb-4">
@@ -743,7 +829,7 @@ export default function MobileAppView() {
                   </div>
 
                   <div className="space-y-3">
-                    <ProfileItem icon={Building} label="Claim a Business" onClick={() => navigate('/claim-business')} />
+                    <ProfileItem icon={UilBuilding} label="Claim a Business" onClick={() => navigate('/claim-business')} />
                   </div>
 
                   <button 
@@ -752,7 +838,7 @@ export default function MobileAppView() {
                   >
                     Sign Out
                   </button>
-                </div>
+              </div>
               )}
             </motion.div>
           )}
@@ -787,7 +873,7 @@ export default function MobileAppView() {
                   onClick={() => setShowBooking(false)}
                   className="w-11 h-11 bg-white/70 rounded-full flex items-center justify-center text-tropic-green border border-tropic-sand/30"
                 >
-                  <ArrowLeft size={20} />
+                  <UilArrowLeft size="20" />
                 </motion.button>
                 <div>
                   <h3 className="text-lg font-bold text-tropic-green tracking-tight leading-tight">{selectedSpot.name}</h3>
@@ -800,7 +886,7 @@ export default function MobileAppView() {
               {/* Calendar */}
               <div>
                 <h4 className="text-sm font-bold text-tropic-green mb-4 flex items-center gap-2">
-                  <CalendarBlank size={18} className="text-tropic-ocean" /> Select dates
+                  <UilCalendarAlt size="18" className="text-tropic-ocean" /> Select dates
                 </h4>
                 <MonthCalendar 
                   checkIn={checkIn} checkOut={checkOut}
@@ -822,14 +908,14 @@ export default function MobileAppView() {
                         onClick={() => setGuests(Math.max(1, guests - 1))}
                         className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all"
                       >
-                        <Minus size={16} weight='bold' />
+                        <UilMinus size="16" />
                       </button>
                       <span className="w-8 text-center text-lg font-bold text-tropic-green">{guests}</span>
                       <button 
                         onClick={() => setGuests(Math.min(10, guests + 1))}
                         className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all"
                       >
-                        <Plus size={16} weight='bold' />
+                        <UilPlus size="16" />
                       </button>
                     </div>
                   </div>
@@ -841,8 +927,8 @@ export default function MobileAppView() {
                 <h4 className="text-sm font-bold text-tropic-green mb-4">Add-ons</h4>
                 <div className="space-y-3">
                   {[
-                    { id: 'breakfast', label: 'Breakfast Bundle', price: 250, icon: Coffee },
-                    { id: 'lateCheckin', label: 'Late Check-in', price: 150, icon: Moon },
+                    { id: 'breakfast', label: 'Breakfast Bundle', price: 250, icon: UilCoffee },
+                    { id: 'lateCheckin', label: 'Late Check-in', price: 150, icon: UilMoon },
                   ].map(item => (
                     <button
                       key={item.id}
@@ -857,7 +943,7 @@ export default function MobileAppView() {
                         <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all ${
                           (addons as any)[item.id] ? 'bg-gradient-to-br from-tropic-emerald to-tropic-ocean text-white' : 'bg-tropic-sand/30 text-tropic-green/40'
                         }`}>
-                          <item.icon size={20} weight='regular' />
+                          <item.icon size="20" />
                         </div>
                         <div className="text-left">
                           <span className="block text-sm font-bold text-tropic-green">{item.label}</span>
@@ -867,7 +953,7 @@ export default function MobileAppView() {
                       <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
                         (addons as any)[item.id] ? 'bg-tropic-green border-tropic-green text-white' : 'border-tropic-sand'
                       }`}>
-                        {(addons as any)[item.id] && <CheckCircle size={14} weight='fill' />}
+                        {(addons as any)[item.id] && <UilCheckCircle size="14" />}
                       </div>
                     </button>
                   ))}
@@ -913,9 +999,9 @@ export default function MobileAppView() {
                   className="w-full bg-gradient-to-r from-tropic-green to-tropic-deep text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-tropic-green/20 hover:shadow-tropic-green/40 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                 >
                   {bookingStatus[selectedSpot.id] === 'success' ? (
-                    <><CheckCircle size={22} /> Booking Confirmed</>
+                    <><UilCheckCircle size="22" /> Booking Confirmed</>
                   ) : bookingStatus[selectedSpot.id] === 'loading' ? (
-                    <ArrowsClockwise size={22} className="animate-spin" />
+                    <UilSync size="22" className="animate-spin" />
                   ) : (
                     <>Book now — ₱{(
                       (selectedSpot.price || 0) * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24))) +
@@ -926,7 +1012,7 @@ export default function MobileAppView() {
                 </motion.button>
               </div>
             </div>
-          </motion.div>
+            </motion.div>
         )}
       </AnimatePresence>
 
@@ -935,6 +1021,7 @@ export default function MobileAppView() {
         <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
           <div className="relative w-full h-40 pointer-events-auto">
              {/* Plan with AI Floating Button */}
+            {activeTab !== 'planner' && (
             <motion.button
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -942,9 +1029,10 @@ export default function MobileAppView() {
               onClick={() => navigate('/planner')}
               className="absolute bottom-28 right-6 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white px-6 py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-2 group border border-white/20"
             >
-              <Sparkle size={18} className="animate-pulse" />
+              <img src="/images/mascot.png" alt="" className="w-7 h-7 animate-pulse object-contain" />
               <span>Plan with AI</span>
             </motion.button>
+            )}
 
             <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
@@ -1009,14 +1097,14 @@ function MonthCalendar({ checkIn, checkOut, onSelectCheckIn, onSelectCheckOut }:
     <div className="bg-white rounded-3xl p-6 border border-tropic-sand/30 tropic-shadow">
       <div className="flex items-center justify-between mb-6">
         <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1))} className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green/60 hover:bg-tropic-green hover:text-white transition-all">
-          <CaretLeft size={18} weight='bold' />
+          <UilAngleLeftB size="18" />
         </button>
         <div className="text-center">
           <span className="text-base font-bold text-tropic-green tracking-tight">{viewDate.toLocaleString('default', { month: 'long' })}</span>
           <span className="text-base font-bold text-tropic-green/40 ml-2">{viewDate.getFullYear()}</span>
         </div>
         <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))} className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green/60 hover:bg-tropic-green hover:text-white transition-all">
-          <CaretRight size={18} weight='bold' />
+          <UilAngleRightB size="18" />
         </button>
       </div>
 
@@ -1085,14 +1173,14 @@ function ProfileItem({ icon: Icon, label, count, onClick }: any) {
     >
       <div className="flex items-center gap-6">
         <div className="w-14 h-14 bg-tropic-sand/30 text-tropic-green rounded-2xl flex items-center justify-center group-hover:tropic-mint-gradient group-hover:text-white transition-all duration-500 border border-tropic-sand/30">
-          <Icon size={26} weight='regular' />
+          <Icon size="26" />
         </div>
         <span className="text-lg font-black text-tropic-green tracking-tighter">{label}</span>
       </div>
       {count ? (
         <span className="px-4 py-1.5 bg-gradient-to-r from-tropic-emerald to-tropic-ocean text-white rounded-full text-[10px] font-black shadow-xl">{count}</span>
       ) : (
-        <CaretRight size={22} weight="bold" className="text-tropic-sand/50 group-hover:text-tropic-emerald group-hover:translate-x-1 transition-all" />
+        <UilAngleRightB size="22" className="text-tropic-sand/50 group-hover:text-tropic-emerald group-hover:translate-x-1 transition-all" />
       )}
     </button>
   );

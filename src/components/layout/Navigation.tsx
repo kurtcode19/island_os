@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Compass, Hotel, Ship, Bike, Building2, MapIcon, Sparkles, Ticket, Calendar, BarChart3, LogOut, LogIn, ShieldCheck, Menu, X, LayoutDashboard } from 'lucide-react';
+import { UilHome, UilBedDouble, UilNavigator, UilMapPin, UilStar, UilCalendarAlt, UilBuilding, UilChartBar, UilSignOutAlt, UilSignInAlt, UilShieldCheck, UilBars, UilTimes, UilDashboard, UilCalendar, UilMap, UilTicket } from '@/icons';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types';
 import { doc, setDoc } from 'firebase/firestore';
@@ -16,27 +16,24 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const touristItems = [
-    { path: '/', label: 'Home', icon: Compass },
-    { path: '/stay', label: 'Stay', icon: Hotel },
-    { path: '/transport', label: 'Transport', icon: Ship },
-    { path: '/rentals', label: 'Rentals', icon: Bike },
-    { path: '/shops', label: 'Shops', icon: Building2 },
-    { path: '/locations', label: 'Locations', icon: MapIcon },
-    { path: '/planner', label: 'AI Planner', icon: Sparkles },
-    { path: '/pass', label: 'Tourist Pass', icon: Ticket },
-    { path: '/my-bookings', label: 'My Bookings', icon: Calendar },
+    { path: '/', label: 'Home', icon: UilHome },
+    { path: '/stay', label: 'Stay', icon: UilBedDouble },
+    { path: '/transport', label: 'Mobility', icon: UilNavigator },
+    { path: '/locations', label: 'Map', icon: UilMapPin },
+    { path: '/planner', label: 'AI Planner', icon: UilStar },
+    { path: '/my-bookings', label: 'My Bookings', icon: UilCalendarAlt },
   ];
 
   const businessItems = [
-    { path: '/business', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/business/bookings', label: 'Bookings', icon: Calendar },
-    { path: '/business/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/business', label: 'Dashboard', icon: UilDashboard },
+    { path: '/business/bookings', label: 'Bookings', icon: UilCalendar },
+    { path: '/business/analytics', label: 'Analytics', icon: UilChartBar },
   ];
 
   const lguItems = [
-    { path: '/government', label: 'Analytics', icon: LayoutDashboard },
-    { path: '/government/map', label: 'Island Map', icon: MapIcon },
-    { path: '/government/reports', label: 'Reports', icon: Ticket },
+    { path: '/government', label: 'Analytics', icon: UilDashboard },
+    { path: '/government/map', label: 'Island Map', icon: UilMap },
+    { path: '/government/reports', label: 'Reports', icon: UilTicket },
   ];
 
   const getNavItems = () => {
@@ -72,7 +69,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-white border-b border-slate-100">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12">
+      <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between h-20 items-center">
           
           {/* Left Side: Logo - Fixed width to balance the right side */}
@@ -185,14 +182,14 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                           onClick={() => setIsUserMenuOpen(false)}
                           className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-semibold tracking-tight text-island-emerald hover:bg-island-emerald/5 transition-all mb-2"
                         >
-                          <Building2 size={16} />
+                          <UilBuilding size="18" />
                           Claim Business
                         </Link>
                         <button
                           onClick={() => { logout(); setIsUserMenuOpen(false); }}
                           className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-semibold tracking-tight text-island-coral hover:bg-island-coral/5 transition-all"
                         >
-                          <LogOut size={16} />
+                          <UilSignOutAlt size="18" />
                           Sign Out
                         </button>
                       </motion.div>
@@ -224,11 +221,11 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                 onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
                 className="p-2 text-slate-600 bg-slate-50 rounded-lg"
               >
-                <ShieldCheck size={20} />
+                <UilShieldCheck size="20" />
               </button>
             )}
             <button className="p-2 text-slate-600" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMenuOpen ? <UilTimes size="24" /> : <UilBars size="24" />}
             </button>
           </div>
         </div>
@@ -258,7 +255,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                       isActive ? 'bg-island-emerald/10 text-island-emerald' : 'text-slate-500 hover:bg-slate-50'
                     }`}
                   >
-                    <item.icon size={20} />
+                    <item.icon size={22} />
                     {item.label}
                   </Link>
                 );
@@ -269,7 +266,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                   onClick={login}
                   className="w-full flex items-center justify-center gap-4 p-4 rounded-2xl sunset-gradient text-white text-sm font-bold tracking-wider shadow-lg shadow-island-sunset/20"
                 >
-                  <LogIn size={20} />
+                  <UilSignInAlt size="22" />
                   Sign In
                 </button>
               )}
@@ -279,7 +276,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                   onClick={logout}
                   className="w-full flex items-center justify-center gap-4 p-4 rounded-2xl bg-island-coral/10 text-island-coral text-sm font-bold tracking-wider"
                 >
-                  <LogOut size={20} />
+                  <UilSignOutAlt size="22" />
                   Sign Out
                 </button>
               )}
@@ -307,7 +304,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                     currentRole === role ? 'bg-island-emerald/10 text-island-emerald' : 'text-slate-500 hover:bg-slate-50'
                   }`}
                 >
-                  <ShieldCheck size={20} />
+                <UilShieldCheck size="20" />
                   {role}
                 </button>
               ))}

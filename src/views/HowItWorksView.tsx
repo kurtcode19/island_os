@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { UilArrowLeft, UilStar } from '@/icons';
 import { ProcessFlow, CompactProcessFlow } from '../components/ProcessFlow';
 import { bookingFlow, tripPlannerFlow } from '../data/processFlow';
 
@@ -21,7 +21,7 @@ export default function HowItWorksView() {
             className="inline-flex items-center gap-3 text-slate-400 hover:text-island-volcanic transition-all mb-12 group"
           >
             <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-slate-100 group-hover:bg-island-volcanic group-hover:text-white transition-colors shadow-sm">
-              <ArrowLeft size={18} strokeWidth={3} />
+              <UilArrowLeft size="18" />
             </div>
             <span className="text-xs font-semibold tracking-tight">Back to Home</span>
           </Link>
@@ -99,7 +99,7 @@ export default function HowItWorksView() {
       <section className="max-w-[1600px] mx-auto px-6 mt-32">
         <div className="bg-volcanic-gradient rounded-[4rem] p-16 text-white relative overflow-hidden border border-white/10">
           <div className="absolute top-0 right-0 opacity-5">
-            <Sparkles size={300} className="translate-x-20 -translate-y-20" />
+            <UilStar size="300" className="translate-x-20 -translate-y-20" />
           </div>
           <div className="relative z-10">
             <span className="text-island-emerald font-bold tracking-wider text-xs mb-4 block">/ Three in One</span>

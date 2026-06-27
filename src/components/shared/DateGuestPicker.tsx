@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import DatePicker from 'react-datepicker';
-import { Calendar, Users, Minus, Plus } from 'lucide-react';
+import { UilCalendar, UilUsersAlt, UilMinus, UilPlus } from '@/icons';
 import 'react-datepicker/dist/react-datepicker.css';
 
 interface DateGuestPickerProps {
@@ -36,7 +36,7 @@ export default function DateGuestPicker({ onDateChange, onGuestsChange, defaultG
           onClick={() => setShowDatePicker(!showDatePicker)}
           className="w-full flex items-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl text-sm font-semibold text-slate-600 hover:border-island-emerald/30 transition-all"
         >
-          <Calendar size={18} className="text-island-emerald" />
+          <UilCalendar size="18" className="text-island-emerald" />
           {startDate ? startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Select date'}
         </button>
         {showDatePicker && (
@@ -57,7 +57,7 @@ export default function DateGuestPicker({ onDateChange, onGuestsChange, defaultG
           onClick={() => setShowGuestSelector(!showGuestSelector)}
           className="flex items-center gap-2 px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl text-sm font-semibold text-slate-600 hover:border-island-emerald/30 transition-all"
         >
-          <Users size={18} className="text-island-emerald" />
+          <UilUsersAlt size="18" className="text-island-emerald" />
           {guests} {guests === 1 ? 'Guest' : 'Guests'}
         </button>
         {showGuestSelector && (
@@ -70,7 +70,7 @@ export default function DateGuestPicker({ onDateChange, onGuestsChange, defaultG
                 disabled={guests <= 1}
                 className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-island-emerald/10 hover:text-island-emerald transition-all disabled:opacity-30"
               >
-                <Minus size={18} strokeWidth={3} />
+                <UilMinus size="18" />
               </button>
               <span className="text-2xl font-black text-island-volcanic">{guests}</span>
               <button
@@ -78,7 +78,7 @@ export default function DateGuestPicker({ onDateChange, onGuestsChange, defaultG
                 disabled={guests >= 20}
                 className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-island-emerald/10 hover:text-island-emerald transition-all disabled:opacity-30"
               >
-                <Plus size={18} strokeWidth={3} />
+                <UilPlus size="18" />
               </button>
             </div>
           </div>

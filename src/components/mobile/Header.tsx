@@ -1,4 +1,4 @@
-import { Bell } from '@phosphor-icons/react';
+import { UilBell } from '@/icons';
 
 interface HeaderProps {
   title: string;
@@ -26,7 +26,7 @@ export function Header({ title, subtitle, onNotificationClick, showNotification 
           aria-label="Notifications"
           className="relative w-11 h-11 rounded-full bg-white/70 border border-gray-100 flex items-center justify-center text-[var(--text)] shadow-sm active:scale-90 transition-all"
         >
-          <Bell size={20} />
+          <UilBell size="20" />
           {showNotification && (
             <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white" />
           )}

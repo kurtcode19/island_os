@@ -2,30 +2,28 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
 import {
-   Users, 
-   MapPin, 
-   TrendingUp, 
-   Hotel, 
-   Calendar, 
-   DollarSign, 
-   Globe, 
-   Activity,
-   Filter,
-   Download,
-   Mountain,
-   Waves,
-   ShieldCheck,
-   Ship,
-   FileText,
-   Settings,
-   Search,
-   Bell,
-   Scan,
-   ChevronRight,
-   BarChart3,
-   X,
-   ArrowUpRight
-} from 'lucide-react';
+   UilUsersAlt as Users, 
+   UilMapMarker as MapPin, 
+   UilChartGrowth as TrendingUp, 
+   UilBuilding as Hotel, 
+   UilCalendar as Calendar, 
+   UilDollarSign as DollarSign, 
+   UilGlobe as Globe, 
+   UilHeartbeat as Activity,
+   UilFilter as Filter,
+   UilDownloadAlt as Download,
+   UilShieldCheck as ShieldCheck,
+   UilShip as Ship,
+   UilFileAlt as FileText,
+   UilSetting as Settings,
+   UilSearch as Search,
+   UilBell as Bell,
+   UilQrcodeScan as Scan,
+   UilAngleRightB as ChevronRight,
+   UilChartBar as BarChart3,
+   UilTimes as X,
+   UilArrowUpRight as ArrowUpRight
+} from '@/icons';
 import { 
   PieChart, Pie, Cell, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -331,7 +329,7 @@ export default function GovernmentDashboard() {
         <div className="p-10 flex-1 overflow-y-auto no-scrollbar">
           <div className="flex items-center gap-5 mb-16 px-4">
             <div className="w-14 h-14 rounded-2xl forest-gradient flex items-center justify-center text-white shadow-2xl border border-white/10">
-              <ShieldCheck size={32} strokeWidth={2.5} />
+              <ShieldCheck size="32" />
             </div>
             <div>
               <h3 className="text-2xl font-black text-island-volcanic tracking-tighter leading-none mb-1">Catarman</h3>
@@ -356,14 +354,14 @@ export default function GovernmentDashboard() {
             to="/"
             className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.75rem] text-xs font-semibold tracking-tight text-slate-400 bg-stone-50 hover:bg-emerald-50 hover:text-island-emerald transition-all duration-300 border border-transparent hover:border-emerald-100"
           >
-            <ArrowUpRight size={22} strokeWidth={3} />
+            <ArrowUpRight size="22" />
             Back to Site
           </Link>
           <Link 
             to="/"
             className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.75rem] text-xs font-semibold tracking-tight text-slate-400 bg-stone-50 hover:bg-rose-50 hover:text-island-coral transition-all duration-300 border border-transparent hover:border-rose-100"
           >
-            <X size={22} strokeWidth={3} />
+            <X size="22" />
             Logout
           </Link>
         </div>
@@ -382,7 +380,7 @@ export default function GovernmentDashboard() {
             
             <div className="flex items-center gap-6 w-full md:w-auto">
               <div className="relative flex-1 md:flex-none group">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-300 group-focus-within:text-island-emerald transition-colors" size={20} strokeWidth={3} />
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-300 group-focus-within:text-island-emerald transition-colors" size="20" />
                 <input 
                   type="text" 
                   placeholder="Search..." 
@@ -390,7 +388,7 @@ export default function GovernmentDashboard() {
                 />
               </div>
               <button className="w-14 h-14 bg-white border-2 border-emerald-50 rounded-2xl text-island-volcanic flex items-center justify-center relative shadow-2xl hover:bg-emerald-50 active:scale-90 transition-all group shrink-0">
-                <Bell size={24} strokeWidth={2.5} className="group-hover:text-island-emerald transition-colors" />
+                <Bell size="24" className="group-hover:text-island-emerald transition-colors" />
                 <span className="absolute top-3.5 right-3.5 w-3 h-3 bg-island-coral rounded-full border-2 border-white ring-4 ring-rose-500/10"></span>
               </button>
             </div>

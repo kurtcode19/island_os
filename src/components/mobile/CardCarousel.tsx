@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Star, Heart, MapPin } from '@phosphor-icons/react';
+import { UilStar, UilHeart, UilMapMarker } from '@/icons';
 
 interface CardItem {
   id: number;
@@ -30,16 +30,16 @@ function Card({ item, onClick }: { item: CardItem; onClick: () => void }) {
         aria-label="Favorite"
         className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white"
       >
-        <Heart size={14} />
+        <UilHeart size="14" />
       </button>
       <div className="absolute bottom-3 left-3 right-3">
         <div className="flex items-center gap-1 text-white/80 text-[10px] font-semibold mb-1">
-          <MapPin size={10} />
+          <UilMapMarker size="10" />
           <span>{item.category}</span>
         </div>
         <h4 className="text-white font-bold text-sm leading-tight">{item.name}</h4>
         <div className="flex items-center gap-1 mt-1">
-          <Star size={10} fill="#FFD166" className="text-[#FFD166]" />
+          <UilStar size="10" className="text-[#FFD166]" />
           <span className="text-white/90 text-[10px] font-semibold">{item.rating}</span>
         </div>
       </div>

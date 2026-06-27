@@ -2,15 +2,14 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  ArrowRight, 
-  Star, 
-  X, 
-  CheckCircle2, 
-  RefreshCw, 
-  Sparkles,
-  ChevronRight,
-  ArrowUpRight
-} from 'lucide-react';
+  UilArrowRight, 
+  UilStar, 
+  UilTimes, 
+  UilCheckCircle, 
+  UilRefresh, 
+  UilAngleRightB,
+  UilArrowUpRight
+} from '@/icons';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -111,7 +110,7 @@ export default function LandingView() {
                 >
                   Start Exploring 
                   <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-island-emerald transition-colors">
-                    <ArrowUpRight size={20} />
+                    <UilArrowUpRight size="20" />
                   </div>
                 </button>
               </div>
@@ -148,7 +147,7 @@ export default function LandingView() {
             >
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-island-emerald/10 rounded-2xl flex items-center justify-center text-island-emerald">
-                  <Sparkles size={24} />
+                  <UilStar size="24" />
                 </div>
                 <div>
                   <p className="text-island-volcanic font-bold tracking-tight">AI Generated</p>
@@ -184,7 +183,7 @@ export default function LandingView() {
               </p>
             </div>
             <Link to="/rentals" className="hidden md:flex items-center gap-2 px-8 py-4 bg-island-volcanic text-white rounded-full font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">
-              View All <ArrowUpRight size={16} />
+              View All <UilArrowUpRight size="16" />
             </Link>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -224,7 +223,7 @@ export default function LandingView() {
           </div>
           <div className="mt-10 text-center md:hidden">
             <Link to="/rentals" className="inline-flex items-center gap-2 px-8 py-4 bg-island-volcanic text-white rounded-full font-bold text-xs uppercase tracking-widest">
-              View All Vehicles <ArrowUpRight size={16} />
+              View All Vehicles <UilArrowUpRight size="16" />
             </Link>
           </div>
         </div>
@@ -292,7 +291,7 @@ export default function LandingView() {
               className="inline-flex items-center gap-3 text-sm font-semibold text-island-emerald hover:text-island-green transition-colors group"
             >
               See full breakdown
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              <UilArrowRight size="18" className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
@@ -319,7 +318,7 @@ export default function LandingView() {
               Catarman offers a profound journey through Camiguin's volcanic history and vibrant local culture. From spiritual landmarks to hidden waterfalls.
             </p>
             <button onClick={() => navigate('/how-it-works')} className="bg-island-volcanic text-white px-10 py-5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-3 hover:scale-105 transition-all shadow-xl">
-              Learn More <ArrowRight size={18} />
+              Learn More <UilArrowRight size="18" />
             </button>
           </div>
         </div>
@@ -363,7 +362,7 @@ export default function LandingView() {
                 Official municipal experiences verified by the Catarman Tourism Office.
               </p>
               <button onClick={() => navigate('/locations')} className="bg-island-volcanic text-white px-10 py-5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-3 hover:scale-105 transition-all shadow-xl">
-                See All <ArrowRight size={18} />
+                See All <UilArrowRight size="18" />
               </button>
             </div>
           </div>
@@ -392,7 +391,7 @@ export default function LandingView() {
                     <p className="text-island-emerald font-black italic">Starting from ₱{exp.price.toLocaleString()}</p>
                   </div>
                   <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center transition-all group-hover:bg-island-emerald group-hover:text-white group-hover:scale-110">
-                    <ArrowUpRight size={24} />
+                    <UilArrowUpRight size="24" />
                   </div>
                 </div>
               </motion.div>
@@ -438,7 +437,7 @@ export default function LandingView() {
                   onClick={() => setSelectedExp(null)}
                   className="absolute top-8 right-8 p-4 bg-slate-50 rounded-full text-island-volcanic hover:text-island-coral active:scale-90 transition-all z-10"
                 >
-                  <X size={24} />
+                  <UilTimes size="24" />
                 </button>
 
                 <div className="grid grid-cols-1 md:grid-cols-2">
@@ -449,7 +448,7 @@ export default function LandingView() {
                   <div className="p-12">
                     <div className="flex items-center gap-4 mb-8">
                       <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-full">
-                        <Star size={18} fill="#D97706" className="text-island-sunset" />
+                        <UilStar size="18" className="text-island-sunset" />
                         <span className="text-sm font-bold">{selectedExp.rating}</span>
                       </div>
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{selectedExp.type}</span>
@@ -470,7 +469,7 @@ export default function LandingView() {
                           animate={{ opacity: 1, scale: 1 }}
                           className="flex items-center gap-4 py-6 text-emerald-600"
                         >
-                          <CheckCircle2 size={32} />
+                          <UilCheckCircle size="32" />
                           <p className="font-bold uppercase tracking-widest text-xs">Booking Verified</p>
                         </motion.div>
                       ) : (
@@ -480,7 +479,7 @@ export default function LandingView() {
                           className="w-full bg-island-volcanic text-white py-7 rounded-full font-bold uppercase tracking-widest text-xs disabled:opacity-50 hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
                         >
                           {bookingStatus === 'loading' ? (
-                            <RefreshCw size={24} className="animate-spin" />
+                            <UilRefresh size="24" className="animate-spin" />
                           ) : (
                             'Confirm Reservation'
                           )}

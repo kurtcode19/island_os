@@ -1,4 +1,4 @@
-import { Bike, Car, Truck } from 'lucide-react';
+import { UilCar, UilTruck } from '@/icons';
 
 export interface RentalVehicle {
   id: string;
@@ -37,7 +37,7 @@ export const rentalMerchants: RentalMerchant[] = [
     rating: 4.7,
     contact: '0917-123-4567',
     image: '/images/explore-bg.jpg',
-    icon: Bike,
+    icon: UilCar,
   },
   {
     id: 'van_rentals_inc',
@@ -47,7 +47,7 @@ export const rentalMerchants: RentalMerchant[] = [
     rating: 4.5,
     contact: '0918-765-4321',
     image: '/images/explore-bg.jpg',
-    icon: Truck,
+    icon: UilTruck,
   },
 ];
 
@@ -73,7 +73,7 @@ export const rentalVehicles: RentalVehicle[] = [
     features: ['Helmet included', 'Parking brake', 'Storage box', 'Fuel efficient'],
     businessId: 'local_bikes',
     merchantId: 'local_bikes',
-    icon: Bike,
+    icon: UilCar,
     color: 'bg-sky-500',
   },
   {
@@ -89,7 +89,7 @@ export const rentalVehicles: RentalVehicle[] = [
     features: ['Helmet included', 'Lock included', 'Trail ready', 'Lightweight'],
     businessId: 'local_bikes',
     merchantId: 'local_bikes',
-    icon: Bike,
+    icon: UilCar,
     color: 'bg-emerald-500',
   },
   {
@@ -105,7 +105,7 @@ export const rentalVehicles: RentalVehicle[] = [
     features: ['Local driver', 'Tour guide', 'Multi-stop', 'Weather roof'],
     businessId: 'van_rentals_inc',
     merchantId: 'van_rentals_inc',
-    icon: Truck,
+    icon: UilTruck,
     color: 'bg-amber-500',
   },
   {
@@ -121,7 +121,7 @@ export const rentalVehicles: RentalVehicle[] = [
     features: ['Driver included', 'AC', 'Group tour', 'Cargo space'],
     businessId: 'van_rentals_inc',
     merchantId: 'van_rentals_inc',
-    icon: Car,
+    icon: UilCar,
     color: 'bg-violet-500',
   },
   {
@@ -137,7 +137,7 @@ export const rentalVehicles: RentalVehicle[] = [
     features: ['Full insurance', 'AC', 'GPS navigation', 'Bluetooth'],
     businessId: 'van_rentals_inc',
     merchantId: 'van_rentals_inc',
-    icon: Car,
+    icon: UilCar,
     color: 'bg-indigo-500',
   },
 

@@ -1,26 +1,25 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Calendar, 
-  MapPin, 
-  Clock, 
-  CreditCard, 
-  CheckCircle2, 
-  XCircle, 
-  AlertCircle,
-  ChevronRight,
-  ArrowLeft,
-  RefreshCw,
-  Ticket,
-  Hotel,
-  Ship,
-  Compass,
-  Sparkles,
-  Star,
-  Search,
-  Repeat,
-  Filter
-} from 'lucide-react';
+  UilCalendar, 
+  UilMapMarker, 
+  UilClock, 
+  UilCreditCard, 
+  UilCheckCircle, 
+  UilTimesCircle, 
+  UilExclamationCircle,
+  UilAngleRightB,
+  UilArrowLeft,
+  UilRefresh,
+  UilTicket,
+  UilBuilding,
+  UilShip,
+  UilCompass,
+  UilStar,
+  UilSearch,
+  UilRepeat,
+  UilFilter
+} from '@/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { collection, query, where, onSnapshot, doc, updateDoc, orderBy } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
@@ -95,10 +94,10 @@ export default function MyBookingsView() {
 
   const getServiceIcon = (type: string) => {
     switch (type?.toLowerCase()) {
-      case 'stay': return Hotel;
-      case 'transport': return Ship;
-      case 'tour': return Compass;
-      default: return Ticket;
+      case 'stay': return UilBuilding;
+      case 'transport': return UilShip;
+      case 'tour': return UilCompass;
+      default: return UilTicket;
     }
   };
 
@@ -137,7 +136,7 @@ export default function MyBookingsView() {
         <div className="max-w-5xl mx-auto px-6">
           <Link to="/" className="inline-flex items-center gap-3 text-slate-400 hover:text-island-volcanic transition-all mb-8 group">
             <div className="w-8 h-8 rounded-lg bg-stone-50 flex items-center justify-center border border-slate-100 group-hover:bg-island-volcanic group-hover:text-white transition-colors">
-              <ArrowLeft size={16} strokeWidth={3} />
+              <UilArrowLeft size="16" />
             </div>
             <span className="text-xs font-semibold tracking-tight">Back to Home</span>
           </Link>
@@ -195,7 +194,7 @@ export default function MyBookingsView() {
                   : 'text-slate-400 hover:text-slate-600'
               }`}
             >
-              <Star size={12} />
+              <UilStar size="12" />
               Reviewable
             </button>
           </div>
@@ -206,12 +205,12 @@ export default function MyBookingsView() {
             return (
               <div className="bg-white rounded-[4rem] p-20 text-center border-2 border-stone-100 shadow-2xl">
                 <div className="w-24 h-24 volcanic-gradient text-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-3xl">
-                  <Compass size={48} strokeWidth={2.5} />
+                  <UilCompass size="48" />
                 </div>
                 <h2 className="text-4xl font-black text-island-volcanic tracking-tighter mb-4">No bookings yet</h2>
                 <p className="text-slate-500 font-medium text-lg mb-12 max-w-sm mx-auto leading-relaxed">Time to plan your Catarman adventure! Book a stay or transport to get started.</p>
                 <Link to="/stay" className="btn-primary px-12 py-6 rounded-full inline-flex">
-                  Explore Stays <ChevronRight size={24} strokeWidth={3} />
+                  Explore Stays <UilAngleRightB size="24" />
                 </Link>
               </div>
             );
@@ -227,7 +226,7 @@ export default function MyBookingsView() {
             return (
               <div className="bg-white rounded-[4rem] p-20 text-center border-2 border-stone-100 shadow-2xl">
                 <div className="w-24 h-24 volcanic-gradient text-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-3xl">
-                  <Search size={48} strokeWidth={2.5} />
+                  <UilSearch size="48" />
                 </div>
                 <h2 className="text-4xl font-black text-island-volcanic tracking-tighter mb-4">No matching bookings</h2>
                 <p className="text-slate-500 font-medium text-lg mb-12 max-w-sm mx-auto leading-relaxed">Try adjusting your filters to see more results.</p>
@@ -253,7 +252,7 @@ export default function MyBookingsView() {
                       {/* Left: Icon & Status */}
                       <div className="flex md:flex-col items-center md:items-start justify-between md:justify-start gap-6">
                         <div className="w-20 h-20 rounded-[2rem] bg-stone-50 flex items-center justify-center text-island-volcanic border border-stone-100 group-hover:volcanic-gradient group-hover:text-white transition-all duration-700 shadow-inner">
-                          <Icon size={40} strokeWidth={2.5} />
+                          <Icon size="40" />
                         </div>
                         <div className={`px-5 py-2 rounded-full text-[10px] font-bold tracking-wider border-2 shadow-sm ${getStatusColor(booking.status)}`}>
                           {booking.status}
@@ -274,11 +273,11 @@ export default function MyBookingsView() {
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                           <div className="flex items-center gap-4 text-slate-500 font-bold">
-                            <Calendar size={20} strokeWidth={3} className="text-island-emerald" />
+                            <UilCalendar size="20" className="text-island-emerald" />
                             <span className="text-sm tracking-tight">{booking.date}</span>
                           </div>
                           <div className="flex items-center gap-4 text-slate-500 font-bold">
-                            <CreditCard size={20} strokeWidth={3} className="text-island-emerald" />
+                            <UilCreditCard size="20" className="text-island-emerald" />
                             <span className="text-xl font-black text-island-volcanic tracking-tighter">₱{booking.amount?.toLocaleString()}</span>
                           </div>
                         </div>
@@ -289,14 +288,14 @@ export default function MyBookingsView() {
                         {booking.paymentStatus === 'PAID' ? (
                           <>
                             <div className="flex items-center justify-center gap-3 text-island-emerald bg-emerald-50 py-5 rounded-[2rem] border-2 border-emerald-100 shadow-sm">
-                              <CheckCircle2 size={24} strokeWidth={3} />
+                              <UilCheckCircle size="24" />
                               <span className="text-xs font-bold tracking-wider">Paid</span>
                             </div>
                             <button
                               onClick={() => setReviewBookingId(booking.id)}
                               className="flex items-center justify-center gap-2 py-4 bg-white border-2 border-island-sunset/20 text-island-sunset rounded-[2rem] text-[10px] font-bold tracking-wider hover:bg-island-sunset/5 transition-all"
                             >
-                              <Star size={16} strokeWidth={3} />
+                              <UilStar size="16" />
                               Write Review
                             </button>
                             <button
@@ -306,13 +305,13 @@ export default function MyBookingsView() {
                               }}
                               className="flex items-center justify-center gap-2 py-4 bg-white border-2 border-island-emerald/20 text-island-emerald rounded-[2rem] text-[10px] font-bold tracking-wider hover:bg-island-emerald/5 transition-all"
                             >
-                              <Repeat size={16} strokeWidth={3} />
+                              <UilRepeat size="16" />
                               Re-book
                             </button>
                           </>
                         ) : booking.status === 'cancelled' ? (
                           <div className="flex items-center justify-center gap-3 text-island-coral bg-rose-50 py-5 rounded-[2rem] border-2 border-rose-100">
-                            <XCircle size={24} strokeWidth={3} />
+                            <UilTimesCircle size="24" />
                             <span className="text-xs font-bold tracking-wider">Cancelled</span>
                           </div>
                         ) : (
@@ -323,9 +322,9 @@ export default function MyBookingsView() {
                               className="btn-primary w-full py-5 rounded-[2rem] text-[10px]"
                             >
                               {processingId === booking.id ? (
-                                <RefreshCw size={20} strokeWidth={3} className="animate-spin" />
+                                <UilRefresh size="20" className="animate-spin" />
                               ) : (
-                                <CreditCard size={20} strokeWidth={3} />
+                                <UilCreditCard size="20" />
                               )}
                               Pay Now
                             </button>
@@ -340,7 +339,7 @@ export default function MyBookingsView() {
                               }}
                               className="flex items-center justify-center gap-2 py-4 bg-white border-2 border-rose-200 text-island-coral rounded-[2rem] text-[10px] font-bold tracking-wider hover:bg-rose-50 transition-all"
                             >
-                              <XCircle size={16} strokeWidth={3} />
+                              <UilTimesCircle size="16" />
                               Cancel Booking
                             </button>
                             <p className="text-[10px] text-center text-slate-400 font-semibold tracking-tight opacity-60">Demo payment simulation</p>
@@ -353,7 +352,7 @@ export default function MyBookingsView() {
                     {booking.status === 'pending' && booking.paymentStatus !== 'PAID' && (
                       <div className="mt-10 p-6 bg-amber-50 rounded-[2rem] border-2 border-amber-100 flex items-start gap-4">
                         <div className="w-10 h-10 rounded-xl bg-amber-200 text-amber-700 flex items-center justify-center shrink-0 shadow-sm">
-                          <AlertCircle size={20} strokeWidth={3} />
+                          <UilExclamationCircle size="20" />
                         </div>
                         <div>
                           <span className="font-bold text-amber-900 tracking-wider text-[10px] mb-1 block">Reminder</span>

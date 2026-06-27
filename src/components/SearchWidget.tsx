@@ -2,26 +2,26 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Bed, 
-  Car, 
-  Package, 
-  Camera, 
-  MapPin, 
-  Calendar as CalendarIcon, 
-  Users, 
-  Search,
-  ChevronDown
-} from 'lucide-react';
+  UilBuilding, 
+  UilCar, 
+  UilBox, 
+  UilCamera, 
+  UilMapMarker, 
+  UilCalendar, 
+  UilUsersAlt, 
+  UilSearch,
+  UilAngleDown
+} from '@/icons';
 
 export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'mobile' }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('stays');
   
   const tabs = [
-    { id: 'stays', label: 'Stays', icon: Bed },
-    { id: 'cars', label: 'Cars', icon: Car },
-    { id: 'packages', label: 'Packages', icon: Package },
-    { id: 'things', label: 'Things to do', icon: Camera },
+    { id: 'stays', label: 'Stays', icon: UilBuilding },
+    { id: 'cars', label: 'Cars', icon: UilCar },
+    { id: 'packages', label: 'Packages', icon: UilBox },
+    { id: 'things', label: 'Things to do', icon: UilCamera },
   ];
 
   if (variant === 'mobile') {
@@ -39,7 +39,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
                 activeTab === tab.id ? 'bg-tropic-emerald/10 scale-110' : 'bg-tropic-sand/30'
               }`}>
-                <tab.icon size={22} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
+                <tab.icon size="22" />
               </div>
               <span className="text-xs font-semibold tracking-tight">{tab.label}</span>
             </button>
@@ -49,7 +49,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
         <div className="space-y-4">
           <div className="relative">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-tropic-green/40">
-              <MapPin size={18} />
+              <UilMapMarker size="18" />
             </div>
             <input 
               type="text" 
@@ -61,7 +61,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
           <div className="grid grid-cols-2 gap-4">
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-tropic-green/40">
-                <CalendarIcon size={18} />
+                <UilCalendar size="18" />
               </div>
               <div className="w-full pl-12 pr-4 py-4 bg-tropic-sand/30 border border-tropic-sand/30 rounded-2xl text-xs font-bold flex flex-col justify-center text-tropic-green">
                 <span className="text-[8px] text-tropic-green/40 uppercase tracking-widest mb-0.5">Dates</span>
@@ -70,7 +70,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
             </div>
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-tropic-green/40">
-                <Users size={18} />
+                <UilUsersAlt size="18" />
               </div>
               <div className="w-full pl-12 pr-4 py-4 bg-tropic-sand/30 border border-tropic-sand/30 rounded-2xl text-xs font-bold flex flex-col justify-center text-tropic-green">
                 <span className="text-[8px] text-tropic-green/40 uppercase tracking-widest mb-0.5">Travelers</span>
@@ -80,7 +80,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
           </div>
 
           <button onClick={() => navigate(`/${activeTab === 'stays' ? 'stay' : activeTab === 'cars' ? 'rentals' : activeTab === 'things' ? 'locations' : 'stay'}`)} className="w-full bg-gradient-to-r from-tropic-emerald to-tropic-ocean text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
-            <Search size={18} />
+            <UilSearch size="18" />
             Search Experiences
           </button>
         </div>
@@ -100,7 +100,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
             <div className={`w-14 h-14 rounded-[1.5rem] flex items-center justify-center transition-all duration-500 ${
               activeTab === tab.id ? 'bg-island-volcanic text-white scale-110 shadow-xl' : 'bg-slate-50 text-slate-400 group-hover:bg-slate-100'
             }`}>
-              <tab.icon size={26} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
+                <tab.icon size="26" />
             </div>
             <span className={`text-sm font-semibold tracking-tight transition-colors ${
               activeTab === tab.id ? 'text-island-volcanic' : 'text-slate-400 group-hover:text-slate-600'
@@ -121,7 +121,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
         <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="relative group">
             <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-island-emerald transition-colors">
-              <MapPin size={22} />
+              <UilMapMarker size="22" />
             </div>
             <div className="w-full pl-16 pr-6 py-6 bg-slate-50 border border-slate-100 rounded-3xl transition-all focus-within:ring-4 focus-within:ring-island-emerald/5 focus-within:bg-white focus-within:border-island-emerald/20">
               <label className="block text-[10px] font-medium text-slate-400 tracking-tight mb-1">Destination</label>
@@ -135,33 +135,33 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
 
           <div className="relative group cursor-pointer">
             <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 transition-colors">
-              <CalendarIcon size={22} />
+              <UilCalendar size="22" />
             </div>
             <div className="w-full pl-16 pr-6 py-6 bg-slate-50 border border-slate-100 rounded-3xl hover:bg-slate-100 transition-all">
               <label className="block text-[10px] font-medium text-slate-400 tracking-tight mb-1 text-left">Check-in / Out</label>
               <div className="text-sm font-bold text-island-volcanic flex items-center justify-between">
                 <span>Jun 15 - Jun 18</span>
-                <ChevronDown size={14} className="text-slate-400" />
+                <UilAngleDown size="14" className="text-slate-400" />
               </div>
             </div>
           </div>
 
           <div className="relative group cursor-pointer">
             <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 transition-colors">
-              <Users size={22} />
+              <UilUsersAlt size="22" />
             </div>
             <div className="w-full pl-16 pr-6 py-6 bg-slate-50 border border-slate-100 rounded-3xl hover:bg-slate-100 transition-all">
               <label className="block text-[10px] font-medium text-slate-400 tracking-tight mb-1 text-left">Travelers</label>
               <div className="text-sm font-bold text-island-volcanic flex items-center justify-between">
                 <span>2 travelers, 1 room</span>
-                <ChevronDown size={14} className="text-slate-400" />
+                <UilAngleDown size="14" className="text-slate-400" />
               </div>
             </div>
           </div>
         </div>
 
         <button onClick={() => navigate(`/${activeTab === 'stays' ? 'stay' : activeTab === 'cars' ? 'rentals' : activeTab === 'things' ? 'locations' : 'stay'}`)} className="w-full lg:w-auto px-12 py-8 bg-island-volcanic text-white rounded-3xl font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-island-volcanic/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4">
-          <Search size={22} />
+          <UilSearch size="22" />
           Search
         </button>
       </div>

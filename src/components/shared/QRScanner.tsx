@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { Scan, Camera, CameraOff, RefreshCw } from 'lucide-react';
+import { UilQrcodeScan, UilCamera, UilCameraSlash, UilRefresh } from '@/icons';
 
 interface QRScannerProps {
   onScan: (decodedText: string) => void;
@@ -68,13 +68,13 @@ export default function QRScanner({ onScan, onError, scanning: externalScanning 
         <div id="qr-reader" className="w-full h-full"></div>
         {!isScanning && !error && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white/60 gap-4">
-            <Scan size={48} strokeWidth={1.5} />
+            <UilQrcodeScan size="48" />
             <p className="text-sm font-medium">Camera off</p>
           </div>
         )}
         {error && (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-white/60 gap-4 p-8 text-center">
-            <CameraOff size={48} strokeWidth={1.5} />
+            <UilCameraSlash size="48" />
             <p className="text-sm font-medium">{error}</p>
           </div>
         )}
@@ -90,9 +90,9 @@ export default function QRScanner({ onScan, onError, scanning: externalScanning 
           }`}
         >
           {isScanning ? (
-            <><CameraOff size={20} /> Stop Scanning</>
+            <><UilCameraSlash size="20" /> Stop Scanning</>
           ) : (
-            <><Camera size={20} /> {error ? 'Retry Camera' : 'Start Scanning'}</>
+            <><UilCamera size="20" /> {error ? 'Retry Camera' : 'Start Scanning'}</>
           )}
         </button>
       </div>

@@ -1,12 +1,12 @@
 import { motion } from 'motion/react';
-import { ArrowUpRight, ArrowDownRight, type LucideIcon } from 'lucide-react';
+import { UilArrowUpRight, UilArrowDownRight } from '@/icons';
 
 interface StatCardProps {
   label: string;
   value: string;
   change: string;
   isPositive: boolean;
-  icon: LucideIcon;
+  icon: any;
   color?: 'emerald' | 'ocean' | 'purple' | 'coral';
 }
 
@@ -25,14 +25,14 @@ export function StatCard({ label, value, change, isPositive, icon: Icon, color =
     >
       <div className="flex justify-between items-start mb-8">
         <div className={`p-5 rounded-2xl border-2 ${colorMap[color]} shadow-lg`}>
-          <Icon size={32} strokeWidth={2.5} />
+          <Icon size="32" />
         </div>
         <div className={`flex items-center gap-1.5 text-[10px] font-bold px-4 py-2 rounded-full border-2 ${
           isPositive
             ? 'bg-emerald-50 text-island-emerald border-emerald-100'
             : 'bg-rose-50 text-island-coral border-rose-100'
         }`}>
-          {isPositive ? <ArrowUpRight size={16} strokeWidth={3} /> : <ArrowDownRight size={16} strokeWidth={3} />}
+          {isPositive ? <UilArrowUpRight size="16" /> : <UilArrowDownRight size="16" />}
           {change}
         </div>
       </div>

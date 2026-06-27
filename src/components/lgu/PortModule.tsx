@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
-import { Anchor, Ship, Search, Filter, Download, ArrowUpRight, ArrowDownRight, Clock, MapPin, AlertCircle } from 'lucide-react';
+import { UilAnchor as Anchor, UilShip as Ship, UilSearch as Search, UilFilter as Filter, UilDownloadAlt as Download, UilArrowUpRight as ArrowUpRight, UilArrowDownRight as ArrowDownRight, UilClock as Clock, UilMapMarker as MapPin, UilExclamationCircle as AlertCircle } from '@/icons';
 
 const vessels = [
   { id: 'VS-102', name: 'Island Express', type: 'Fast Craft', arrival: '09:30 AM', departure: '10:30 AM', status: 'Docked', capacity: '120/150', origin: 'Balingoan' },
@@ -32,13 +32,13 @@ export default function PortModule() {
             onClick={() => toast.success('Port log CSV exported with ' + filteredVessels.length + ' vessel entries')}
             className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2"
           >
-            <Download size={18} /> Export Log
+            <Download size="18" /> Export Log
           </button>
           <button
             onClick={() => toast.info('Berth management panel coming soon')}
             className="flex-1 md:flex-none px-6 py-3 btn-primary"
           >
-            <Anchor size={18} /> Manage Berths
+            <Anchor size="18" /> Manage Berths
           </button>
         </div>
       </div>
@@ -53,7 +53,7 @@ export default function PortModule() {
           <div key={idx} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <div className="flex justify-between items-start mb-6">
               <div className={`p-4 rounded-2xl bg-island-${stat.color}/10 text-island-${stat.color}`}>
-                <stat.icon size={24} />
+                <stat.icon size="24" />
               </div>
               <div className={`flex items-center gap-1 text-[10px] font-bold px-3 py-1.5 rounded-full ${stat.isPositive ? 'bg-island-emerald/10 text-island-emerald' : 'bg-island-coral/10 text-island-coral'}`}>
                 {stat.change}
@@ -71,7 +71,7 @@ export default function PortModule() {
             <h3 className="text-2xl font-serif font-bold text-island-green italic">Vessel <span className="not-italic text-island-emerald">Schedule</span></h3>
             <div className="flex gap-4">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size="16" />
                 <input
                   type="text"
                   value={searchTerm}
@@ -81,7 +81,7 @@ export default function PortModule() {
                 />
               </div>
               <button className="p-2 bg-slate-50 border border-slate-100 rounded-xl text-slate-600 hover:bg-slate-100 transition-all">
-                <Filter size={18} />
+                <Filter size="18" />
               </button>
             </div>
           </div>
@@ -95,7 +95,7 @@ export default function PortModule() {
                 <div key={vessel.id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-slate-50/50 rounded-2xl border border-slate-50 hover:border-island-emerald/20 transition-all cursor-pointer group">
                   <div className="flex items-center gap-5 mb-4 md:mb-0">
                     <div className="w-14 h-14 rounded-2xl bg-island-ocean/10 flex items-center justify-center text-island-ocean group-hover:bg-island-emerald/10 group-hover:text-island-emerald transition-colors">
-                      <Ship size={24} />
+                      <Ship size="24" />
                     </div>
                     <div>
                       <h4 className="font-bold text-island-green text-lg">{vessel.name}</h4>
@@ -149,7 +149,7 @@ export default function PortModule() {
                   onClick={() => toast.info('Port map view coming soon')}
                   className="w-full py-4 bg-island-emerald text-white rounded-2xl font-bold text-sm shadow-lg shadow-black/10 hover:scale-105 transition-all flex items-center justify-center gap-3"
                 >
-                  <MapPin size={18} /> View Port Map
+                  <MapPin size="18" /> View Port Map
                 </button>
               </div>
             </div>
@@ -160,7 +160,7 @@ export default function PortModule() {
             <div className="p-6 bg-island-ocean/5 rounded-2xl border border-island-ocean/10">
               <div className="flex items-center gap-4 mb-4">
                 <div className="p-3 bg-island-ocean/10 text-island-ocean rounded-xl">
-                  <AlertCircle size={20} />
+                  <AlertCircle size="20" />
                 </div>
                 <h4 className="font-bold text-island-green text-sm">Sea Condition</h4>
               </div>

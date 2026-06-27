@@ -1,33 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  BarChart3, 
-  Calendar, 
-  Package, 
-  Compass, 
-  Star, 
-  Settings, 
-  Search, 
-  Bell, 
-  X,
-  Scan,
-  LayoutDashboard,
-  LogOut,
-  Sparkles,
-  ArrowUpRight,
-  TrendingUp,
-  CreditCard,
-  Users,
-  Hotel,
-  Car,
-  Ship,
-  RefreshCw,
-  DollarSign,
-  ShoppingBag,
-  AlertTriangle,
-  CheckCircle2,
-  Plus,
-  Clock
-} from 'lucide-react';
+  UilChartBar as BarChart3, 
+  UilCalendar as Calendar, 
+  UilPackage as Package, 
+  UilCompass as Compass, 
+  UilStar as Star, 
+  UilSetting as Settings, 
+  UilSearch as Search, 
+  UilBell as Bell, 
+  UilTimes as X,
+  UilQrcodeScan as Scan,
+  UilDashboard as LayoutDashboard,
+  UilSignOutAlt as LogOut,
+  UilStar as Sparkles,
+  UilArrowUpRight as ArrowUpRight,
+  UilChartGrowth as TrendingUp,
+  UilCreditCard as CreditCard,
+  UilUsersAlt as Users,
+  UilBuilding as Hotel,
+  UilCar as Car,
+  UilShip as Ship,
+  UilRefresh as RefreshCw,
+  UilDollarSign as DollarSign,
+  UilShoppingBag as ShoppingBag,
+  UilExclamationTriangle as AlertTriangle,
+  UilCheckCircle as CheckCircle2,
+  UilPlus as Plus,
+  UilClock as Clock
+} from '@/icons';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { StatCard } from '../components/shared/StatCard';
@@ -166,7 +166,7 @@ export default function BusinessDashboard() {
       {businessType === 'shop' && (
         <div className="bg-amber-50 border-2 border-amber-200 rounded-[2.5rem] p-8 flex items-start gap-6">
           <div className="w-14 h-14 rounded-2xl bg-amber-200 flex items-center justify-center text-amber-700 shrink-0">
-            <AlertTriangle size={28} strokeWidth={2.5} />
+            <AlertTriangle size="28" />
           </div>
           <div className="flex-1">
             <h4 className="text-lg font-black text-amber-900 tracking-tighter mb-2">Update Your Product Availability</h4>
@@ -175,7 +175,7 @@ export default function BusinessDashboard() {
               Walk-in purchases may affect stock levels not recorded in the system.
             </p>
             <Link to="/business/inventory" className="inline-flex items-center gap-2 px-6 py-3 bg-amber-800 text-white rounded-2xl text-xs font-bold hover:bg-amber-900 transition-all">
-              <RefreshCw size={16} /> Update Now
+              <RefreshCw size="16" /> Update Now
             </Link>
           </div>
         </div>
@@ -195,11 +195,11 @@ export default function BusinessDashboard() {
               <h3 className="text-3xl font-black text-island-volcanic tracking-tighter mb-4">Inventory</h3>
               <p className="text-slate-500 font-medium mb-10">You have 4 items running low on stock.</p>
               <Link to="/business/inventory" className="btn-primary inline-flex items-center gap-3 px-8 py-4 rounded-2xl">
-                Manage Inventory <ArrowUpRight size={20} strokeWidth={3} />
+                Manage Inventory <ArrowUpRight size="20" />
               </Link>
             </div>
             <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity rotate-12 group-hover:rotate-0 duration-700">
-              <Package size={240} strokeWidth={1} />
+              <Package size="240" />
             </div>
           </div>
         )}
@@ -212,7 +212,7 @@ export default function BusinessDashboard() {
             </Link>
           </div>
           <div className="absolute -right-10 -bottom-10 opacity-10 group-hover:opacity-20 transition-opacity -rotate-12 group-hover:rotate-0 duration-700">
-            <Star size={240} strokeWidth={1} />
+            <Star size="240" />
           </div>
         </div>
         {/* Manual Earnings / Product Sold Card */}
@@ -221,12 +221,12 @@ export default function BusinessDashboard() {
             <h3 className="text-3xl font-black text-island-volcanic tracking-tighter mb-4">Manual Update</h3>
             <p className="text-slate-500 font-medium mb-10">Record offline sales that were not captured by the system.</p>
             <button onClick={() => setShowManualEarnings(true)} className="btn-primary inline-flex items-center gap-3 px-8 py-4 rounded-2xl">
-              <DollarSign size={20} strokeWidth={3} />
+              <DollarSign size="20" />
               Add Manual Entry
             </button>
           </div>
           <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity rotate-12 group-hover:rotate-0 duration-700">
-            <ShoppingBag size={240} strokeWidth={1} />
+            <ShoppingBag size="240" />
           </div>
         </div>
       </div>
@@ -243,7 +243,7 @@ export default function BusinessDashboard() {
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-island-green">Record Offline Sale</h3>
               <button onClick={() => setShowManualEarnings(false)} className="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:text-island-coral transition-all">
-                <X size={16} />
+                <X size="16" />
               </button>
             </div>
             <div className="space-y-4 mb-8">
@@ -262,7 +262,7 @@ export default function BusinessDashboard() {
             </div>
             <button onClick={handleManualEarningsSubmit}
               className="w-full bg-island-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-island-green/20 hover:shadow-island-green/40 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
-              <CheckCircle2 size={20} /> Record Sale
+              <CheckCircle2 size="20" /> Record Sale
             </button>
           </motion.div>
         </div>
@@ -281,7 +281,7 @@ export default function BusinessDashboard() {
           ].map((item, idx) => (
             <div key={idx} className="flex items-center gap-6 p-6 rounded-3xl hover:bg-stone-50 transition-all border border-transparent hover:border-stone-100">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-island-emerald border border-emerald-100">
-                <item.icon size={24} strokeWidth={2.5} />
+                <item.icon size="24" />
               </div>
               <div className="flex-1">
                 <p className="text-island-volcanic font-bold"><span className="text-island-emerald">{item.user}</span> {item.action}</p>
@@ -300,7 +300,7 @@ export default function BusinessDashboard() {
         <div className="p-10 flex-1 overflow-y-auto no-scrollbar">
           <div className="flex items-center gap-5 mb-16 px-4">
             <div className="w-14 h-14 rounded-2xl forest-gradient flex items-center justify-center text-white shadow-2xl border border-white/10">
-              <TypeIcon size={32} strokeWidth={2.5} />
+              <TypeIcon size="32" />
             </div>
             <div>
               <h3 className="text-2xl font-black text-island-volcanic tracking-tighter leading-none mb-1">{typeLabel}</h3>
@@ -322,14 +322,14 @@ export default function BusinessDashboard() {
             to="/"
             className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.75rem] text-xs font-semibold tracking-tight text-slate-400 bg-stone-50 hover:bg-emerald-50 hover:text-island-emerald transition-all duration-300 border border-transparent hover:border-emerald-100"
           >
-            <ArrowUpRight size={22} strokeWidth={3} />
+            <ArrowUpRight size="22" />
             Back to Site
           </Link>
           <button 
             onClick={() => logout()}
             className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.75rem] text-xs font-semibold tracking-tight text-slate-400 bg-stone-50 hover:bg-rose-50 hover:text-island-coral transition-all duration-300 border border-transparent hover:border-rose-100"
           >
-            <LogOut size={22} strokeWidth={3} />
+            <LogOut size="22" />
             Logout
           </button>
         </div>
@@ -346,11 +346,11 @@ export default function BusinessDashboard() {
             
             <div className="flex items-center gap-6 w-full md:w-auto">
               <div className="relative flex-1 md:flex-none group">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-300 group-focus-within:text-island-emerald transition-colors" size={20} strokeWidth={3} />
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-300 group-focus-within:text-island-emerald transition-colors" size="20" />
                 <input type="text" placeholder="Search..." className="pl-14 pr-6 py-4 bg-white border-2 border-emerald-50 rounded-2xl outline-none focus:ring-8 focus:ring-island-emerald/5 focus:border-island-emerald/20 transition-all w-full md:w-80 shadow-2xl" />
               </div>
               <button className="w-14 h-14 bg-white border-2 border-emerald-50 rounded-2xl text-island-volcanic flex items-center justify-center relative shadow-2xl hover:bg-emerald-50 active:scale-90 transition-all group shrink-0">
-                <Bell size={24} strokeWidth={2.5} className="group-hover:text-island-emerald transition-colors" />
+                <Bell size="24" className="group-hover:text-island-emerald transition-colors" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[22px] h-[22px] bg-island-coral text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1.5 border-2 border-white shadow-lg">
                     {unreadCount > 9 ? '9+' : unreadCount}

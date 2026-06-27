@@ -1,4 +1,4 @@
-import { MagnifyingGlass, Sliders } from '@phosphor-icons/react';
+import { UilSearch, UilSlidersV } from '@/icons';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -11,7 +11,7 @@ export function SearchBar({ placeholder = 'Search destination, place', onSearch,
     <div className="flex items-center gap-3">
       <div className="relative flex-1">
         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--muted)]">
-          <MagnifyingGlass size={18} />
+          <UilSearch size="18" />
         </div>
         <input
           type="text"
@@ -26,7 +26,7 @@ export function SearchBar({ placeholder = 'Search destination, place', onSearch,
           aria-label="Filter"
           className="w-11 h-11 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[var(--muted)] shadow-sm active:scale-90 transition-all shrink-0"
         >
-          <Sliders size={18} />
+          <UilSlidersV size="18" />
         </button>
       )}
     </div>

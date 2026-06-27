@@ -2,19 +2,19 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
 import { 
-  Search, 
-  Filter, 
-  Download, 
-  MoreVertical, 
-  CheckCircle2, 
-  XCircle, 
-  Clock,
-  Calendar,
-  User,
-  Mail,
-  ArrowUpRight,
-  ChevronRight
-} from 'lucide-react';
+  UilSearch as Search, 
+  UilFilter as Filter, 
+  UilDownloadAlt as Download, 
+  UilEllipsisV as MoreVertical, 
+  UilCheckCircle as CheckCircle2, 
+  UilTimesCircle as XCircle, 
+  UilClock as Clock,
+  UilCalendar as Calendar,
+  UilUser as User,
+  UilEnvelopeAlt as Mail,
+  UilArrowUpRight as ArrowUpRight,
+  UilAngleRightB as ChevronRight
+} from '@/icons';
 import { 
   collection, 
   query, 
@@ -101,7 +101,7 @@ export default function BookingsModule() {
             onClick={() => toast.success('Bookings CSV export ready for download')}
             className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2"
           >
-            <Download size={18} /> Export CSV
+            <Download size="18" /> Export CSV
           </button>
         </div>
       </div>
@@ -109,7 +109,7 @@ export default function BookingsModule() {
       <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
         <div className="p-10 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="relative flex-1 w-full md:max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size="18" />
             <input 
               type="text" 
               placeholder="Search by guest or service..." 
@@ -173,7 +173,7 @@ export default function BookingsModule() {
                     </td>
                     <td className="px-10 py-6">
                       <div className="flex items-center gap-2 text-sm text-slate-600">
-                        <Calendar size={14} className="text-island-emerald" />
+                        <Calendar size="14" className="text-island-emerald" />
                         {booking.date}
                       </div>
                     </td>
@@ -186,9 +186,9 @@ export default function BookingsModule() {
                         booking.status === 'cancelled' ? 'bg-island-coral/10 text-island-coral' : 
                         'bg-island-ocean/10 text-island-ocean'
                       }`}>
-                        {booking.status === 'confirmed' ? <CheckCircle2 size={12} /> : 
-                         booking.status === 'cancelled' ? <XCircle size={12} /> : 
-                         <Clock size={12} />}
+                        {booking.status === 'confirmed' ? <CheckCircle2 size="12" /> : 
+                         booking.status === 'cancelled' ? <XCircle size="12" /> : 
+                         <Clock size="12" />}
                         {booking.status}
                       </span>
                     </td>
@@ -201,19 +201,19 @@ export default function BookingsModule() {
                               className="p-2 text-island-emerald hover:bg-island-emerald/10 rounded-xl transition-all"
                               title="Confirm Booking"
                             >
-                              <CheckCircle2 size={20} />
+                              <CheckCircle2 size="20" />
                             </button>
                             <button 
                               onClick={() => handleUpdateStatus(booking.id, 'cancelled')}
                               className="p-2 text-island-coral hover:bg-island-coral/10 rounded-xl transition-all"
                               title="Cancel Booking"
                             >
-                              <XCircle size={20} />
+                              <XCircle size="20" />
                             </button>
                           </>
                         )}
                         <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-xl transition-all">
-                          <MoreVertical size={20} />
+                          <MoreVertical size="20" />
                         </button>
                       </div>
                     </td>

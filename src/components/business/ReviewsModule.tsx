@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Star, MessageSquare, Reply, ThumbsUp, Search, Filter, ChevronRight, User, CheckCircle2, XCircle } from 'lucide-react';
+import { UilStar as Star, UilMessage as MessageSquare, UilCornerUpRight as Reply, UilThumbsUp as ThumbsUp, UilSearch as Search, UilFilter as Filter, UilAngleRightB as ChevronRight, UilUser as User, UilCheckCircle as CheckCircle2, UilTimesCircle as XCircle } from '@/icons';
 import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
 import { subscribeToBusinessReviews, moderateReview, replyToReview } from '../../lib/reviewService';
@@ -56,7 +56,7 @@ export default function ReviewsModule() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="flex items-center gap-4 w-full md:w-auto">
           <div className="relative flex-1 md:flex-none">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size="18" />
             <input 
               type="text" 
               placeholder="Search reviews..." 
@@ -66,13 +66,13 @@ export default function ReviewsModule() {
             />
           </div>
           <button className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 shadow-sm">
-            <Filter size={20} />
+            <Filter size="20" />
           </button>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-end">
             <div className="flex items-center gap-1 text-island-sunset font-bold">
-              <Star size={20} className="fill-island-sunset" />
+              <Star size="20" className="fill-island-sunset" />
               <span className="text-2xl">{averageRating}</span>
             </div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -85,7 +85,7 @@ export default function ReviewsModule() {
       <div className="space-y-6">
         {filteredReviews.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-[3rem] border border-slate-100">
-            <MessageSquare size={48} className="mx-auto text-slate-200 mb-4" />
+            <MessageSquare size="48" className="mx-auto text-slate-200 mb-4" />
             <p className="text-slate-400 font-medium">No reviews yet</p>
           </div>
         ) : (
@@ -112,7 +112,7 @@ export default function ReviewsModule() {
                     {[...Array(5)].map((_, i) => (
                       <Star 
                         key={i} 
-                        size={18} 
+                        size="18" 
                         className={`${i < review.rating ? 'text-island-sunset fill-island-sunset' : 'text-slate-100'}`} 
                       />
                     ))}
@@ -128,7 +128,7 @@ export default function ReviewsModule() {
               {review.reply && (
                 <div className="mb-8 p-6 bg-island-emerald/5 rounded-[2rem] border border-island-emerald/10">
                   <div className="flex items-center gap-2 mb-2">
-                    <Reply size={16} className="text-island-emerald" />
+                    <Reply size="16" className="text-island-emerald" />
                     <span className="text-xs font-bold text-island-emerald uppercase tracking-widest">Your Reply</span>
                   </div>
                   <p className="text-sm text-slate-600 font-medium">{review.reply}</p>
@@ -142,13 +142,13 @@ export default function ReviewsModule() {
                       onClick={() => handleModerate(review.id!, true)}
                       className="flex items-center gap-2 px-6 py-3 bg-island-emerald/5 text-island-emerald rounded-xl font-bold text-xs hover:bg-island-emerald/10 transition-all"
                     >
-                      <CheckCircle2 size={16} /> Approve
+                      <CheckCircle2 size="16" /> Approve
                     </button>
                     <button
                       onClick={() => handleModerate(review.id!, false)}
                       className="flex items-center gap-2 px-6 py-3 bg-island-coral/5 text-island-coral rounded-xl font-bold text-xs hover:bg-island-coral/10 transition-all"
                     >
-                      <XCircle size={16} /> Reject
+                      <XCircle size="16" /> Reject
                     </button>
                   </>
                 )}
@@ -165,7 +165,7 @@ export default function ReviewsModule() {
                     disabled={!replyText[review.id!]?.trim()}
                     className="px-4 py-3 bg-island-emerald text-white rounded-xl font-bold text-xs hover:bg-island-emerald/90 transition-all disabled:opacity-50"
                   >
-                    <Reply size={16} />
+                    <Reply size="16" />
                   </button>
                 </div>
               </div>

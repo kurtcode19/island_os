@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Building2, CheckCircle2, ArrowRight, ShieldCheck, LayoutDashboard, Search, Sparkles, RefreshCw, Hotel, Car, Ship, ConciergeBell, ShoppingBag } from 'lucide-react';
+import { UilBuilding, UilCheckCircle, UilArrowRight, UilShieldCheck, UilDashboard, UilSearch, UilStar, UilRefresh, UilCar, UilShip, UilBell, UilShoppingBag } from '@/icons';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -9,11 +9,11 @@ import { businesses, BusinessEntry } from '../data/businesses';
 import { BusinessType, BUSINESS_TYPE_CONFIGS } from '../types';
 
 const typeIcons: Record<BusinessType, any> = {
-  accommodation: Hotel,
-  rental: Car,
-  transport: Ship,
-  service: ConciergeBell,
-  shop: ShoppingBag,
+  accommodation: UilBuilding,
+  rental: UilCar,
+  transport: UilShip,
+  service: UilBell,
+  shop: UilShoppingBag,
 };
 
 export default function ClaimBusinessView() {
@@ -87,7 +87,7 @@ export default function ClaimBusinessView() {
           className="text-center mb-16"
         >
           <div className="w-24 h-24 forest-gradient rounded-[2.5rem] flex items-center justify-center text-white mx-auto mb-8 shadow-2xl border border-white/10">
-            <Building2 size={48} strokeWidth={2} />
+            <UilBuilding size="48" />
           </div>
           <h1 className="text-5xl font-black text-island-volcanic tracking-tighter mb-4">Claim a <span className="text-island-emerald">Business.</span></h1>
           <p className="text-island-green/60 font-medium text-lg max-w-lg mx-auto">
@@ -110,7 +110,7 @@ export default function ClaimBusinessView() {
                     placeholder="e.g. biz-olympia-1"
                     className="w-full px-8 py-5 bg-emerald-50/30 border-2 border-emerald-50 rounded-2xl text-island-green font-bold outline-none focus:border-island-emerald transition-all shadow-inner"
                   />
-                  <Search size={22} className="absolute right-6 top-1/2 -translate-y-1/2 text-emerald-200" strokeWidth={3} />
+                  <UilSearch size="22" className="absolute right-6 top-1/2 -translate-y-1/2 text-emerald-200" />
                 </div>
               </div>
               <button 
@@ -122,11 +122,11 @@ export default function ClaimBusinessView() {
                 className="btn-primary w-full py-6 rounded-2xl text-sm"
               >
                 {loading ? (
-                   <RefreshCw size={22} className="animate-spin" />
+                   <UilRefresh size="22" className="animate-spin" />
                 ) : success ? (
-                   <CheckCircle2 size={22} />
+                   <UilCheckCircle size="22" />
                 ) : (
-                  <>Claim Business <ArrowRight size={20} strokeWidth={3} /></>
+                  <>Claim Business <UilArrowRight size="20" /></>
                 )}
               </button>
               {customId && !businesses.find(b => b.id === customId) && (
@@ -158,7 +158,7 @@ export default function ClaimBusinessView() {
                     selectedType === type ? 'bg-island-emerald text-white' : 'bg-emerald-50 text-island-green/60 hover:bg-emerald-100'
                   }`}
                 >
-                  {React.createElement(typeIcons[type], { size: 14 })}
+                  {React.createElement(typeIcons[type], { size: "14" })}
                   {BUSINESS_TYPE_CONFIGS[type]?.label || type}
                 </button>
               ))}
@@ -188,7 +188,7 @@ export default function ClaimBusinessView() {
                     </div>
                   </div>
                   <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-emerald-200 group-hover:text-island-emerald shadow-sm group-hover:shadow-md transition-all shrink-0 ml-4">
-                    <ArrowRight size={16} strokeWidth={3} />
+                    <UilArrowRight size="16" />
                   </div>
                 </button>
               ))}
@@ -203,21 +203,21 @@ export default function ClaimBusinessView() {
             className="mt-16 p-10 forest-gradient text-white rounded-[4rem] flex flex-col items-center text-center shadow-3xl border border-white/10 overflow-hidden relative"
           >
             <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
-              <Sparkles size={200} className="translate-x-10 -translate-y-10 rotate-12" />
+              <UilStar size="200" className="translate-x-10 -translate-y-10 rotate-12" />
             </div>
             <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-[2rem] flex items-center justify-center text-white mb-6 shadow-2xl border border-white/20">
-              <CheckCircle2 size={40} strokeWidth={3} />
+              <UilCheckCircle size="40" />
             </div>
             <h3 className="text-4xl font-black tracking-tighter mb-3 leading-none">Business Registered!</h3>
             <p className="text-emerald-100/60 font-medium text-sm mb-10">Redirecting to your dashboard...</p>
             <div className="flex items-center gap-8 py-6 px-10 bg-black/20 rounded-[2rem] border border-white/10 backdrop-blur-md">
               <div className="flex items-center gap-3">
-                <ShieldCheck size={24} strokeWidth={2.5} className="text-island-emerald" />
+                <UilShieldCheck size="24" className="text-island-emerald" />
                 <span className="text-sm font-semibold tracking-tight">Business Account</span>
               </div>
               <div className="w-px h-8 bg-white/10"></div>
               <div className="flex items-center gap-3">
-                <LayoutDashboard size={24} strokeWidth={2.5} className="text-island-emerald" />
+                <UilDashboard size="24" className="text-island-emerald" />
                 <span className="text-sm font-semibold tracking-tight">Active</span>
               </div>
             </div>

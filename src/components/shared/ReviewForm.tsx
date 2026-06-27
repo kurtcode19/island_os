@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Star, Send, Loader, CheckCircle2, X } from 'lucide-react';
+import { UilStar, UilMessage, UilSpinnerAlt, UilCheckCircle, UilTimes } from '@/icons';
 import { toast } from 'sonner';
 import { submitReview } from '../../lib/reviewService';
 import { useAuth } from '../../context/AuthContext';
@@ -57,7 +57,7 @@ export default function ReviewForm({ bookingId, businessId, serviceId, serviceNa
       {submitted ? (
         <div className="text-center py-8">
           <div className="w-16 h-16 bg-island-emerald/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 size={36} className="text-island-emerald" />
+            <UilCheckCircle size="36" className="text-island-emerald" />
           </div>
           <h3 className="text-2xl font-black text-island-volcanic tracking-tighter mb-2">Thank You!</h3>
           <p className="text-slate-500 font-medium">Your review helps other travelers.</p>
@@ -70,7 +70,7 @@ export default function ReviewForm({ bookingId, businessId, serviceId, serviceNa
               <p className="text-sm text-slate-500 font-medium mt-1">{serviceName}</p>
             </div>
             <button onClick={onClose} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-island-coral transition-all">
-              <X size={20} />
+              <UilTimes size="20" />
             </button>
           </div>
 
@@ -84,14 +84,13 @@ export default function ReviewForm({ bookingId, businessId, serviceId, serviceNa
                 onMouseLeave={() => setHoverRating(0)}
                 className="transition-all hover:scale-110"
               >
-                <Star
-                  size={40}
+                <UilStar
+                  size="40"
                   className={`${
                     star <= (hoverRating || rating)
                       ? 'text-island-sunset fill-island-sunset'
                       : 'text-slate-200'
                   } transition-colors`}
-                  strokeWidth={1.5}
                 />
               </button>
             ))}
@@ -111,9 +110,9 @@ export default function ReviewForm({ bookingId, businessId, serviceId, serviceNa
             className="btn-primary w-full py-6 rounded-2xl text-sm disabled:opacity-50"
           >
             {submitting ? (
-              <Loader size={20} className="animate-spin" />
+              <UilSpinnerAlt size="20" className="animate-spin" />
             ) : (
-              <Send size={20} />
+              <UilMessage size="20" />
             )}
             Submit Review
           </button>
