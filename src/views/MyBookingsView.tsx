@@ -63,14 +63,12 @@ export default function MyBookingsView() {
   const handleSimulatePayment = async (bookingId: string) => {
     setProcessingId(bookingId);
     setTestError(null);
-    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     try {
       const bookingRef = doc(db, 'bookings', bookingId);
       await updateDoc(bookingRef, {
-        paymentStatus: 'PAID',
-        status: 'confirmed' // Auto-confirm for demo purposes if paid
+        paymentStatus: 'PAID'
       });
     } catch (error: any) {
       console.error("Payment error:", error);
@@ -285,11 +283,13 @@ export default function MyBookingsView() {
 
                       {/* Right: Actions */}
                       <div className="flex flex-col justify-center gap-4 min-w-[200px]">
-                        {booking.paymentStatus === 'PAID' ? (
+                        {booking.ticketCode ? (
                           <>
-                            <div className="flex items-center justify-center gap-3 text-island-emerald bg-emerald-50 py-5 rounded-[2rem] border-2 border-emerald-100 shadow-sm">
+                            <div className="flex flex-col items-center gap-2 text-island-emerald bg-emerald-50 py-5 rounded-[2rem] border-2 border-emerald-100 shadow-sm">
                               <UilCheckCircle size="24" />
                               <span className="text-xs font-bold tracking-wider">Paid</span>
+                              <span className="text-2xl font-black tracking-widest text-island-volcanic select-all">{booking.ticketCode}</span>
+                              <span className="text-[9px] text-slate-400 font-semibold">Present this code at the terminal</span>
                             </div>
                             <button
                               onClick={() => setReviewBookingId(booking.id)}
@@ -309,6 +309,13 @@ export default function MyBookingsView() {
                               Re-book
                             </button>
                           </>
+                        ) : booking.paymentStatus === 'PAID' ? (
+                          <>
+                            <div className="flex items-center justify-center gap-3 text-amber-600 bg-amber-50 py-5 rounded-[2rem] border-2 border-amber-100 shadow-sm">
+                              <UilClock size="24" />
+                              <span className="text-xs font-bold tracking-wider">Awaiting LGU Confirmation</span>
+                            </div>
+                          </>
                         ) : booking.status === 'cancelled' ? (
                           <div className="flex items-center justify-center gap-3 text-island-coral bg-rose-50 py-5 rounded-[2rem] border-2 border-rose-100">
                             <UilTimesCircle size="24" />
@@ -326,7 +333,7 @@ export default function MyBookingsView() {
                               ) : (
                                 <UilCreditCard size="20" />
                               )}
-                              Pay Now
+                              Pay Online
                             </button>
                             <button
                               onClick={async () => {
@@ -342,13 +349,13 @@ export default function MyBookingsView() {
                               <UilTimesCircle size="16" />
                               Cancel Booking
                             </button>
-                            <p className="text-[10px] text-center text-slate-400 font-semibold tracking-tight opacity-60">Demo payment simulation</p>
+                            <p className="text-[10px] text-center text-slate-400 font-semibold tracking-tight opacity-60">Payment processed by LGU</p>
                           </>
                         )}
                       </div>
                     </div>
 
-                    {/* Operational Note */}
+                    {/* Operational Notes */}
                     {booking.status === 'pending' && booking.paymentStatus !== 'PAID' && (
                       <div className="mt-10 p-6 bg-amber-50 rounded-[2rem] border-2 border-amber-100 flex items-start gap-4">
                         <div className="w-10 h-10 rounded-xl bg-amber-200 text-amber-700 flex items-center justify-center shrink-0 shadow-sm">
@@ -357,7 +364,20 @@ export default function MyBookingsView() {
                         <div>
                           <span className="font-bold text-amber-900 tracking-wider text-[10px] mb-1 block">Reminder</span>
                           <p className="text-[11px] text-amber-800 font-bold leading-relaxed italic">
-                            Manual verification required. Post-payment status will update to "Confirmed" across the municipal node network.
+                            Payment is processed by the LGU. Your booking will be confirmed once payment is verified.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {booking.paymentStatus === 'PAID' && booking.status === 'pending' && !booking.ticketCode && (
+                      <div className="mt-10 p-6 bg-blue-50 rounded-[2rem] border-2 border-blue-100 flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-blue-200 text-blue-700 flex items-center justify-center shrink-0 shadow-sm">
+                          <UilClock size="20" />
+                        </div>
+                        <div>
+                          <span className="font-bold text-blue-900 tracking-wider text-[10px] mb-1 block">LGU Processing</span>
+                          <p className="text-[11px] text-blue-800 font-bold leading-relaxed italic">
+                            Payment received. The LGU is processing your ticket — this usually takes a few minutes during office hours.
                           </p>
                         </div>
                       </div>

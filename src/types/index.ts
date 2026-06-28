@@ -76,6 +76,8 @@ export interface Booking {
   createdAt: any;
   checkedInAt?: any;
   departedAt?: any;
+  ticketCode?: string;
+  settledAt?: any;
 }
 
 export type PassStatus = 'active' | 'expired' | 'revoked';

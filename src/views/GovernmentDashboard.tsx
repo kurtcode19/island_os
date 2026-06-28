@@ -40,6 +40,8 @@ import RegistryModule from '../components/lgu/RegistryModule';
 import PortModule from '../components/lgu/PortModule';
 import SafetyModule from '../components/lgu/SafetyModule';
 import ReportsModule from '../components/lgu/ReportsModule';
+import PaymentModule from '../components/lgu/PaymentModule';
+import SettlementModule from '../components/lgu/SettlementModule';
 
 const visitorData = [
   { name: 'Jan', visitors: 4500 },
@@ -344,6 +346,8 @@ export default function GovernmentDashboard() {
             <SidebarItem icon={Ship} label="Port" to="/government/port" active={location.pathname.startsWith('/government/port')} />
             <SidebarItem icon={Activity} label="Safety" to="/government/health" active={location.pathname.startsWith('/government/health')} />
             <SidebarItem icon={FileText} label="Reports" to="/government/reports" active={location.pathname.startsWith('/government/reports')} />
+            <SidebarItem icon={DollarSign} label="Payments" to="/government/payments" active={location.pathname.startsWith('/government/payments')} />
+            <SidebarItem icon={TrendingUp} label="Settlement" to="/government/settlement" active={location.pathname.startsWith('/government/settlement')} />
             <SidebarItem icon={Scan} label="Departure Scanner" to="/government/departure" active={location.pathname.startsWith('/government/departure')} />
           </nav>
         </div>
@@ -405,6 +409,8 @@ export default function GovernmentDashboard() {
               <Route path="/port" element={<PortModule />} />
               <Route path="/health" element={<SafetyModule />} />
               <Route path="/reports" element={<ReportsModule />} />
+              <Route path="/payments" element={<PaymentModule />} />
+              <Route path="/settlement" element={<SettlementModule />} />
               <Route path="/departure" element={<CheckInView />} />
               <Route path="/settings" element={<SettingsModule />} />
             </Routes>
