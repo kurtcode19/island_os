@@ -128,27 +128,36 @@ export default function TripPlannerView() {
     setStep('result');
 
     // Fallback Mock Data
+    const sortByTimeSlot = (a: { timeSlot: string }, b: { timeSlot: string }) => {
+      const toMinutes = (t: string) => {
+        const [, h, m, ap] = t.match(/^(\d+):(\d+)\s*(AM|PM)/i) || [];
+        const hours = (parseInt(h) % 12) + (ap?.toUpperCase() === 'PM' ? 12 : 0);
+        return hours * 60 + parseInt(m);
+      };
+      return toMinutes(a.timeSlot) - toMinutes(b.timeSlot);
+    };
+
     const getMockItinerary = (numDays: number) => {
       const allActivities = [
-        { timeSlot: "8:00 AM", activity: "Sunken Cemetery Expedition", location: "Catarman Coast", description: "Snorkel over the historic Sunken Cemetery and witness the iconic giant cross.", whyGo: "It's the most iconic landmark in Camiguin with hauntingly beautiful underwater views.", price: 500, category: 'Heritage' },
-        { timeSlot: "11:30 AM", activity: "Tuasan Falls Refresh", location: "Mainit, Catarman", description: "Swim in the crystal clear, cold waters of one of the island's most pristine falls.", whyGo: "Less crowded than other falls, offering a serene jungle atmosphere.", price: 50, category: 'Nature' },
-        { timeSlot: "2:30 PM", activity: "Old Church Ruins Walk", location: "Bonbon, Catarman", description: "Explore the coral stone walls of the 16th-century Gui-ob Church.", whyGo: "Feel the weight of history in these beautifully preserved Spanish-era ruins.", price: 0, category: 'Heritage' },
-        { timeSlot: "5:30 PM", activity: "Sunset at Bura Soda Water", location: "Catarman", description: "Relax in the only soda water pool in the Philippines as the sun dips low.", whyGo: "The unique effervescent water is incredibly refreshing after a day of exploring.", price: 100, category: 'Relax' },
         { timeSlot: "7:00 AM", activity: "Sto. Niño Cold Spring Dip", location: "Catarman", description: "Start your day with an invigorating swim in the cold spring.", whyGo: "Perfect morning ritual to wake up surrounded by lush greenery.", price: 50, category: 'Nature' },
-        { timeSlot: "10:00 AM", activity: "Catarman Public Market Tour", location: "Poblacion, Catarman", description: "Wander through the bustling market and sample fresh local produce.", whyGo: "The best place to experience daily island life and find unique souvenirs.", price: 200, category: 'Heritage' },
-        { timeSlot: "1:00 PM", activity: "Mantigue Island Snorkeling", location: "Mahinog Coast", description: "Hop on a boat to this pristine sandbar with crystal clear waters.", whyGo: "The marine sanctuary teems with colorful fish and vibrant corals.", price: 800, category: 'Adventure' },
-        { timeSlot: "4:00 PM", activity: "Catarman Food Trip", location: "Poblacion, Catarman", description: "Sample local delicacies including pastel, dried squid, and fresh seafood.", whyGo: "Catarman's food scene is an underrated gem with bold local flavors.", price: 350, category: 'Relax' },
-        { timeSlot: "6:00 AM", activity: "Sunrise at Katibawasan Falls", location: "Mambajao, Catarman", description: "Witness the morning light filtering through the towering cliff faces.", whyGo: "Early morning means fewer crowds and a magical mist over the water.", price: 50, category: 'Nature' },
-        { timeSlot: "9:30 AM", activity: "Coffee at a Local Cafe", location: "Poblacion, Catarman", description: "Enjoy freshly brewed Camiguin arabica coffee at a neighborhood cafe.", whyGo: "Camiguin's volcanic soil produces some of the best coffee in the country.", price: 120, category: 'Relax' },
-        { timeSlot: "3:00 PM", activity: "Lanzones Plantation Visit", location: "Catarman Highlands", description: "Tour a local lanzones farm and learn about the island's famous fruit.", whyGo: "Taste the sweetest lanzones straight from the tree during harvest season.", price: 250, category: 'Heritage' },
+        { timeSlot: "9:00 AM", activity: "Sunken Cemetery Expedition", location: "Catarman Coast", description: "Snorkel over the historic Sunken Cemetery and witness the iconic giant cross.", whyGo: "It's the most iconic landmark in Camiguin with hauntingly beautiful underwater views.", price: 500, category: 'Heritage' },
+        { timeSlot: "11:30 AM", activity: "Tuasan Falls Refresh", location: "Mainit, Catarman", description: "Swim in the crystal clear, cold waters of one of the island's most pristine falls.", whyGo: "Less crowded than other falls, offering a serene jungle atmosphere.", price: 50, category: 'Nature' },
+        { timeSlot: "12:00 PM", activity: "Lunch at a Local Eatery", location: "Poblacion, Catarman", description: "Enjoy a traditional Camiguin lunch with fresh seafood and local specialties.", whyGo: "Refuel with authentic flavors that reflect the island's culinary heritage.", price: 200, category: 'Relax' },
+        { timeSlot: "2:00 PM", activity: "Old Church Ruins Walk", location: "Bonbon, Catarman", description: "Explore the coral stone walls of the 16th-century Gui-ob Church.", whyGo: "Feel the weight of history in these beautifully preserved Spanish-era ruins.", price: 0, category: 'Heritage' },
+        { timeSlot: "3:30 PM", activity: "Catarman Public Market Tour", location: "Poblacion, Catarman", description: "Wander through the bustling market and sample fresh local produce.", whyGo: "The best place to experience daily island life and find unique souvenirs.", price: 200, category: 'Heritage' },
+        { timeSlot: "5:00 PM", activity: "Sunset at Bura Soda Water", location: "Catarman", description: "Relax in the only soda water pool in the Philippines as the sun dips low.", whyGo: "The unique effervescent water is incredibly refreshing after a day of exploring.", price: 100, category: 'Relax' },
         { timeSlot: "7:00 PM", activity: "Night Swim at Soda Water Park", location: "Catarman", description: "Experience the unique sensation of swimming in naturally carbonated water under the stars.", whyGo: "The bubbles make you feel weightless — a truly one-of-a-kind experience.", price: 100, category: 'Relax' },
+        { timeSlot: "8:00 AM", activity: "Coffee at a Local Cafe", location: "Poblacion, Catarman", description: "Enjoy freshly brewed Camiguin arabica coffee at a neighborhood cafe.", whyGo: "Camiguin's volcanic soil produces some of the best coffee in the country.", price: 120, category: 'Relax' },
+        { timeSlot: "10:00 AM", activity: "Lanzones Plantation Visit", location: "Catarman Highlands", description: "Tour a local lanzones farm and learn about the island's famous fruit.", whyGo: "Taste the sweetest lanzones straight from the tree during harvest season.", price: 250, category: 'Heritage' },
+        { timeSlot: "1:30 PM", activity: "Catarman Food Trip", location: "Poblacion, Catarman", description: "Sample local delicacies including pastel, dried squid, and fresh seafood.", whyGo: "Catarman's food scene is an underrated gem with bold local flavors.", price: 350, category: 'Relax' },
+        { timeSlot: "4:00 PM", activity: "Bura Soda Water Park Swim", location: "Catarman", description: "Enjoy a refreshing afternoon at the unique soda water pool.", whyGo: "The naturally carbonated water is a one-of-a-kind swimming experience.", price: 100, category: 'Nature' },
       ];
 
       const shuffled = [...allActivities].sort(() => Math.random() - 0.5);
 
       return Array.from({ length: numDays }, (_, i) => ({
         day: i + 1,
-        activities: shuffled.slice(i * 4, i * 4 + 3 + (i % 2))
+        activities: shuffled.slice(i * 4, i * 4 + 3 + (i % 2)).sort(sortByTimeSlot)
       }));
     };
 
@@ -176,10 +185,12 @@ export default function TripPlannerView() {
       - 'description': (Brief details)
       - 'whyGo': (A single compelling sentence explaining why this spot is a must-visit for this specific user)
       - 'price': (Estimated price in PHP as a number)
-      - 'category': (One of: Heritage, Nature, Relax, Adventure)`;
+      - 'category': (One of: Heritage, Nature, Relax, Adventure)
+
+      Ensure all times within each day are in chronological order (earliest to latest) and include realistic breaks between activities. Never output out-of-order times.`;
 
       const result = await genAI.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.0-flash",
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         config: {
           systemInstruction: `You are the 'Senior Catarman Concierge' and a local expert for the municipality of Catarman, Catarman. Your goal is to create a highly detailed, realistic, and optimized travel itinerary EXCLUSIVELY for the municipality of Catarman.
@@ -188,7 +199,14 @@ export default function TripPlannerView() {
           1. Strictly Catarman: Only suggest activities, spots, and experiences located within Catarman. Do not suggest spots in Mambajao, Mahinog, Sagay, or Guinsiliban.
           2. Mandatory Spots: Always try to include Sunken Cemetery, Gui-ob Church Ruins, Tuasan Falls, Bura Soda Water Park, Sto. Niño Cold Spring.
           3. Timing: Suggest 'Sunken Cemetery' for sunset views. 
-          4. Local MSME Integration: Include specific local eateries.`,
+          4. Local MSME Integration: Include specific local eateries.
+          5. Chronological Order: Activities in each day MUST be sorted from earliest to latest by timeSlot. Never output out-of-order times.
+          6. Realistic Breaks: Include a 1-hour lunch break at a local eatery (around 12:00-1:00 PM) each day. Space activities 1-2 hours apart for travel and enjoyment time.
+          7. Pace-Appropriate Schedule:
+             - Relaxed: start around 9:00 AM, end around 4:00 PM, 3-4 activities per day
+             - Moderate: start around 8:00 AM, end around 6:00 PM, 4-5 activities per day
+             - Packed: start around 6:00 AM, end around 8:00 PM, 5-6 activities per day
+          8. Time Sanity Check: Verify every day's timeSlot sequence is ascending. A valid sequence looks like: 7:00 AM, 9:00 AM, 12:00 PM, 2:00 PM, 4:00 PM, 6:00 PM. Never repeat the same timeSlot twice.`,
           responseMimeType: "application/json",
           responseJsonSchema: {
             type: Type.ARRAY,
@@ -220,7 +238,8 @@ export default function TripPlannerView() {
       });
 
       const responseText = result.text;
-      const data = JSON.parse(responseText);
+      const data: DayPlan[] = JSON.parse(responseText);
+      data.forEach(day => day.activities.sort(sortByTimeSlot));
       setItinerary(data);
     } catch (error) {
       console.error("Gemini Error:", error);
@@ -293,177 +312,326 @@ export default function TripPlannerView() {
     </motion.div>
   );
 
-  const SelectionGrid = ({ children, title }: { children: React.ReactNode, title?: string }) => (
-    <div className="mt-8 space-y-6 md:px-14">
-      {title && <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-4">{title}</h5>}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        {children}
+  // ── Step 1: Duration Slider ──
+  const DurationSlider = ({ value, onChange }: { value: number; onChange: (v: number) => void }) => {
+    const dots = [1, 2, 3, 4, 5];
+    return (
+      <div className="mt-8 md:px-14">
+        <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-10">Length of stay</h5>
+        <div className="relative pt-6 pb-16">
+          <div className="absolute left-3 right-3 top-10 h-2 bg-slate-100 rounded-full" />
+          <motion.div
+            className="absolute left-3 top-10 h-2 bg-island-emerald rounded-full"
+            animate={{ width: `${((value - 1) / 4) * 100}%` }}
+            transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+          />
+          <div className="flex justify-between relative">
+            {dots.map(d => (
+              <button key={d} onClick={() => onChange(d)} className="flex flex-col items-center gap-3 group">
+                <motion.div
+                  animate={{ scale: d === value ? 1.4 : 1 }}
+                  className={`w-8 h-8 rounded-full border-4 transition-all ${
+                    d <= value ? 'bg-island-emerald border-island-emerald shadow-lg shadow-island-emerald/30' : 'bg-white border-slate-200 group-hover:border-slate-300'
+                  }`}
+                />
+                <span className={`text-xs font-black tracking-wider transition-colors ${d <= value ? 'text-island-emerald' : 'text-slate-400'}`}>{d}</span>
+              </button>
+            ))}
+          </div>
+          <motion.div key={value} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mt-8 text-center">
+            <span className="text-6xl font-black text-island-volcanic tracking-tighter">{value}</span>
+            <span className="block text-xs font-bold text-slate-400 tracking-widest uppercase mt-2">{value === 1 ? 'Day' : 'Days'} in Catarman</span>
+          </motion.div>
+        </div>
       </div>
-    </div>
+    );
+  };
+
+  // ── Step 2: Group Avatar Cluster Cards ──
+  const GroupCard = ({ option, onClick }: { option: { id: string; label: string; desc: string; count: number }; onClick: () => void }) => {
+    const colors = ['bg-island-emerald', 'bg-island-ocean', 'bg-island-coral', 'bg-island-sunset'];
+    return (
+      <motion.button
+        whileHover={{ scale: 1.02, y: -4 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={onClick}
+        className="p-6 md:p-8 rounded-[2rem] border-4 border-slate-100 bg-white hover:border-slate-200 shadow-xl text-left transition-all duration-500 group"
+      >
+        <div className="flex items-center gap-6">
+          <div className="flex -space-x-3 relative">
+            {Array.from({ length: option.count }).map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ scale: 0, x: -20 }}
+                animate={{ scale: 1, x: 0 }}
+                transition={{ delay: i * 0.08 }}
+                className={`w-12 h-12 md:w-14 md:h-14 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-white ${colors[i % colors.length]} relative`}
+                style={{ zIndex: option.count - i }}
+              >
+                {i === 0 ? <UilCompass size="20" /> : <UilUser size="18" />}
+              </motion.div>
+            ))}
+          </div>
+          <div>
+            <span className="block font-black text-xs uppercase tracking-[0.2em] text-island-volcanic">{option.label}</span>
+            <span className="text-[10px] font-bold text-slate-400 tracking-wider">{option.desc}</span>
+          </div>
+        </div>
+      </motion.button>
+    );
+  };
+
+  // ── Step 3: Transport Tiered Comparison ──
+  const TransportCard = ({ option, onClick }: { option: { id: string; label: string; desc: string; speed: number; cost: number; freedom: number }; onClick: () => void }) => {
+    const ratings = [
+      { label: 'Speed', val: option.speed },
+      { label: 'Cost Eff.', val: option.cost },
+      { label: 'Freedom', val: option.freedom },
+    ];
+    const icon = option.id === 'No Vehicle' ? UilMapMarker : option.id === 'Self-Drive' ? UilCar : UilShieldCheck;
+    return (
+      <motion.button
+        whileHover={{ scale: 1.01, y: -2 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={onClick}
+        className="w-full p-5 md:p-6 rounded-2xl border-2 border-slate-100 bg-white hover:border-slate-200 shadow-lg text-left transition-all duration-300 group"
+      >
+        <div className="flex items-center gap-5 md:gap-8">
+          <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center group-hover:bg-island-volcanic group-hover:text-white transition-all shrink-0">
+            {React.createElement(icon, { size: 24 })}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <span className="font-black text-xs uppercase tracking-[0.15em] text-island-volcanic">{option.label}</span>
+              <span className="text-[10px] text-slate-400 font-bold">{option.desc}</span>
+            </div>
+            <div className="space-y-1.5">
+              {ratings.map(r => (
+                <div key={r.label} className="flex items-center gap-3">
+                  <span className="text-[9px] font-bold text-slate-400 w-14 uppercase tracking-wider">{r.label}</span>
+                  <div className="flex gap-1 flex-1">
+                    {[1, 2, 3, 4, 5].map(s => (
+                      <div key={s} className={`h-1.5 flex-1 rounded-full ${s <= r.val ? 'bg-island-emerald' : 'bg-slate-100'}`} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.button>
+    );
+  };
+
+  // ── Step 4: Pace Slider ──
+  const PaceSelector = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => {
+    const paces = [
+      { id: 'Relaxed', icon: UilSun, label: 'Relaxed', desc: 'At our own pace' },
+      { id: 'Moderate', icon: UilClock, label: 'Moderate', desc: 'A good mix' },
+      { id: 'Packed', icon: UilBolt, label: 'Packed', desc: 'See it all' },
+    ];
+    const current = paces.findIndex(p => p.id === value);
+    return (
+      <div className="mt-8 md:px-14">
+        <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-10">Trip Pace</h5>
+        <div className="relative pt-8 pb-4">
+          <div className="absolute left-0 right-0 top-12 h-2 bg-slate-100 rounded-full" />
+          <motion.div
+            className="absolute left-0 top-12 h-2 bg-island-emerald rounded-full"
+            animate={{ width: `${(current / 2) * 100}%` }}
+            transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+          />
+          <div className="flex justify-between">
+            {paces.map((p, i) => (
+              <button key={p.id} onClick={() => onChange(p.id)} className="flex flex-col items-center gap-3 group">
+                <motion.div
+                  animate={{ scale: i === current ? 1.15 : 1 }}
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                    i <= current ? 'bg-island-emerald text-white shadow-lg shadow-island-emerald/30' : 'bg-slate-50 text-slate-400 group-hover:bg-slate-100'
+                  }`}
+                >
+                  {React.createElement(p.icon, { size: 22 })}
+                </motion.div>
+                <span className={`text-xs font-black tracking-wider transition-colors ${i <= current ? 'text-island-volcanic' : 'text-slate-400'}`}>{p.label}</span>
+                <span className="text-[9px] font-bold text-slate-400">{p.desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── Step 5: Interest Badge Cloud ──
+  const InterestBadge = ({ interest, selected, onToggle }: { interest: { id: string; label: string }; selected: boolean; onToggle: () => void }) => (
+    <motion.button
+      layout
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.92 }}
+      onClick={onToggle}
+      className={`px-8 py-5 md:py-6 rounded-full font-black text-xs md:text-sm uppercase tracking-wider transition-all border-2 ${
+        selected
+          ? 'bg-island-volcanic text-white border-island-volcanic shadow-2xl'
+          : 'bg-white text-slate-400 border-slate-100 hover:border-slate-200 shadow-lg'
+      }`}
+    >
+      <motion.span
+        animate={selected ? { scale: [1, 1.15, 1] } : {}}
+        transition={{ duration: 0.3 }}
+        className="flex items-center gap-3"
+      >
+        {selected && <UilCheckCircle size="18" className="text-island-emerald" />}
+        {interest.label}
+      </motion.span>
+    </motion.button>
   );
 
-  const ChoiceButton = ({ onClick, active, label, icon: Icon, description }: any) => (
+  // ── Step 6: Style Vibe Cards ──
+  const VibeCard = ({ option, onClick }: { option: { id: string; label: string; desc: string; gradient: string; emoji: string }; onClick: () => void }) => (
+    <motion.button
+      whileHover={{ scale: 1.03, y: -6 }}
+      whileTap={{ scale: 0.97 }}
+      onClick={onClick}
+      className={`relative p-8 md:p-10 rounded-[2rem] border-4 border-transparent hover:border-white/30 shadow-2xl text-left overflow-hidden group`}
+    >
+      <div className={`absolute inset-0 bg-gradient-to-br ${option.gradient} opacity-90 group-hover:opacity-100 transition-opacity`} />
+      <div className="absolute inset-0 bg-black/10" />
+      <div className="relative z-10 text-white space-y-4">
+        <span className="text-5xl block mb-4">{option.emoji}</span>
+        <span className="block font-black text-lg md:text-xl uppercase tracking-tighter">{option.label}</span>
+        <span className="block text-sm text-white/70 font-bold">{option.desc}</span>
+      </div>
+    </motion.button>
+  );
+
+  // ── Step 7: Budget Tier Cards ──
+  const TierCard = ({ option, active, onClick }: { option: { id: string; label: string; tier: string; color: string; bg: string; border: string; accent: string; perks: string[] }; active: boolean; onClick: () => void }) => (
     <motion.button
       whileHover={{ scale: 1.02, y: -4 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className={`p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border-4 text-left transition-all duration-500 group relative overflow-hidden ${
-        active 
-          ? 'border-island-emerald bg-emerald-50/50 shadow-[0_30px_60px_-15px_rgba(16,185,129,0.2)]' 
+      className={`p-6 md:p-8 rounded-[2rem] border-4 text-left transition-all duration-500 relative overflow-hidden ${
+        active
+          ? `${option.border} ${option.bg} shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)]`
           : 'border-slate-100 bg-white hover:border-slate-200 shadow-xl'
       }`}
     >
-      {active && <div className="absolute top-0 right-0 w-24 h-24 bg-island-emerald/5 rounded-bl-full animate-pulse" />}
-      <div className="flex flex-col gap-4 md:gap-6 relative z-10">
-        <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-500 ${
-          active ? 'bg-island-emerald text-white scale-110 shadow-lg' : 'bg-slate-50 text-slate-400 group-hover:bg-island-volcanic group-hover:text-white'
-        }`}>
-          {Icon && <Icon className="w-6 h-6 md:w-8 md:h-8" />}
-        </div>
-        <div>
-          <span className={`block font-black text-[10px] md:text-xs uppercase tracking-[0.2em] mb-1 md:mb-2 transition-colors ${active ? 'text-island-emerald' : 'text-island-volcanic'}`}>{label}</span>
-          {description && <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-relaxed">{description}</p>}
+      {active && (
+        <div className={`absolute top-0 right-0 w-32 h-32 ${option.color} opacity-10 rounded-bl-full`} />
+      )}
+      <div className="relative z-10 space-y-4">
+        <div className={`text-4xl font-black tracking-tighter ${active ? option.accent : 'text-slate-300'}`}>{option.tier}</div>
+        <span className={`block font-black text-xs uppercase tracking-[0.2em] ${active ? 'text-island-volcanic' : 'text-slate-400'}`}>{option.label}</span>
+        <div className="space-y-2 pt-2">
+          {option.perks.map((perk, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <UilCheckCircle size="14" className={active ? option.accent : 'text-slate-300'} />
+              <span className={`text-[10px] font-bold ${active ? 'text-slate-500' : 'text-slate-400'}`}>{perk}</span>
+            </div>
+          ))}
         </div>
       </div>
     </motion.button>
   );
 
   const renderChatFlow = () => {
-    const steps_rendered = [];
+    const steps_rendered: React.ReactNode[] = [];
 
-    // Duration Step
     steps_rendered.push(
       <div key="q-duration" className="space-y-6">
         <ChatBubble role="ai">Mabuhay! Welcome to Catarman. How many days will you be staying?</ChatBubble>
         {step === 'duration' && (
-          <SelectionGrid title="Select Duration">
-            {[1, 2, 3, 4, 5].map(d => (
-              <ChoiceButton 
-                key={d} 
-                onClick={() => { setDays(d); setStep('group'); }} 
-                label={`${d} ${d === 1 ? 'Cycle' : 'Cycles'}`}
-                icon={UilCalendar}
-                description={`${d} ${d === 1 ? 'Day' : 'Days'} in Catarman`}
-              />
-            ))}
-          </SelectionGrid>
+          <DurationSlider value={days} onChange={(d) => { setDays(d); setTimeout(() => setStep('group'), 300); }} />
         )}
       </div>
     );
 
-    // Group Step
     if (steps.indexOf(step) >= steps.indexOf('group')) {
       steps_rendered.push(
         <div key="a-duration" className="space-y-6">
           <ChatBubble role="user">{days} days sounds great!</ChatBubble>
-          <ChatBubble role="ai">Great, {days} days! Who will be joining you?</ChatBubble>
+          <ChatBubble role="ai">Who will be joining you on this adventure?</ChatBubble>
           {step === 'group' && (
-            <SelectionGrid title="Exploration Unit">
-              {[
-                { id: 'Solo', icon: UilCompass, label: 'Solo', desc: 'Traveling alone' },
-                { id: 'Couple', icon: UilHeart, label: 'Couple', desc: 'Romantic getaway' },
-                { id: 'Family', icon: UilUsersAlt, label: 'Family', desc: 'Fun for everyone' },
-                { id: 'Friends', icon: UilUsersAlt, label: 'Friends', desc: 'Travel with friends' }
-              ].map(g => (
-                <ChoiceButton 
-                  key={g.id} 
-                  onClick={() => { setGroupType(g.id); setStep('transport'); }} 
-                  label={g.label} 
-                  icon={g.icon} 
-                  description={g.desc}
-                />
-              ))}
-            </SelectionGrid>
+            <div className="mt-8 md:px-14 space-y-5">
+              <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Exploration Unit</h5>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {[
+                  { id: 'Solo', label: 'Solo', desc: 'Traveling alone', count: 1 },
+                  { id: 'Couple', label: 'Couple', desc: 'Romantic getaway', count: 2 },
+                  { id: 'Family', label: 'Family', desc: 'Fun for everyone', count: 3 },
+                  { id: 'Friends', label: 'Friends', desc: 'Travel with friends', count: 4 },
+                ].map(g => (
+                  <GroupCard key={g.id} option={g} onClick={() => { setGroupType(g.id); setStep('transport'); }} />
+                ))}
+              </div>
+            </div>
           )}
         </div>
       );
     }
 
-    // Transport Step
     if (steps.indexOf(step) >= steps.indexOf('transport')) {
       steps_rendered.push(
         <div key="a-group" className="space-y-6">
           <ChatBubble role="user">Traveling as a {groupType.toLowerCase()}.</ChatBubble>
           <ChatBubble role="ai">How would you like to get around Catarman?</ChatBubble>
           {step === 'transport' && (
-            <SelectionGrid title="Mobility Method">
-              {[
-                { id: 'No Vehicle', icon: UilMapMarker, label: 'Public Transport', desc: 'Tricycles & jeepneys' },
-                { id: 'Self-Drive', icon: UilCar, label: 'Self-Drive', desc: 'Scooter or van rental' },
-                { id: 'Private Tour', icon: UilShieldCheck, label: 'Guided Tour', desc: 'Local expert guide' }
-              ].map(t => (
-                <ChoiceButton 
-                  key={t.id} 
-                  onClick={() => { setTransport(t.id); setStep('pace'); }} 
-                  label={t.label} 
-                  icon={t.icon} 
-                  description={t.desc}
-                />
-              ))}
-            </SelectionGrid>
+            <div className="mt-8 md:px-14 space-y-5">
+              <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Mobility Method</h5>
+              <div className="space-y-3">
+                {[
+                  { id: 'No Vehicle', label: 'Public Transport', desc: 'Tricycles & jeepneys', speed: 2, cost: 5, freedom: 2 },
+                  { id: 'Self-Drive', label: 'Self-Drive', desc: 'Scooter or van rental', speed: 4, cost: 3, freedom: 5 },
+                  { id: 'Private Tour', label: 'Guided Tour', desc: 'Local expert guide', speed: 3, cost: 2, freedom: 3 },
+                ].map(t => (
+                  <TransportCard key={t.id} option={t} onClick={() => { setTransport(t.id); setStep('pace'); }} />
+                ))}
+              </div>
+            </div>
           )}
         </div>
       );
     }
 
-    // Pace Step
     if (steps.indexOf(step) >= steps.indexOf('pace')) {
       steps_rendered.push(
         <div key="a-transport" className="space-y-6">
-          <ChatBubble role="user">Using the {transport.toLowerCase()} mode.</ChatBubble>
+          <ChatBubble role="user">Using {transport === 'No Vehicle' ? 'public transport' : transport.toLowerCase()}.</ChatBubble>
           <ChatBubble role="ai">What pace do you prefer for your trip?</ChatBubble>
           {step === 'pace' && (
-            <SelectionGrid title="Pace">
-              {[
-                { id: 'Relaxed', icon: UilSun, label: 'Relaxed', desc: 'At our own pace' },
-                { id: 'Moderate', icon: UilClock, label: 'Moderate', desc: 'A good mix' },
-                { id: 'Packed', icon: UilBolt, label: 'Packed', desc: 'See it all' }
-              ].map(p => (
-                <ChoiceButton 
-                  key={p.id} 
-                  onClick={() => { setPace(p.id); setStep('interests'); }} 
-                  label={p.label} 
-                  icon={p.icon} 
-                  description={p.desc}
-                />
-              ))}
-            </SelectionGrid>
+            <PaceSelector value={pace} onChange={(p) => { setPace(p); setTimeout(() => setStep('interests'), 300); }} />
           )}
         </div>
       );
     }
 
-    // Interests Step
     if (steps.indexOf(step) >= steps.indexOf('interests')) {
       steps_rendered.push(
         <div key="a-pace" className="space-y-6">
-          <ChatBubble role="user">Setting pace to {pace.toLowerCase()}.</ChatBubble>
-          <ChatBubble role="ai">Any particular interests or things you'd love to experience?</ChatBubble>
+          <ChatBubble role="user">Setting a {pace.toLowerCase()} pace.</ChatBubble>
+          <ChatBubble role="ai">Any particular interests? Pick as many as you'd like.</ChatBubble>
           {step === 'interests' && (
-            <div className="space-y-8 md:px-14">
-              <div className="grid grid-cols-2 gap-5 mt-6">
+            <div className="mt-8 md:px-14 space-y-8">
+              <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Interest Tags</h5>
+              <div className="flex flex-wrap gap-3">
                 {[
-                  { id: 'Photography', icon: UilCamera, label: 'Photography' },
-                  { id: 'Hidden Gems', icon: UilDollarAlt, label: 'Hidden Gems' },
-                  { id: 'Local Food', icon: UilUtensils, label: 'Local Food' },
-                  { id: 'Extreme Hiking', icon: UilMountains, label: 'Hiking' }
+                  { id: 'Photography', label: 'Photography' },
+                  { id: 'Hidden Gems', label: 'Hidden Gems' },
+                  { id: 'Local Food', label: 'Local Food' },
+                  { id: 'Extreme Hiking', label: 'Hiking' },
+                  { id: 'Beach Life', label: 'Beach Life' },
+                  { id: 'Culture', label: 'Culture' },
                 ].map(i => (
-                  <ChoiceButton 
-                    key={i.id} 
-                    onClick={() => toggleInterest(i.id)} 
-                    active={interests.includes(i.id)} 
-                    label={i.label} 
-                    icon={i.icon}
-                  />
+                  <InterestBadge key={i.id} interest={i} selected={interests.includes(i.id)} onToggle={() => toggleInterest(i.id)} />
                 ))}
               </div>
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setStep('style')}
-                className="w-full bg-island-volcanic text-white py-8 rounded-[3rem] font-bold tracking-wider text-xs shadow-2xl flex items-center justify-center gap-5 hover:bg-island-emerald transition-all"
+                className="w-full bg-island-volcanic text-white py-6 rounded-full font-bold tracking-wider text-xs shadow-2xl flex items-center justify-center gap-3 hover:bg-island-emerald transition-all"
               >
-                Continue <UilArrowRight size="22" />
+                {interests.length > 0 ? `${interests.length} Selected — Continue` : 'Skip — Continue'} <UilArrowRight size="20" />
               </motion.button>
             </div>
           )}
@@ -471,60 +639,51 @@ export default function TripPlannerView() {
       );
     }
 
-    // Style Step
     if (steps.indexOf(step) >= steps.indexOf('style')) {
       steps_rendered.push(
         <div key="a-interests" className="space-y-6">
-          <ChatBubble role="user">Prioritize {interests.length > 0 ? interests.join(' and ') : "all nodes"}.</ChatBubble>
-          <ChatBubble role="ai">Great choices! What kind of experience are you looking for?</ChatBubble>
+          <ChatBubble role="user">Prioritize {interests.length > 0 ? interests.join(' and ') : 'all the vibes'}.</ChatBubble>
+          <ChatBubble role="ai">What kind of experience are you looking for?</ChatBubble>
           {step === 'style' && (
-            <SelectionGrid title="Travel Style">
-              {[
-                { id: 'Adventure', icon: UilMountains, label: 'Adventure', desc: 'Thrills & exploration' },
-                { id: 'Relax', icon: UilSun, label: 'Relaxation', desc: 'Rest & recharge' },
-                { id: 'Foodie', icon: UilCoffee, label: 'Foodie', desc: 'Local flavors' }
-              ].map(s => (
-                <ChoiceButton 
-                  key={s.id} 
-                  onClick={() => { setStyle(s.id); setStep('budget'); }} 
-                  label={s.label} 
-                  icon={s.icon} 
-                  description={s.desc}
-                />
-              ))}
-            </SelectionGrid>
+            <div className="mt-8 md:px-14 space-y-5">
+              <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Vibe</h5>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {[
+                  { id: 'Adventure', label: 'Adventure', desc: 'Thrills & exploration', gradient: 'from-amber-500 to-orange-600', emoji: '🏔️' },
+                  { id: 'Relax', label: 'Relaxation', desc: 'Rest & recharge', gradient: 'from-teal-400 to-emerald-600', emoji: '🧘' },
+                  { id: 'Foodie', label: 'Foodie', desc: 'Local flavors', gradient: 'from-red-400 to-rose-600', emoji: '🍜' },
+                ].map(s => (
+                  <VibeCard key={s.id} option={s} onClick={() => { setStyle(s.id); setStep('budget'); }} />
+                ))}
+              </div>
+            </div>
           )}
         </div>
       );
     }
 
-    // Budget Step
     if (steps.indexOf(step) >= steps.indexOf('budget')) {
       steps_rendered.push(
         <div key="a-style" className="space-y-6">
-          <ChatBubble role="user">Looking for a {style.toLowerCase()} trip.</ChatBubble>
+          <ChatBubble role="user">Going for the {style.toLowerCase()} experience.</ChatBubble>
           <ChatBubble role="ai">What's your budget range?</ChatBubble>
           {step === 'budget' && (
-            <SelectionGrid title="Budget">
-              {[
-                { id: 'Budget', icon: UilCoins, label: 'Budget-Friendly', desc: 'Great value' },
-                { id: 'Moderate', icon: UilWallet, label: 'Mid-Range', desc: 'Comfortable' },
-                { id: 'Luxury', icon: UilDollarAlt, label: 'Premium', desc: 'No limit' }
-              ].map(b => (
-                <ChoiceButton 
-                  key={b.id} 
-                  onClick={() => setBudget(b.id)} 
-                  active={budget === b.id} 
-                  label={b.label} 
-                  icon={b.icon} 
-                  description={b.desc}
-                />
-              ))}
-            </SelectionGrid>
+            <div className="mt-8 md:px-14 space-y-5">
+              <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Budget Tier</h5>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {[
+                  { id: 'Budget', label: 'Budget-Friendly', tier: 'Bronze', color: 'from-amber-700 to-amber-900', bg: 'bg-amber-50', border: 'border-amber-300', accent: 'text-amber-700', perks: ['Local eateries', 'Public transpo', 'Free attractions'] },
+                  { id: 'Moderate', label: 'Mid-Range', tier: 'Silver', color: 'from-slate-400 to-slate-600', bg: 'bg-slate-50', border: 'border-slate-300', accent: 'text-slate-600', perks: ['Mix of dining', 'Scooter rental', 'Paid spots'] },
+                  { id: 'Luxury', label: 'Premium', tier: 'Gold', color: 'from-yellow-500 to-amber-600', bg: 'bg-amber-50', border: 'border-yellow-400', accent: 'text-amber-700', perks: ['Fine dining', 'Private guide', 'All inclusions'] },
+                ].map(b => (
+                  <TierCard key={b.id} option={b} active={budget === b.id} onClick={() => setBudget(b.id)} />
+                ))}
+              </div>
+            </div>
           )}
           {step === 'budget' && (
-            <div className="md:px-14 mt-12 pb-24">
-              <motion.button 
+            <div className="md:px-14 mt-8 pb-24">
+              <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={generateTrip}
@@ -549,7 +708,7 @@ export default function TripPlannerView() {
       {/* Left Panel: Chat & Itinerary */}
       <div className={`flex flex-col ${isMobile ? 'w-full' : 'w-[600px] lg:w-[850px]'} bg-white relative z-20 shadow-[0_0_100px_-20px_rgba(0,0,0,0.1)] border-r border-slate-100`}>
         
-        {/* Planner Header */}
+        {!isMobile && (
         <header className="px-10 py-10 flex items-center justify-between bg-white/95 backdrop-blur-3xl sticky top-0 z-40">
           <div className="flex items-center gap-6">
             <button onClick={() => navigate(isMobile ? '/mobile' : '/')} className="w-14 h-14 bg-slate-50 hover:bg-slate-100 text-island-volcanic transition-all rounded-2xl flex items-center justify-center border-2 border-slate-100 active:scale-90">
@@ -565,6 +724,7 @@ export default function TripPlannerView() {
             <span className="text-[10px] font-bold text-white tracking-wider">Generating your itinerary...</span>
           </div>
         </header>
+        )}
 
         {/* Scrollable Area */}
         <div className="flex-1 overflow-y-auto p-8 lg:p-14 space-y-16 no-scrollbar bg-[#FAFAFA]">
@@ -597,138 +757,169 @@ export default function TripPlannerView() {
               </div>
             </div>
           ) : itinerary ? (
-            <div className="space-y-24 pb-40 animate-in fade-in slide-in-from-bottom-20 duration-1000">
+            <div className="space-y-16 pb-40 animate-in fade-in slide-in-from-bottom-20 duration-1000">
               {/* Result Header */}
-              <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
-                <div className="space-y-6">
+              <div className="flex items-start justify-between gap-6">
+                <div className="space-y-4">
                   <span className="text-[10px] font-bold text-island-emerald tracking-wider block">Itinerary Complete</span>
-                  <h2 className="text-6xl lg:text-8xl font-black text-island-volcanic tracking-tighter uppercase leading-[0.85] italic">Catarman <br /> <span className="not-italic text-island-emerald">Explorer</span></h2>
-                  <div className="flex flex-wrap gap-4">
-                    <div className="flex items-center gap-3 bg-island-volcanic text-white px-6 py-2.5 rounded-full border border-white/10 shadow-xl">
-                      <UilCalendar size="14" className="text-island-emerald" />
-                      <span className="text-xs font-bold tracking-wider">{days} Days</span>
-                    </div>
-                    <div className="flex items-center gap-3 bg-white text-island-volcanic px-6 py-2.5 rounded-full border border-slate-100 shadow-xl text-xs font-bold tracking-wider">
-                      <UilUsersAlt size="14" /> {groupType}
-                    </div>
+                  <h2 className="text-5xl md:text-7xl font-black text-island-volcanic tracking-tighter uppercase leading-[0.85] italic">Catarman <br /> <span className="not-italic text-island-emerald">Explorer</span></h2>
+                  <div className="flex flex-wrap gap-3">
+                    <span className="flex items-center gap-2 bg-island-volcanic text-white px-4 py-1.5 rounded-full border border-white/10 shadow-lg text-[10px] font-bold tracking-wider">
+                      <UilCalendar size="12" className="text-island-emerald" /> {days} Days
+                    </span>
+                    <span className="flex items-center gap-2 bg-white text-island-volcanic px-4 py-1.5 rounded-full border border-slate-100 shadow-lg text-[10px] font-bold tracking-wider">
+                      <UilUsersAlt size="12" /> {groupType}
+                    </span>
+                    <span className="flex items-center gap-2 bg-white text-island-volcanic px-4 py-1.5 rounded-full border border-slate-100 shadow-lg text-[10px] font-bold tracking-wider">
+                      <UilMapMarker size="12" className="text-island-emerald" /> {itinerary.reduce((s, d) => s + d.activities.length, 0)} activities
+                    </span>
                   </div>
                 </div>
-                <button onClick={() => setStep('duration')} className="w-20 h-20 rounded-3xl bg-slate-50 border-4 border-slate-100 flex items-center justify-center text-island-volcanic hover:bg-island-volcanic hover:text-white transition-all shadow-xl active:scale-90">
-                  <UilRefresh size="32" />
+                <button onClick={() => setStep('duration')} className="w-14 h-14 rounded-2xl bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-island-volcanic hover:bg-island-volcanic hover:text-white transition-all shadow-lg active:scale-90 shrink-0">
+                  <UilRefresh size="22" />
                 </button>
               </div>
 
+              {/* Trip Summary Bar */}
+              {(() => {
+                const totalActivities = itinerary.reduce((s, d) => s + d.activities.length, 0);
+                const totalCost = itinerary.reduce((s, d) => s + d.activities.reduce((a, act) => a + (act.price || 0), 0), 0);
+                const categories = [...new Set(itinerary.flatMap(d => d.activities.map(a => a.category || 'Experience')))];
+                return (
+                  <div className="flex flex-wrap gap-3 p-5 bg-white rounded-2xl border border-slate-50 shadow-lg">
+                    {[
+                      { label: 'Total Cost', value: `₱${totalCost}`, icon: UilWallet },
+                      { label: 'Activities', value: totalActivities, icon: UilTicket },
+                      { label: 'Categories', value: categories.length, icon: UilStar },
+                    ].map(stat => (
+                      <div key={stat.label} className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl">
+                        <stat.icon size="16" className="text-island-emerald" />
+                        <div>
+                          <span className="text-sm font-black text-island-volcanic">{stat.value}</span>
+                          <span className="text-[9px] font-bold text-slate-400 ml-1.5 uppercase tracking-wider">{stat.label}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
               {/* Itinerary Timeline */}
-              <div className="space-y-16 md:space-y-32 relative">
-                {itinerary.map((day, idx) => (
+              <div className="space-y-12 relative">
+                {itinerary.map((day, idx) => {
+                  const dayCost = day.activities.reduce((s, a) => s + (a.price || 0), 0);
+                  const categoryColor = (cat: string) => {
+                    const colors: Record<string, string> = { Heritage: 'bg-amber-500', Nature: 'bg-emerald-500', Relax: 'bg-blue-500', Adventure: 'bg-orange-500' };
+                    return colors[cat] || 'bg-slate-400';
+                  };
+                  return (
                   <div key={day.day} className="relative">
-                    <div className="flex items-center gap-6 md:gap-10 mb-10 md:mb-16">
-                      <div className="w-16 h-16 md:w-24 md:h-24 rounded-2xl md:rounded-[2.5rem] bg-island-volcanic text-white flex items-center justify-center text-2xl md:text-4xl font-black shadow-2xl border-4 md:border-8 border-slate-50 shrink-0">
+                    {/* Day Header */}
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-island-volcanic text-white flex items-center justify-center text-xl md:text-2xl font-black shadow-xl border-4 border-white shrink-0">
                         {day.day}
                       </div>
-                      <div>
-                        <h3 className="text-2xl md:text-4xl font-black text-island-volcanic uppercase tracking-tighter leading-none italic">Day {day.day}</h3>
-                        <p className="text-[10px] font-semibold text-slate-400 tracking-tight mt-2 md:mt-3">Theme: {idx === 0 ? 'Discovery' : idx === 1 ? 'Immersion' : 'Integration'}</p>
+                      <div className="flex-1">
+                        <h3 className="text-xl md:text-2xl font-black text-island-volcanic uppercase tracking-tighter leading-none">Day {day.day}</h3>
+                        <p className="text-[10px] font-semibold text-slate-400 tracking-tight mt-1">{idx === 0 ? 'Discovery' : idx === 1 ? 'Immersion' : 'Integration'} · ₱{dayCost} total</p>
                       </div>
                     </div>
 
-                    <div className="space-y-10 md:space-y-16 border-l-4 md:border-l-8 border-slate-50 ml-8 md:ml-12 pl-8 md:pl-20 relative py-2">
+                    {/* Activity Cards */}
+                    <div className="space-y-4">
                       {day.activities.map((act, aIdx) => (
-                        <div key={aIdx} className="relative group">
-                          {/* Timeline Node */}
-                          <div className="absolute -left-[42px] md:-left-[108px] top-4 w-6 h-6 md:w-14 md:h-14 bg-white border-4 md:border-8 border-island-volcanic rounded-full shadow-3xl z-10 group-hover:scale-110 group-hover:border-island-emerald transition-all" />
-                          
-                          {/* Activity Card */}
-                          <div className="flex flex-col gap-4 md:gap-6">
-                            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-6">
-                              <span className="text-lg md:text-xl font-black text-island-volcanic tracking-tighter">{act.timeSlot}</span>
-                              <div className="hidden md:block h-px bg-slate-100 flex-1" />
-                              <span className="text-[10px] font-bold text-island-emerald tracking-wider bg-emerald-50 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-island-emerald/10 w-fit">
+                        <div key={aIdx} className="relative flex gap-4 md:gap-6 group">
+                          {/* Timeline line + node */}
+                          <div className="flex flex-col items-center shrink-0 pt-1">
+                            <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-island-volcanic border-2 border-white shadow-md group-hover:bg-island-emerald transition-colors z-10" />
+                            {aIdx < day.activities.length - 1 && <div className="w-0.5 flex-1 bg-slate-100 mt-1" />}
+                          </div>
+
+                          {/* Card */}
+                          <div className="flex-1 bg-white rounded-2xl border border-slate-50 shadow-lg p-4 md:p-6 hover:shadow-xl transition-all min-w-0">
+                            {/* Top row: time + category + price */}
+                            <div className="flex items-center gap-3 mb-3">
+                              <span className="text-sm md:text-base font-black text-island-volcanic tracking-tighter">{act.timeSlot}</span>
+                              <span className="h-3 w-px bg-slate-100" />
+                              <span className={`text-[9px] font-bold text-white tracking-wider px-2 py-0.5 rounded-full ${categoryColor(act.category || '')}`}>
                                 {act.category || 'Experience'}
                               </span>
+                              <span className="ml-auto text-sm font-black text-island-emerald tracking-tighter">₱{act.price}</span>
                             </div>
 
-                            <div className="bg-white rounded-[2.5rem] md:rounded-[4rem] border-4 md:border-8 border-slate-50 shadow-2xl p-6 md:p-12 transition-all duration-700 hover:-translate-y-2 md:hover:-translate-y-4 group/card overflow-hidden relative">
-                              <div className="absolute top-0 right-0 w-32 h-32 md:w-64 md:h-64 bg-slate-50/50 rounded-full translate-x-16 -translate-y-16 md:translate-x-32 md:-translate-y-32 -z-10 group-hover/card:scale-150 transition-transform duration-1000" />
-                              
-                              <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-10 mb-6 md:mb-10">
-                                <div className="space-y-2 md:space-y-4">
-                                  <h4 className="text-3xl md:text-5xl font-black text-island-volcanic tracking-tighter uppercase leading-[0.9] group-hover/card:text-island-emerald transition-colors italic">{act.activity}</h4>
-                                  <div className="flex items-center gap-2 md:gap-4 text-slate-400">
-                                    <UilMapMarker size="14" className="text-island-emerald" />
-                                    <span className="text-xs md:text-sm font-semibold tracking-tight">{act.location}</span>
-                                  </div>
-                                </div>
-                                <div className="text-left md:text-right shrink-0">
-                                  <span className="text-2xl md:text-4xl font-black text-island-volcanic tracking-tighter">₱{act.price}</span>
-                                  <span className="block text-[10px] font-semibold text-slate-400 tracking-tight mt-1">Estimated cost</span>
-                                </div>
-                              </div>
+                            {/* Activity name + location */}
+                            <h4 className="text-xl md:text-2xl font-black text-island-volcanic tracking-tighter uppercase leading-tight mb-1">{act.activity}</h4>
+                            <div className="flex items-center gap-1.5 text-slate-400 mb-3">
+                              <UilMapPin size="12" />
+                              <span className="text-[11px] font-semibold">{act.location}</span>
+                            </div>
 
-                              <p className="text-sm md:text-xl text-slate-500 font-medium leading-relaxed mb-6 md:mb-12 max-w-2xl">{act.description}</p>
+                            {/* Description */}
+                            <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed mb-3">{act.description}</p>
 
-                              {/* Intelligence Node */}
-                              <div className="bg-island-volcanic text-white p-5 md:p-8 rounded-2xl md:rounded-[3rem] mb-6 md:mb-12 flex flex-col md:flex-row gap-4 md:gap-8 md:items-center shadow-2xl relative overflow-hidden group/intel">
-                                <div className="absolute inset-0 bg-gradient-to-r from-island-emerald/20 to-transparent opacity-0 group-hover/intel:opacity-100 transition-opacity" />
-                                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.5rem] bg-island-emerald text-white flex items-center justify-center shrink-0 shadow-lg relative z-10">
-                                  <UilBolt size="24" />
-                                </div>
-                                <div className="relative z-10">
-                                  <span className="text-[10px] font-semibold text-island-emerald tracking-tight mb-1 block">Why this works</span>
-                                  <p className="text-xs md:text-lg font-black italic leading-tight text-white/90">"{act.whyGo}"</p>
-                                </div>
-                              </div>
+                            {/* Why this works — compact */}
+                            <div className="flex items-start gap-2 p-3 bg-island-volcanic/5 rounded-xl mb-3">
+                              <UilBolt size="14" className="text-island-emerald shrink-0 mt-0.5" />
+                              <p className="text-[11px] font-bold italic text-slate-500 leading-snug">"{act.whyGo}"</p>
+                            </div>
 
-                              <div className="flex flex-col sm:flex-row gap-3 md:gap-6">
-                                <motion.button 
-                                  whileHover={{ scale: 1.02 }}
-                                  whileTap={{ scale: 0.98 }}
-                                  onClick={() => handleAction(act, day.day, 'pass')}
-                                  disabled={bookingStatus[`${day.day}-${act.activity}-pass`] === 'loading' || bookingStatus[`${day.day}-${act.activity}-pass`] === 'success'}
-                                  className={`flex-[2] py-5 md:py-8 rounded-2xl md:rounded-[2rem] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-xs flex items-center justify-center gap-3 md:gap-5 transition-all shadow-2xl ${
-                                    bookingStatus[`${day.day}-${act.activity}-pass`] === 'success'
-                                      ? 'bg-island-emerald text-white shadow-none'
-                                      : 'bg-island-volcanic text-white hover:bg-island-emerald'
-                                  }`}
-                                >
-                                  {bookingStatus[`${day.day}-${act.activity}-pass`] === 'success' ? <><UilCheckCircle size="24" /> Saved!</> : <><UilTicket size="24" /> Save to Pass</>}
-                                </motion.button>
-                                <motion.button 
-                                  whileHover={{ scale: 1.02 }}
-                                  whileTap={{ scale: 0.98 }}
-                                  onClick={() => handleAction(act, day.day, 'transport')}
-                                  disabled={bookingStatus[`${day.day}-${act.activity}-transport`] === 'loading' || bookingStatus[`${day.day}-${act.activity}-transport`] === 'success'}
-                                  className="flex-1 bg-white border-2 md:border-4 border-slate-50 text-island-volcanic rounded-2xl md:rounded-[2rem] py-5 md:py-0 flex items-center justify-center gap-3 md:gap-4 hover:border-island-volcanic transition-all shadow-xl"
-                                >
-                                  {bookingStatus[`${day.day}-${act.activity}-transport`] === 'success' ? <UilCheckCircle size="24" className="text-island-emerald" /> : <UilCar size="28" />}
-                                  <span className="sm:hidden font-black uppercase tracking-widest text-[10px]">Transport</span>
-                                </motion.button>
-                              </div>
+                            {/* Action buttons */}
+                            <div className="flex gap-2">
+                              <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => handleAction(act, day.day, 'pass')}
+                                disabled={bookingStatus[`${day.day}-${act.activity}-pass`] === 'loading' || bookingStatus[`${day.day}-${act.activity}-pass`] === 'success'}
+                                className={`flex-1 py-3 rounded-xl font-black uppercase tracking-[0.15em] text-[9px] flex items-center justify-center gap-2 transition-all shadow-md ${
+                                  bookingStatus[`${day.day}-${act.activity}-pass`] === 'success'
+                                    ? 'bg-island-emerald text-white'
+                                    : 'bg-island-volcanic text-white hover:bg-island-emerald'
+                                }`}
+                              >
+                                {bookingStatus[`${day.day}-${act.activity}-pass`] === 'success' ? <><UilCheckCircle size="16" /> Saved</> : <><UilTicket size="16" /> Save to Pass</>}
+                              </motion.button>
+                              <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => handleAction(act, day.day, 'transport')}
+                                disabled={bookingStatus[`${day.day}-${act.activity}-transport`] === 'loading' || bookingStatus[`${day.day}-${act.activity}-transport`] === 'success'}
+                                className="px-4 py-3 bg-white border border-slate-100 rounded-xl flex items-center justify-center hover:border-island-volcanic transition-all shadow-md"
+                              >
+                                {bookingStatus[`${day.day}-${act.activity}-transport`] === 'success' ? <UilCheckCircle size="16" className="text-island-emerald" /> : <UilCar size="18" />}
+                              </motion.button>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
 
-                {/* Final Verification Section */}
-                <div className="pt-10 md:pt-20 space-y-10">
-                  <div className="bg-island-emerald p-8 md:p-16 rounded-[3rem] md:rounded-[5rem] text-white shadow-[0_50px_100px_-20px_rgba(16,185,129,0.3)] relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-white/10 rounded-full translate-x-16 -translate-y-16 md:translate-x-32 md:-translate-y-32 animate-pulse" />
-                    <div className="relative z-10 text-center space-y-6 md:space-y-8">
-                      <UilShieldCheck size="80" className="mx-auto text-white/40 mb-6 md:mb-10" />
-                      <h3 className="text-4xl md:text-7xl font-black uppercase tracking-tighter italic">Review Your <br /> Itinerary</h3>
-                      <p className="text-white/80 font-medium text-xs md:text-sm max-w-md mx-auto">Save all activities to your pass and finalize your Catarman adventure.</p>
-                      <motion.button 
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="w-full sm:w-auto bg-white text-island-emerald px-10 md:px-16 py-6 md:py-8 rounded-full font-black uppercase tracking-[0.3em] md:tracking-[0.5em] text-[10px] md:text-sm shadow-3xl hover:bg-island-volcanic hover:text-white transition-all"
-                      >
-                        Confirm All
-                      </motion.button>
+                {/* Final CTA */}
+                <div className="pt-6">
+                  {(() => {
+                    const grandTotal = itinerary.reduce((s, d) => s + d.activities.reduce((a, act) => a + (act.price || 0), 0), 0);
+                    return (
+                    <div className="bg-island-emerald p-8 md:p-12 rounded-[2.5rem] text-white shadow-[0_30px_60px_-15px_rgba(16,185,129,0.3)] relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full translate-x-12 -translate-y-12" />
+                      <div className="relative z-10 text-center space-y-4">
+                        <UilShieldCheck size="48" className="mx-auto text-white/30" />
+                        <h3 className="text-3xl md:text-5xl font-black uppercase tracking-tighter italic">Review & Confirm</h3>
+                        <p className="text-white/70 font-medium text-xs max-w-sm mx-auto">
+                          {itinerary.length} days · {itinerary.reduce((s, d) => s + d.activities.length, 0)} activities · ₱{grandTotal} total
+                        </p>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="bg-white text-island-emerald px-8 md:px-12 py-4 md:py-5 rounded-full font-black uppercase tracking-[0.3em] text-[10px] md:text-xs shadow-2xl hover:bg-island-volcanic hover:text-white transition-all"
+                        >
+                          Confirm All
+                        </motion.button>
+                      </div>
                     </div>
-                  </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

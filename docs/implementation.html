@@ -1,0 +1,883 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Catarman eSuroy — Implementation Document</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;line-height:1.7;color:#1e293b;max-width:900px;margin:0 auto;padding:40px 24px;background:#fff}h1{font-size:2.2em;margin-top:0;padding-bottom:.3em;border-bottom:2px solid #0d9488;color:#0f172a}h2{font-size:1.6em;margin-top:1.8em;padding-bottom:.2em;border-bottom:1px solid #e2e8f0;color:#0f172a}h3{font-size:1.25em;margin-top:1.5em;color:#0d9488}h4{font-size:1.1em;margin-top:1.2em;color:#334155}code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:.88em}pre{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;overflow-x:auto}pre code{background:none;padding:0}table{border-collapse:collapse;width:100%;margin:1em 0}th,td{border:1px solid #e2e8f0;padding:10px 14px;text-align:left}th{background:#f1f5f9;font-weight:700}tr:nth-child(even){background:#fafafa}blockquote{border-left:4px solid #0d9488;margin:1em 0;padding:.5em 1em;background:#f0fdfa;border-radius:0 8px 8px 0}hr{border:none;border-top:1px solid #e2e8f0;margin:2em 0}ul,ol{padding-left:1.5em}li{margin:.3em 0}@media print{body{padding:0}h1,h2,h3{page-break-after:avoid}pre,table{page-break-inside:avoid}}.toc{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:20px 24px;margin:1.5em 0}.toc ul{list-style:none;padding-left:0}.toc ul li{margin:.4em 0}.toc ul li a{font-weight:500}.toc ul ul{padding-left:1.5em}</style></head><body><h1>Catarman eSuroy — Smart Tourism OS</h1>
+<p><strong>Implementation Document</strong> · June 2026</p>
+<p>A comprehensive smart tourism platform for <strong>Catarman, Camiguin, Philippines</strong> — serving tourists, local business owners, and the local government unit (LGU) under one unified system.</p>
+<hr>
+<h2>Table of Contents</h2>
+<ol>
+<li><a href="#1-system-overview">System Overview</a></li>
+<li><a href="#2-tech-stack--architecture">Tech Stack &amp; Architecture</a></li>
+<li><a href="#3-project-structure">Project Structure</a></li>
+<li><a href="#4-authentication--roles">Authentication &amp; Roles</a></li>
+<li><a href="#5-core-features">Core Features</a></li>
+<li><a href="#6-data-layer">Data Layer</a></li>
+<li><a href="#7-ai-integration">AI Integration</a></li>
+<li><a href="#8-mobile--pwa">Mobile &amp; PWA</a></li>
+<li><a href="#9-configuration--environment">Configuration &amp; Environment</a></li>
+<li><a href="#10-development--deployment">Development &amp; Deployment</a></li>
+</ol>
+<hr>
+<h2>1. System Overview</h2>
+<p><strong>Catarman eSuroy</strong> (formerly <em>Island OS</em>) is a single-page React application that functions as a smart tourism operating system. It provides three distinct interfaces depending on the user&#39;s role:</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Interface</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Tourist</strong></td>
+<td>Public website + mobile app</td>
+<td>Explore destinations, book accommodations/transport/rentals, generate AI itineraries, manage a digital tourist pass</td>
+</tr>
+<tr>
+<td><strong>Business Owner</strong></td>
+<td>Business dashboard</td>
+<td>Manage bookings, inventory, tours, reviews, view analytics</td>
+</tr>
+<tr>
+<td><strong>LGU</strong></td>
+<td>Government dashboard</td>
+<td>Tourist registry, settlement processing, payment tracking, safety monitoring, port operations, reports</td>
+</tr>
+</tbody></table>
+<p>The application runs as a <strong>Progressive Web App (PWA)</strong> in the browser and can be packaged as a native <strong>Android APK</strong> via <strong>Capacitor</strong>.</p>
+<hr>
+<h2>2. Tech Stack &amp; Architecture</h2>
+<h3>Frontend</h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>Version</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>UI Framework</td>
+<td>React</td>
+<td>19.x</td>
+</tr>
+<tr>
+<td>Language</td>
+<td>TypeScript</td>
+<td>5.8.x</td>
+</tr>
+<tr>
+<td>Build Tool</td>
+<td>Vite</td>
+<td>6.2.x</td>
+</tr>
+<tr>
+<td>Styling</td>
+<td>Tailwind CSS</td>
+<td>4.1.x</td>
+</tr>
+<tr>
+<td>Animation</td>
+<td>Motion (Framer Motion)</td>
+<td>12.x</td>
+</tr>
+<tr>
+<td>Routing</td>
+<td>react-router-dom</td>
+<td>7.x</td>
+</tr>
+<tr>
+<td>Icons</td>
+<td>Duo Icons (via <code>@duo-icons/react</code>)</td>
+<td>1.x</td>
+</tr>
+<tr>
+<td>Notifications</td>
+<td>Sonner</td>
+<td>2.x</td>
+</tr>
+<tr>
+<td>Charts</td>
+<td>Recharts</td>
+<td>3.x</td>
+</tr>
+<tr>
+<td>Maps</td>
+<td>Leaflet + react-leaflet</td>
+<td>1.9.x / 5.x</td>
+</tr>
+<tr>
+<td>QR Code</td>
+<td>qrcode.react + html5-qrcode</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3>Backend / Services</h3>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Purpose</th>
+<th>Integration</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Firebase Auth</strong></td>
+<td>Authentication</td>
+<td>Google sign-in popup/redirect, anonymous, Capacitor native</td>
+</tr>
+<tr>
+<td><strong>Firestore</strong></td>
+<td>Primary database</td>
+<td>All collections (users, bookings, businesses, passes, reviews, incidents)</td>
+</tr>
+<tr>
+<td><strong>Google Gemini</strong></td>
+<td>AI itinerary generation</td>
+<td><code>@google/genai</code> SDK with structured JSON schema</td>
+</tr>
+</tbody></table>
+<h3>Mobile</h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Mobile Shell</td>
+<td>Capacitor 8</td>
+</tr>
+<tr>
+<td>Android Build</td>
+<td>Gradle 8.13 (AGP)</td>
+</tr>
+<tr>
+<td>Native Auth</td>
+<td><code>@capacitor-firebase/authentication</code></td>
+</tr>
+</tbody></table>
+<h3>Architecture Diagram (text)</h3>
+<pre><code>Browser / Capacitor WebView
+        │
+        ▼
+   React App (SPA)
+        │
+        ├── Tailwind CSS → Styled UI
+        ├── react-router-dom → Routing
+        ├── Motion → Animations
+        └── Context API → Auth State
+              │
+              ▼
+        ┌──────────── Firestore ────────────┐
+        │  users, bookings, businesses,     │
+        │  passes, reviews, incidents,      │
+        │  audit_logs, inventory            │
+        └───────────────────────────────────┘
+              │
+        Google Gemini API
+        (AI Trip Planner)
+</code></pre>
+<hr>
+<h2>3. Project Structure</h2>
+<pre><code>island_os/
+├── android/                    # Capacitor Android native project
+│   ├── app/
+│   ├── gradle/
+│   ├── build.gradle
+│   └── gradlew
+├── public/                     # Static assets (images, manifest)
+├── scripts/
+│   └── seed-firestore.ts       # Database seed script
+├── src/
+│   ├── main.tsx                # Entry point
+│   ├── App.tsx                 # Root component (auth listener, role routing)
+│   ├── AppRoutes.tsx           # Route definitions
+│   ├── firebase.ts             # Firebase client initialization
+│   ├── icons.tsx               # Icon re-exports
+│   ├── index.css               # Global styles + Tailwind
+│   │
+│   ├── components/
+│   │   ├── layout/             # Navigation, MobileBottomNav, MobileHeader, RoleNavigator
+│   │   ├── mobile/             # BottomNav, Header, SearchBar, OnboardingHero, CardCarousel, etc.
+│   │   ├── business/           # AnalyticsModule, BookingsModule, InventoryModule, ToursModule, etc.
+│   │   ├── lgu/                # RegistryModule, SettlementModule, PaymentModule, SafetyModule, etc.
+│   │   └── shared/             # SOSButton, QRScanner, ReviewForm, DateGuestPicker, StatCard, etc.
+│   │
+│   ├── context/
+│   │   └── AuthContext.tsx     # Authentication context + provider
+│   │
+│   ├── data/                   # Static data sources
+│   │   ├── accommodations.ts
+│   │   ├── transport.ts
+│   │   ├── rentals.ts
+│   │   ├── locations.ts
+│   │   ├── businesses.ts
+│   │   └── processFlow.ts
+│   │
+│   ├── lib/                    # Service layer
+│   │   ├── passService.ts
+│   │   ├── checkinService.ts
+│   │   ├── capacityService.ts
+│   │   ├── reviewService.ts
+│   │   ├── incidentService.ts
+│   │   ├── auditService.ts
+│   │   └── capacitorAuth.ts
+│   │
+│   ├── types/                  # TypeScript type definitions
+│   │
+│   └── views/                  # Page components
+│       ├── LandingView.tsx
+│       ├── MobileAppView.tsx
+│       ├── TripPlannerView.tsx
+│       ├── StayView.tsx
+│       ├── TransportView.tsx
+│       ├── RentalsView.tsx
+│       ├── LocationsView.tsx
+│       ├── TouristPassView.tsx
+│       ├── MyBookingsView.tsx
+│       ├── ClaimBusinessView.tsx
+│       ├── HowItWorksView.tsx
+│       ├── BusinessDashboard.tsx
+│       ├── GovernmentDashboard.tsx
+│       └── CheckInView.tsx
+│
+├── dist/                       # Vite build output
+├── capacitor.config.ts
+├── vite.config.ts
+├── tsconfig.json
+├── package.json
+├── firebase-applet-config.json
+└── firestore.rules
+</code></pre>
+<h3>Route Map</h3>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Component</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/</code></td>
+<td>LandingView</td>
+<td>Public</td>
+</tr>
+<tr>
+<td><code>/how-it-works</code></td>
+<td>HowItWorksView</td>
+<td>Public</td>
+</tr>
+<tr>
+<td><code>/stay</code></td>
+<td>StayView</td>
+<td>Public</td>
+</tr>
+<tr>
+<td><code>/transport</code></td>
+<td>TransportView</td>
+<td>Public</td>
+</tr>
+<tr>
+<td><code>/locations</code></td>
+<td>LocationsView</td>
+<td>Public</td>
+</tr>
+<tr>
+<td><code>/rentals</code></td>
+<td>RentalsView</td>
+<td>Public</td>
+</tr>
+<tr>
+<td><code>/planner</code></td>
+<td>TripPlannerView</td>
+<td>Public (AI)</td>
+</tr>
+<tr>
+<td><code>/pass</code></td>
+<td>TouristPassView</td>
+<td>Auth required</td>
+</tr>
+<tr>
+<td><code>/my-bookings</code></td>
+<td>MyBookingsView</td>
+<td>Auth required</td>
+</tr>
+<tr>
+<td><code>/claim-business</code></td>
+<td>ClaimBusinessView</td>
+<td>Auth required</td>
+</tr>
+<tr>
+<td><code>/business/*</code></td>
+<td>BusinessDashboard</td>
+<td>Business role</td>
+</tr>
+<tr>
+<td><code>/government/*</code></td>
+<td>GovernmentDashboard</td>
+<td>LGU role</td>
+</tr>
+<tr>
+<td><code>/mobile</code></td>
+<td>MobileAppView</td>
+<td>Public</td>
+</tr>
+<tr>
+<td><code>/checkin</code></td>
+<td>CheckInView</td>
+<td>LGU role</td>
+</tr>
+</tbody></table>
+<h3>Route Gating</h3>
+<p>The <code>RoleNavigator</code> component in <code>App.tsx</code> handles:</p>
+<ol>
+<li><strong>Mobile redirect</strong>: Screens &lt; 768px automatically redirect to <code>/mobile</code></li>
+<li><strong>Role guard</strong>: Paths under <code>/business</code> require <code>role === &#39;BUSINESS&#39;</code>; paths under <code>/government</code> require <code>role === &#39;LGU&#39;</code></li>
+<li><strong>Desktop redirect</strong>: Users on <code>/mobile</code> with screens ≥ 768px are redirected to <code>/</code></li>
+</ol>
+<hr>
+<h2>4. Authentication &amp; Roles</h2>
+<h3>Auth Flow</h3>
+<ol>
+<li><code>App.tsx</code> mounts and listens to Firebase <code>onAuthStateChanged</code></li>
+<li>On sign-in, the user&#39;s Firestore <code>users/{uid}</code> document is fetched via <code>onSnapshot</code></li>
+<li>If no user document exists, one is auto-created with <code>role: &#39;TOURIST&#39;</code></li>
+<li>A digital tourist pass is generated via <code>passService.ts</code></li>
+<li>The <code>AuthContext</code> exposes <code>{ user, profile, loading, login, logout }</code></li>
+</ol>
+<h3>Login Strategies (in <code>App.tsx:login()</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Primary</th>
+<th>Fallback</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Web</td>
+<td>Google sign-in popup</td>
+<td>Google sign-in redirect</td>
+</tr>
+<tr>
+<td>Capacitor native</td>
+<td>Anonymous sign-in</td>
+<td>Google sign-in redirect</td>
+</tr>
+</tbody></table>
+<h3>Role Model</h3>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Description</th>
+<th>Dashboard Access</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>TOURIST</code></td>
+<td>End-user exploring/booking</td>
+<td>None (public views only)</td>
+</tr>
+<tr>
+<td><code>BUSINESS</code></td>
+<td>Service provider</td>
+<td><code>/business/*</code></td>
+</tr>
+<tr>
+<td><code>LGU</code></td>
+<td>Local government operator</td>
+<td><code>/government/*</code>, <code>/checkin</code></td>
+</tr>
+</tbody></table>
+<p>Roles are stored in the Firestore <code>users/{uid}</code> document and can be set/updated via the claim business flow or LGU assignment.</p>
+<h3>Firestore User Schema</h3>
+<pre><code class="language-typescript">interface UserProfile {
+  uid: string;
+  name: string;
+  email: string;
+  photoURL?: string;
+  role: &#39;TOURIST&#39; | &#39;BUSINESS&#39; | &#39;LGU&#39;;
+  businessId?: string;  // If role === BUSINESS
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+</code></pre>
+<hr>
+<h2>5. Core Features</h2>
+<h3>5.1 Landing &amp; Discovery (<code>LandingView.tsx</code>)</h3>
+<ul>
+<li>Hero section with Camiguin imagery</li>
+<li>Search widget (<code>SearchWidget.tsx</code>) with tabs: Stays, Cars, Packages, Things to Do</li>
+<li>Featured experience cards</li>
+<li>Process flow explanation</li>
+<li>Call-to-action buttons for key flows</li>
+</ul>
+<h3>5.2 Booking System</h3>
+<p>Three booking modules share a common pattern:</p>
+<ul>
+<li><strong>Stay</strong> (<code>StayView.tsx</code>): Browse accommodations with photo gallery, calendar date picker, guest count selector, promo packages</li>
+<li><strong>Transport</strong> (<code>TransportView.tsx</code>): Ferry schedules and land transport with date/guest picker and availability check</li>
+<li><strong>Rentals</strong> (<code>RentalsView.tsx</code>): Vehicle rentals by merchant (motorcycles, cars, bikes) with booking form</li>
+</ul>
+<p>All bookings write to Firestore <code>bookings/{docId}</code> with fields: <code>touristUid</code>, <code>serviceName</code>, <code>serviceType</code>, <code>date</code>, <code>amount</code>, <code>status</code>, <code>paymentStatus</code>.</p>
+<h3>5.3 AI Trip Planner (<code>TripPlannerView.tsx</code>)</h3>
+<p>A conversational chatbot-style wizard that collects 7 preferences and generates a personalized itinerary via Google Gemini.</p>
+<p><strong>Preference Flow:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Question</th>
+<th>Input Type</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Duration</td>
+<td>&quot;How many days?&quot;</td>
+<td>Horizontal dot slider (1–5)</td>
+</tr>
+<tr>
+<td>Group</td>
+<td>&quot;Who&#39;s joining?&quot;</td>
+<td>Avatar cluster cards (Solo/Couple/Family/Friends)</td>
+</tr>
+<tr>
+<td>Transport</td>
+<td>&quot;How to get around?&quot;</td>
+<td>Tiered comparison with rating bars</td>
+</tr>
+<tr>
+<td>Pace</td>
+<td>&quot;What pace?&quot;</td>
+<td>3-position slider (Relaxed/Moderate/Packed)</td>
+</tr>
+<tr>
+<td>Interests</td>
+<td>&quot;What interests?&quot;</td>
+<td>Tag cloud badge picker (multi-select)</td>
+</tr>
+<tr>
+<td>Style</td>
+<td>&quot;What experience?&quot;</td>
+<td>Full-bleed vibe cards with gradients</td>
+</tr>
+<tr>
+<td>Budget</td>
+<td>&quot;What budget?&quot;</td>
+<td>Material-tier cards (Bronze/Silver/Gold)</td>
+</tr>
+</tbody></table>
+<p><strong>Generation:</strong></p>
+<ul>
+<li>Prompt sent to <strong>Gemini 2.0 Flash</strong> via <code>@google/genai</code> SDK</li>
+<li>Structured JSON enforced via <code>responseJsonSchema</code> (Type.ARRAY of Type.OBJECT)</li>
+<li>Activities are sorted chronologically client-side after response</li>
+<li>Falls back to mock data if API key is not configured</li>
+</ul>
+<p><strong>Itinerary Display:</strong></p>
+<ul>
+<li>Trip summary bar (total activities, total cost, categories)</li>
+<li>Day-by-day timeline with compact activity cards</li>
+<li>Category color badges (Heritage, Nature, Relax, Adventure)</li>
+<li>&quot;Why this works&quot; insight per activity</li>
+<li>Save to Pass / Transport action buttons per activity</li>
+</ul>
+<h3>5.4 Digital Tourist Pass (<code>TouristPassView.tsx</code>)</h3>
+<ul>
+<li>Generates a unique pass ID: <code>CTRM-P-YYYY-XXXX</code></li>
+<li>Displays QR code with pass details</li>
+<li>Shows pass status (active/expired), validity dates, and linked bookings</li>
+<li>Used by LGU for check-in/check-out via QR scanner</li>
+</ul>
+<h3>5.5 Interactive Map (<code>LocationsView.tsx</code>, <code>IslandMap.tsx</code>)</h3>
+<ul>
+<li>Full-screen Leaflet map with:<ul>
+<li>Destination markers with clustering (<code>react-leaflet-cluster</code>)</li>
+<li>Business location markers</li>
+<li>Shop popups with booking links</li>
+<li>Custom styled popups (glassmorphism)</li>
+</ul>
+</li>
+</ul>
+<h3>5.6 Business Dashboard (<code>BusinessDashboard.tsx</code>)</h3>
+<p>Sub-modules:</p>
+<ul>
+<li><strong>Analytics</strong>: Revenue charts, booking trends, visitor stats (Recharts)</li>
+<li><strong>Bookings</strong>: Manage incoming bookings, confirm/cancel</li>
+<li><strong>Inventory</strong>: Room/amenity/vehicle management</li>
+<li><strong>Tours</strong>: Tour package management</li>
+<li><strong>Reviews</strong>: Moderate and reply to customer reviews</li>
+<li><strong>Settings</strong>: Business profile configuration</li>
+</ul>
+<h3>5.7 LGU Dashboard (<code>GovernmentDashboard.tsx</code>)</h3>
+<p>Sub-modules:</p>
+<ul>
+<li><strong>Registry</strong>: Tourist booking registry with real-time view</li>
+<li><strong>Settlement</strong>: Business settlement processing and tracking</li>
+<li><strong>Payments</strong>: Payment records, ticket code management</li>
+<li><strong>Safety</strong>: Incident monitoring, health/safety reports (via SOS button)</li>
+<li><strong>Port</strong>: Vessel schedule monitoring</li>
+<li><strong>Reports</strong>: Visitor trend analytics and export</li>
+</ul>
+<h3>5.8 SOS / Safety (<code>SOSButton.tsx</code>, <code>incidentService.ts</code>)</h3>
+<ul>
+<li>Floating SOS button on tourist-facing pages</li>
+<li>Reports GPS-tagged incidents to Firestore <code>incidents</code> collection</li>
+<li>LGU Safety module monitors incoming incidents in real-time</li>
+</ul>
+<h3>5.9 Mobile App View (<code>MobileAppView.tsx</code>)</h3>
+<ul>
+<li>Full-screen immersive mobile shell with tabs: Explore, Map, Services, Pass, Profile</li>
+<li>Phone-frame preview when viewed on desktop (440×928px mockup)</li>
+<li>Auto-redirect for mobile screens &lt; 768px</li>
+<li>Bottom tab navigation with animated transitions</li>
+</ul>
+<hr>
+<h2>6. Data Layer</h2>
+<h3>6.1 Firestore Collections</h3>
+<table>
+<thead>
+<tr>
+<th>Collection</th>
+<th>Document Fields</th>
+<th>Used By</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>users/{uid}</code></td>
+<td>name, email, photoURL, role, businessId, createdAt, updatedAt</td>
+<td>Auth, profile</td>
+</tr>
+<tr>
+<td><code>bookings/{docId}</code></td>
+<td>touristUid, touristName, serviceName, serviceType, location, date, amount, status, paymentStatus, createdAt</td>
+<td>Bookings, dashboards</td>
+</tr>
+<tr>
+<td><code>businesses/{docId}</code></td>
+<td>name, ownerUid, category, location, contactInfo, status</td>
+<td>Business dashboard</td>
+</tr>
+<tr>
+<td><code>passes/{passId}</code></td>
+<td>passId (CTRM-P-XXXX), touristUid, status, createdAt, validUntil</td>
+<td>Tourist pass</td>
+</tr>
+<tr>
+<td><code>reviews/{docId}</code></td>
+<td>bookingId, touristUid, businessId, rating, comment, reply, createdAt</td>
+<td>Reviews module</td>
+</tr>
+<tr>
+<td><code>incidents/{docId}</code></td>
+<td>reportedBy, type, description, location (geo), status, createdAt</td>
+<td>SOS, LGU safety</td>
+</tr>
+<tr>
+<td><code>audit_logs/{docId}</code></td>
+<td>action, performedBy, targetType, targetId, details, timestamp</td>
+<td>Audit trail</td>
+</tr>
+</tbody></table>
+<h3>6.2 Static Data Modules (<code>src/data/</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>accommodations.ts</code></td>
+<td>6+ hotel/resort listings with pricing, amenities, promo packages</td>
+</tr>
+<tr>
+<td><code>transport.ts</code></td>
+<td>Ferry schedules (routes, times, prices), land transport options</td>
+</tr>
+<tr>
+<td><code>rentals.ts</code></td>
+<td>Vehicle rental merchants and vehicle inventory</td>
+</tr>
+<tr>
+<td><code>locations.ts</code></td>
+<td>Island points of interest with coordinates, descriptions, categories</td>
+</tr>
+<tr>
+<td><code>businesses.ts</code></td>
+<td>Business directory for the claim/registration flow</td>
+</tr>
+<tr>
+<td><code>processFlow.ts</code></td>
+<td>Onboarding steps for booking and trip planner flows</td>
+</tr>
+</tbody></table>
+<h3>6.3 Service Layer (<code>src/lib/</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Key Functions</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>passService.ts</code></td>
+<td><code>createPass()</code>, <code>subscribeToPass()</code> — generates CTRM-P IDs, listens for real-time updates</td>
+</tr>
+<tr>
+<td><code>checkinService.ts</code></td>
+<td><code>verifyPass()</code>, <code>getActiveBookings()</code>, <code>checkin()</code>, <code>depart()</code></td>
+</tr>
+<tr>
+<td><code>capacityService.ts</code></td>
+<td>Booking capacity validation against limits</td>
+</tr>
+<tr>
+<td><code>reviewService.ts</code></td>
+<td><code>submitReview()</code>, <code>moderateReview()</code>, <code>replyToReview()</code>, <code>subscribeToReviews()</code></td>
+</tr>
+<tr>
+<td><code>incidentService.ts</code></td>
+<td><code>reportIncident()</code> with GPS coordinates</td>
+</tr>
+<tr>
+<td><code>auditService.ts</code></td>
+<td><code>writeAuditLog()</code> — writes to Firestore <code>audit_logs</code></td>
+</tr>
+<tr>
+<td><code>capacitorAuth.ts</code></td>
+<td><code>isNativePlatform()</code> detection via Capacitor</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>7. AI Integration</h2>
+<h3>7.1 Model</h3>
+<ul>
+<li><strong>Provider</strong>: Google Generative AI (<code>@google/genai</code>)</li>
+<li><strong>Model</strong>: <code>gemini-2.0-flash</code></li>
+<li><strong>API Key</strong>: Injected via <code>VITE_GEMINI_API_KEY</code> environment variable</li>
+</ul>
+<h3>7.2 Prompt Structure</h3>
+<pre><code>System Instruction (concierge persona + rules):
+  - Strictly Catarman locations only
+  - Include mandatory spots (Sunken Cemetery, Gui-ob Church, Tuasan Falls, etc.)
+  - Chronological order enforced
+  - Realistic breaks (lunch, travel time)
+  - Pace-appropriate schedules
+
+User Prompt (preferences injected):
+  - Duration, group type, transport, pace, interests, style, budget
+  - Structured JSON output requirements
+</code></pre>
+<h3>7.3 Structured Output</h3>
+<p>The Gemini response is constrained via <code>responseJsonSchema</code>:</p>
+<pre><code class="language-typescript">{
+  type: Type.ARRAY,
+  items: {
+    type: Type.OBJECT,
+    properties: {
+      day: Type.NUMBER,
+      activities: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            timeSlot: Type.STRING,
+            activity: Type.STRING,
+            location: Type.STRING,
+            description: Type.STRING,
+            whyGo: Type.STRING,
+            price: Type.NUMBER,
+            category: Type.STRING
+          },
+          required: [&quot;timeSlot&quot;, &quot;activity&quot;, &quot;location&quot;, &quot;description&quot;, &quot;whyGo&quot;, &quot;price&quot;]
+        }
+      }
+    },
+    required: [&quot;day&quot;, &quot;activities&quot;]
+  }
+}
+</code></pre>
+<h3>7.4 Client-Side Sorting</h3>
+<p>After receiving the AI response, activities within each day are sorted chronologically by <code>timeSlot</code> to ensure correct display order regardless of model output.</p>
+<h3>7.5 Fallback</h3>
+<p>If the API key is not configured or the API call fails, a mock itinerary is generated from a predefined set of 12 Catarman activities, shuffled and partitioned across days.</p>
+<hr>
+<h2>8. Mobile &amp; PWA</h2>
+<h3>8.1 Capacitor (Android)</h3>
+<ul>
+<li><strong>Capacitor version</strong>: 8.x</li>
+<li><strong>Android Gradle Plugin</strong>: 8.13.0</li>
+<li><strong>Min SDK</strong>: 24 (Android 7.0)</li>
+<li><strong>Target SDK</strong>: 36 (Android 16)</li>
+<li><strong>Build</strong>: <code>./gradlew assembleDebug</code> produces <code>android/app/build/outputs/apk/debug/app-debug.apk</code></li>
+</ul>
+<h3>8.2 PWA</h3>
+<ul>
+<li><strong>Service Worker</strong>: Generated by <code>vite-plugin-pwa</code> using Workbox <code>generateSW</code> mode</li>
+<li><strong>Precached assets</strong>: 54 entries (~14 MB)</li>
+<li><strong>Manifest</strong>: App name &quot;Catarman eSuroy&quot;, icon set, theme colors</li>
+<li><strong>Offline support</strong>: Via service worker caching strategy</li>
+</ul>
+<h3>8.3 Build Pipeline</h3>
+<pre><code>npm run build       → dist/     (Vite + Tailwind + PWA)
+npx cap sync android → android/ (copy web assets + update plugins)
+./gradlew assembleDebug → .apk  (APK output)
+</code></pre>
+<hr>
+<h2>9. Configuration &amp; Environment</h2>
+<h3>9.1 Environment Variables</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Purpose</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>VITE_GEMINI_API_KEY</code></td>
+<td>Google Gemini API key for AI planner</td>
+<td>No (mock fallback)</td>
+</tr>
+<tr>
+<td><code>VITE_FIREBASE_API_KEY</code></td>
+<td>Firebase API key</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>VITE_FIREBASE_AUTH_DOMAIN</code></td>
+<td>Firebase auth domain</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>VITE_FIREBASE_PROJECT_ID</code></td>
+<td>Firebase project ID</td>
+<td>Yes</td>
+</tr>
+</tbody></table>
+<h3>9.2 Firebase Configuration (<code>firebase-applet-config.json</code>)</h3>
+<pre><code class="language-json">{
+  &quot;apiKey&quot;: &quot;...&quot;,
+  &quot;authDomain&quot;: &quot;gen-lang-client-0848563824.firebaseapp.com&quot;,
+  &quot;projectId&quot;: &quot;gen-lang-client-0848563824&quot;,
+  &quot;storageBucket&quot;: &quot;gen-lang-client-0848563824.firebasestorage.app&quot;,
+  &quot;messagingSenderId&quot;: &quot;...&quot;,
+  &quot;appId&quot;: &quot;...&quot;
+}
+</code></pre>
+<h3>9.3 Capacitor Configuration (<code>capacitor.config.ts</code>)</h3>
+<pre><code class="language-typescript">const config: CapacitorConfig = {
+  appId: &#39;com.islandos.app&#39;,
+  appName: &#39;Island OS&#39;,
+  webDir: &#39;dist&#39;
+};
+</code></pre>
+<h3>9.4 Vite Configuration (<code>vite.config.ts</code>)</h3>
+<ul>
+<li>Plugins: <code>@vitejs/plugin-react</code>, <code>@tailwindcss/vite</code>, <code>vite-plugin-pwa</code></li>
+<li>Path alias: <code>@</code> → <code>src/</code></li>
+<li>Gemini API key injected via <code>process.env</code> (loaded from dotenv)</li>
+<li>Conditional HMR for headless environments</li>
+</ul>
+<hr>
+<h2>10. Development &amp; Deployment</h2>
+<h3>10.1 Prerequisites</h3>
+<ul>
+<li><strong>Node.js</strong> ≥ 18.x</li>
+<li><strong>npm</strong> ≥ 9.x</li>
+<li><strong>Java JDK</strong> ≥ 17 (for Android builds)</li>
+<li><strong>Android SDK</strong> (for APK builds)</li>
+<li><strong>Firebase project</strong> with Auth and Firestore enabled</li>
+</ul>
+<h3>10.2 Local Setup</h3>
+<pre><code class="language-bash"># Clone and install
+git clone https://github.com/kurtcode19/island_os.git
+cd island_os
+npm install
+
+# Set up environment (create .env file)
+cp .env.example .env
+# Edit .env with your Firebase credentials and Gemini API key
+
+# Run development server
+npm run dev
+# → http://localhost:3000
+
+# Type check
+npm run lint
+
+# Production build
+npm run build
+</code></pre>
+<h3>10.3 Android Build</h3>
+<pre><code class="language-bash"># Ensure Android SDK is installed and ANDROID_HOME is set
+# Install required SDK components:
+sdkmanager &quot;platform-tools&quot; &quot;build-tools;36.0.0&quot; &quot;platforms;android-36&quot;
+
+# Build web app and sync
+npm run cap:sync
+
+# Build APK (requires JDK 17+)
+cd android
+export ANDROID_HOME=/path/to/android-sdk
+./gradlew assembleDebug
+
+# APK location: android/app/build/outputs/apk/debug/app-debug.apk
+</code></pre>
+<h3>10.4 Firebase Seed Script</h3>
+<pre><code class="language-bash">npx tsx scripts/seed-firestore.ts
+</code></pre>
+<p>Seeds static data (accommodations, transport, rentals, locations, businesses) to Firestore collections.</p>
+<h3>10.5 Project Scripts</h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>npm run dev</code></td>
+<td>Start Vite dev server (port 3000)</td>
+</tr>
+<tr>
+<td><code>npm run build</code></td>
+<td>Production build to <code>dist/</code></td>
+</tr>
+<tr>
+<td><code>npm run lint</code></td>
+<td>TypeScript type check</td>
+</tr>
+<tr>
+<td><code>npm run preview</code></td>
+<td>Preview production build</td>
+</tr>
+<tr>
+<td><code>npm run clean</code></td>
+<td>Remove <code>dist/</code></td>
+</tr>
+<tr>
+<td><code>npm run cap:sync</code></td>
+<td>Sync web build to Capacitor</td>
+</tr>
+<tr>
+<td><code>npm run cap:open android</code></td>
+<td>Open Android project in Android Studio</td>
+</tr>
+<tr>
+<td><code>npm run cap:build</code></td>
+<td>Build web + sync to Capacitor</td>
+</tr>
+</tbody></table>
+<h3>10.6 Git Workflow</h3>
+<pre><code>main        → Production releases
+development → Active development branch
+feature/*   → Feature branches (merge to development via PR)
+</code></pre>
+<p>All current changes should be committed to the <code>development</code> branch.</p>
+<hr>
+<p><em>End of document</em></p>
+</body></html>
