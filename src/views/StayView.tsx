@@ -166,7 +166,7 @@ export default function StayView() {
   return (
     <div className="bg-[#F0FDF4] min-h-screen pb-40 selection:bg-island-emerald/20">
       {/* Header */}
-      <section className="relative h-[45vh] flex items-center overflow-hidden">
+      <section className="relative h-[calc(45vh+5rem)] flex items-center overflow-hidden">
         <motion.img 
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
@@ -186,7 +186,7 @@ export default function StayView() {
           >
             <span className="text-island-emerald font-bold tracking-wider text-xs mb-4 block">Verified Accommodations</span>
             <h1 className="text-6xl md:text-8xl font-black text-white mb-6 tracking-tighter leading-none drop-shadow-2xl">
-              Island <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-white">Habitats.</span>
+              Island <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-white">Stays.</span>
             </h1>
             <p className="text-xl text-white/80 font-medium max-w-2xl drop-shadow-lg leading-relaxed">
               From luxury beachfront villas to historic ancestral stays, discover the premier resting places in Catarman.
@@ -213,7 +213,7 @@ export default function StayView() {
             />
           </div>
           <button className="btn-secondary px-8 py-5 rounded-2xl">
-            <UilFilter size="20" /> Filter Nodes
+            <UilFilter size="20" /> Filter
           </button>
           <button className="btn-volcanic px-12 py-5 rounded-2xl">
             Execute Search
@@ -233,15 +233,15 @@ export default function StayView() {
             <span className="text-island-coral font-bold tracking-wider text-xs mb-4 block">Availability Grid</span>
             <h2 className="text-5xl md:text-6xl font-black text-island-volcanic tracking-tighter">Verified Stays.</h2>
           </div>
-          <div className="flex gap-3 bg-stone-100 p-2 rounded-[2rem] border border-slate-200 shadow-inner overflow-x-auto">
+          <div className="inline-flex items-center gap-1 p-1.5 bg-white border border-[#e3e8ee] rounded-full shadow-[0_1px_1px_rgba(14,17,22,0.04),0_20px_40px_-24px_rgba(14,17,22,0.18)] overflow-x-auto">
             {types.map((tab) => (
               <button 
                 key={tab} 
                 onClick={() => setSelectedTab(tab)}
-                className={`px-8 py-3 rounded-full text-xs font-bold tracking-wider whitespace-nowrap transition-all ${
+                className={`h-9 px-[18px] rounded-full text-sm font-medium text-[#5b6472] whitespace-nowrap transition-[background-color,color,box-shadow] duration-220 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[#0e1116] focus-visible:shadow-[0_0_0_3px_rgba(46,125,239,0.32)] ${
                   selectedTab === tab 
-                    ? 'sunset-gradient text-white shadow-xl shadow-island-sunset/20' 
-                    : 'text-slate-400 hover:text-slate-600'
+                    ? '!bg-[#0e1116] !text-white shadow-[0_1px_1px_rgba(14,17,22,0.06),0_8px_18px_-10px_rgba(14,17,22,0.5)]' 
+                    : ''
                 }`}
               >
                 {tab}

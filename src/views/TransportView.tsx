@@ -88,7 +88,7 @@ export default function TransportView() {
   return (
     <div className="bg-[#F0FDF4] min-h-screen pb-40 selection:bg-island-emerald/20">
       {/* Header */}
-      <section className="relative h-[45vh] flex items-center overflow-hidden">
+      <section className="relative h-[calc(45vh+5rem)] flex items-center overflow-hidden">
         <motion.img 
           initial={{ scale: 1.1 }}
           animate={{ scale: 1 }}
@@ -199,7 +199,7 @@ export default function TransportView() {
                 <span className="text-island-emerald font-bold tracking-wider text-xs mb-4 md:mb-6 block">Live Tracking</span>
                 <h3 className="text-3xl md:text-5xl font-black mb-4 md:mb-6 tracking-tighter">Live <span className="text-island-emerald">Ferry Tracker.</span></h3>
                 <p className="text-sm md:text-xl text-slate-300 font-medium mb-6 md:mb-10 max-w-md leading-relaxed">
-                  Advanced GPS tracking for all municipal ferry nodes in the Catarman channel.
+                  Advanced GPS tracking for all municipal ferry terminals in the Catarman channel.
                 </p>
                 <div className="flex flex-wrap items-center gap-6 md:gap-10">
                   <button className="btn-primary px-8 md:px-10 py-4 md:py-6 rounded-2xl text-xs md:text-sm">

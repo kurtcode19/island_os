@@ -306,11 +306,11 @@ export default function MobileAppView() {
                 <SearchBar onSearch={setSearchQuery} onFilter={() => {}} />
 
                 {/* Section Filter Toggle */}
-                <div className="flex gap-2 -mx-1 overflow-x-auto no-scrollbar">
+                <div className="inline-flex items-center gap-1 p-1.5 bg-white border border-[#e3e8ee] rounded-full shadow-[0_1px_1px_rgba(14,17,22,0.04),0_20px_40px_-24px_rgba(14,17,22,0.18)] overflow-x-auto no-scrollbar">
                   {['All', 'Spots', 'Stays', 'Vehicles'].map(s => (
                     <button key={s} onClick={() => setSectionFilter(s)}
-                      className={`px-5 py-2.5 rounded-full text-xs font-black tracking-wider whitespace-nowrap transition-all ${
-                        sectionFilter === s ? 'bg-tropic-green text-white shadow-lg' : 'bg-tropic-sand/30 text-tropic-green/60 hover:text-tropic-green'
+                      className={`h-9 px-[18px] rounded-full text-sm font-medium text-[#5b6472] whitespace-nowrap transition-[background-color,color,box-shadow] duration-220 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[#0e1116] focus-visible:shadow-[0_0_0_3px_rgba(46,125,239,0.32)] ${
+                        sectionFilter === s ? '!bg-[#0e1116] !text-white shadow-[0_1px_1px_rgba(14,17,22,0.06),0_8px_18px_-10px_rgba(14,17,22,0.5)]' : ''
                       }`}>
                       {s}
                     </button>

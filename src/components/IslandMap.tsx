@@ -94,7 +94,7 @@ const shopLocations: MapShop[] = [
     category: "Market",
     rating: 4.5,
     image: "/images/DigiPay-1.png",
-    description: "Fresh produce and local street food node.",
+    description: "Fresh produce and local street food.",
     coords: [9.1960, 124.6700],
     availTime: "6:00 AM - 7:00 PM daily",
     contact: "0917-123-4567",
@@ -206,7 +206,7 @@ const IslandMap: React.FC = () => {
                     onClick={() => setSelectedLocation(loc)}
                     className="text-island-emerald text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 mt-2"
                   >
-                    View Node <ExternalLink size="10" />
+                    View Details <ExternalLink size="10" />
                   </button>
                 </div>
               </Popup>
@@ -302,7 +302,7 @@ const IslandMap: React.FC = () => {
                   </div>
                   <div className="flex-1 flex flex-col justify-between py-2">
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-island-emerald mb-3 block">Heritage Node</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-island-emerald mb-3 block">Heritage Site</span>
                       <h2 className="text-4xl font-black text-island-volcanic tracking-tighter mb-4 leading-none">{selectedLocation.name}</h2>
                       <p className="text-island-green/60 text-base font-medium leading-relaxed mb-4">
                         {selectedLocation.description}
@@ -386,7 +386,7 @@ const IslandMap: React.FC = () => {
             <div className="w-10 h-10 forest-gradient rounded-xl flex items-center justify-center text-white shadow-lg">
               <Sparkles size="20" />
             </div>
-            <h1 className="text-3xl font-black text-island-volcanic tracking-tighter">Catarman Nodes.</h1>
+            <h1 className="text-3xl font-black text-island-volcanic tracking-tighter">Catarman Places.</h1>
           </div>
           <p className="text-island-green/50 font-semibold text-sm">Explore the "Emerald Island" pilot test.</p>
         </header>
@@ -435,7 +435,7 @@ const IslandMap: React.FC = () => {
                     <p className={`text-[10px] font-black uppercase tracking-widest ${
                       selectedLocation?.id === loc.id ? 'text-white/70' : 'text-slate-400'
                     }`}>
-                      {selectedLocation?.id === loc.id ? 'Node Active' : 'Click to manifest'}
+                      {selectedLocation?.id === loc.id ? 'Selected' : 'Select'}
                     </p>
                   </div>
                 </div>
@@ -487,7 +487,7 @@ const IslandMap: React.FC = () => {
           </div>
           <h4 className="text-xl font-black mb-3 tracking-tighter leading-none">Operational Guide.</h4>
           <p className="text-emerald-100/60 font-medium text-sm mb-8 leading-relaxed italic">
-            "Navigate the Catarman nodes via the local tricycle network for full immersion."
+            "Get around Catarman by tricycle."
           </p>
           <button className="w-full py-5 bg-white/10 backdrop-blur-xl hover:bg-white/20 border-2 border-white/20 rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all">
             Download Manifest

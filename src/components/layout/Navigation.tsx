@@ -219,7 +219,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
             {user && (
               <button 
                 onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
-                className="p-2 text-slate-600 bg-slate-50 rounded-lg"
+                className="p-2 rounded-lg text-slate-600 bg-slate-50"
               >
                 <UilShieldCheck size="20" />
               </button>

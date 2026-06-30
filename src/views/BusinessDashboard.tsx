@@ -277,7 +277,7 @@ export default function BusinessDashboard() {
           {[
             { user: 'Juan Dela Cruz', action: `Confirmed booking for ${businessName}`, time: '2 mins ago', icon: Calendar },
             { user: 'Sarah Wilson', action: 'Added a 5-star review', time: '1 hour ago', icon: Star },
-            { user: 'System', action: 'Dashboard node synchronized', time: '3 hours ago', icon: Package },
+            { user: 'System', action: 'Dashboard synced', time: '3 hours ago', icon: Package },
           ].map((item, idx) => (
             <div key={idx} className="flex items-center gap-6 p-6 rounded-3xl hover:bg-stone-50 transition-all border border-transparent hover:border-stone-100">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-island-emerald border border-emerald-100">
