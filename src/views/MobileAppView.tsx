@@ -1027,7 +1027,7 @@ export default function MobileAppView() {
               animate={{ scale: 1, opacity: 1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => navigate('/planner')}
-              className="absolute bottom-28 right-6 bg-gradient-to-r from-[var(--accent-start)] to-[var(--accent-end)] text-white px-6 py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-2 group border border-white/20"
+              className="absolute bottom-28 right-6 bg-black text-white px-6 py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-2 group"
             >
               <img src="/images/mascot.png" alt="" className="w-7 h-7 animate-pulse object-contain" />
               <span>Plan with AI</span>

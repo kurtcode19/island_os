@@ -26,7 +26,7 @@ export function MobileBottomNav() {
         animate={{ scale: 1, opacity: 1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => navigate('/planner')}
-        className="fixed bottom-28 right-6 z-50 bg-tropic-green text-white px-6 py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-2 group"
+        className="fixed bottom-28 right-6 z-50 bg-black text-white px-6 py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-2 group"
       >
         <UilStar size="18" className="animate-pulse" />
         <span>Plan with AI</span>
@@ -34,7 +34,7 @@ export function MobileBottomNav() {
       )}
 
       <div className="fixed bottom-8 left-6 right-6 z-50 md:hidden">
-        <nav className="bg-tropic-green rounded-[2.5rem] p-2 flex items-center justify-around shadow-[var(--shadow-lg)]">
+        <nav className="bg-black rounded-[2.5rem] p-2 flex items-center justify-around shadow-[var(--shadow-lg)]">
           {navItems.map((item) => {
             const itemPath = item.path.split('?')[0];
             const itemTab = new URLSearchParams(item.path.split('?')[1]).get('tab');

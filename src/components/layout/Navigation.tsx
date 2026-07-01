@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { UilHome, UilBedDouble, UilNavigator, UilMapPin, UilStar, UilCalendarAlt, UilBuilding, UilChartBar, UilSignOutAlt, UilSignInAlt, UilShieldCheck, UilBars, UilTimes, UilDashboard, UilCalendar, UilMap, UilTicket } from '@/icons';
@@ -14,6 +14,28 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const delta = currentScrollY - lastScrollY.current;
+
+      if (currentScrollY <= 10) {
+        setVisible(true);
+      } else if (delta > 5) {
+        setVisible(false);
+      } else if (delta < -5) {
+        setVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const touristItems = [
     { path: '/', label: 'Home', icon: UilHome },
@@ -70,7 +92,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         location.pathname === '/' ? 'bg-transparent' : 'bg-white border-b border-slate-100'
-      }`}>
+      } ${visible ? 'translate-y-0' : '-translate-y-full'}`}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between h-20 items-center">
           
@@ -80,7 +102,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
               <div className="w-10 h-10 bg-island-volcanic/5 rounded-xl flex items-center justify-center border border-island-volcanic/10 transition-transform group-hover:scale-110">
                 <img src="/images/logo.png" alt="Catarman eSuroy Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
               </div>
-              <span className={`text-xl font-bold tracking-tighter whitespace-nowrap ${location.pathname === '/' ? 'text-white' : 'text-island-volcanic'}`}>
+              <span className={`text-xl font-bold tracking-tighter whitespace-nowrap ${location.pathname === '/' ? 'text-white' : 'text-slate-800'}`}>
                 Catarman <span className="text-island-emerald">eSuroy</span>
               </span>
             </div>
@@ -99,7 +121,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                     key={item.path}
                     to={item.path}
                     className={`relative px-5 py-2.5 rounded-full text-sm font-semibold tracking-tight transition-all group ${
-                      isActive ? 'text-white' : location.pathname === '/' ? 'text-white/70 hover:text-white' : 'text-slate-500 hover:text-island-green'
+                      isActive ? 'text-white' : location.pathname === '/' ? 'text-white/70 hover:text-white' : 'text-slate-600 hover:text-island-green'
                     }`}
                   >
                     {isActive && (
@@ -125,7 +147,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                   <button 
                     onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
                     className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold tracking-tight transition-all border ${
-                      location.pathname === '/' ? 'bg-white/10 text-white border-white/20 hover:bg-white/20' : 'bg-slate-50 text-slate-600 border-slate-100 hover:bg-slate-100'
+                      location.pathname === '/' ? 'bg-white/10 text-white border-white/20 hover:bg-white/20' : 'bg-slate-50 text-slate-700 border-slate-100 hover:bg-slate-100'
                     }`}
                   >
                     {currentRole}
@@ -148,7 +170,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                             className={`w-full text-left px-5 py-3.5 rounded-2xl text-xs font-semibold tracking-tight transition-all ${
                               currentRole === role 
                                 ? location.pathname === '/' ? 'bg-white/20 text-white' : 'bg-island-emerald/10 text-island-emerald'
-                                : location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-slate-500 hover:bg-slate-50'
+                                : location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-50'
                             }`}
                           >
                             {role}
@@ -184,14 +206,14 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                         }`}
                       >
                         <div className={`mb-6 pb-6 text-center ${location.pathname === '/' ? 'border-b border-white/10' : 'border-b border-slate-50'}`}>
-                          <p className={`text-sm font-bold mb-1 ${location.pathname === '/' ? 'text-white' : 'text-island-green'}`}>{user.displayName}</p>
+                          <p className={`text-sm font-bold mb-1 ${location.pathname === '/' ? 'text-white' : 'text-slate-800'}`}>{user.displayName}</p>
                           <p className={`text-[10px] font-medium uppercase tracking-widest ${location.pathname === '/' ? 'text-white/50' : 'text-slate-400'}`}>{user.email}</p>
                         </div>
                         <Link
                           to="/claim-business"
                           onClick={() => setIsUserMenuOpen(false)}
                           className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-semibold tracking-tight transition-all mb-2 ${
-                            location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-island-emerald hover:bg-island-emerald/5'
+                            location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-slate-700 hover:bg-island-emerald/5'
                           }`}
                         >
                           <UilBuilding size="18" />
@@ -200,7 +222,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                         <button
                           onClick={() => { logout(); setIsUserMenuOpen(false); }}
                           className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-semibold tracking-tight transition-all ${
-                            location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-island-coral hover:bg-island-coral/5'
+                            location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-slate-700 hover:bg-island-coral/5'
                           }`}
                         >
                           <UilSignOutAlt size="18" />
@@ -215,7 +237,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                 <button 
                   onClick={login}
                   className={`text-sm font-semibold tracking-tight transition-colors ${
-                    location.pathname === '/' ? 'text-white/70 hover:text-white' : 'text-slate-500 hover:text-island-volcanic'
+                    location.pathname === '/' ? 'text-white/70 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                 {location.pathname === '/' ? 'Register Now' : 'Sign In'}
@@ -224,10 +246,10 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
 
             <button 
               onClick={() => navigate('/planner')}
-              className={`px-8 py-3 rounded-full text-xs font-bold tracking-wider transition-all hover:scale-105 active:scale-95 ${
+              className={`px-8 py-3 rounded-full text-xs font-bold tracking-wider transition-all hover:scale-105 active:scale-95 text-white bg-black shadow-lg ${
                 location.pathname === '/' 
-                  ? 'border border-white/30 text-white hover:bg-white/10' 
-                  : 'bg-island-volcanic text-white shadow-xl shadow-island-volcanic/20'
+                  ? 'hover:bg-black/80' 
+                  : ''
               }`}
             >
               AI Planner
@@ -276,7 +298,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                     className={`flex items-center gap-4 p-4 rounded-2xl text-sm font-semibold tracking-tight ${
                       isActive 
                         ? location.pathname === '/' ? 'bg-white/20 text-white' : 'bg-island-emerald/10 text-island-emerald'
-                        : location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-slate-500 hover:bg-slate-50'
+                        : location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-50'
                     }`}
                   >
                     <item.icon size={22} />
@@ -291,7 +313,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                   className={`w-full flex items-center justify-center gap-4 p-4 rounded-2xl text-sm font-bold tracking-wider ${
                     location.pathname === '/'
                       ? 'border border-white/30 text-white hover:bg-white/10'
-                      : 'bg-island-volcanic text-white shadow-lg'
+                      : 'bg-white border border-slate-200 shadow-lg text-slate-800'
                   }`}
                 >
                   <UilSignInAlt size="22" />
@@ -327,7 +349,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
             }`}
           >
             <div className="px-6 pt-4 pb-10 space-y-3">
-              <p className={`text-xs font-semibold tracking-tight px-4 mb-2 ${location.pathname === '/' ? 'text-white/50' : 'text-slate-400'}`}>Switch Role</p>
+              <p className={`text-xs font-semibold tracking-tight px-4 mb-2 ${location.pathname === '/' ? 'text-white/50' : 'text-slate-500'}`}>Switch Role</p>
               {(['TOURIST', 'BUSINESS', 'LGU'] as UserRole[]).map((role) => (
                 <button
                   key={role}
@@ -335,7 +357,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                   className={`w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-semibold tracking-tight ${
                     currentRole === role 
                       ? location.pathname === '/' ? 'bg-white/20 text-white' : 'bg-island-emerald/10 text-island-emerald'
-                      : location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-slate-500 hover:bg-slate-50'
+                      : location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                 <UilShieldCheck size="20" />
