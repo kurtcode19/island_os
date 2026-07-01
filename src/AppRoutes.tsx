@@ -56,7 +56,7 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
             )}
             {/* SOS Button on tourist-facing pages */}
             {role === 'TOURIST' && !location.pathname.startsWith('/business') && !location.pathname.startsWith('/government') && <SOSButton />}
-            <main className={!isMobile ? "pt-20" : (location.pathname === '/mobile' ? "" : "pt-16 pb-24")}>
+              <main className={!isMobile ? (location.pathname === '/' ? "" : "pt-20") : (location.pathname === '/mobile' ? "" : "pt-16 pb-24")}>
               <AnimatePresence mode="wait">
                 <motion.div 
                   key={location.pathname}

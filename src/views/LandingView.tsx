@@ -79,76 +79,60 @@ export default function LandingView() {
         <img 
           src="/philippines--camiguin-xl.jpg" 
           alt="Camiguin Island"
-          className="absolute inset-0 w-full h-full object-cover brightness-50"
+          className="absolute inset-0 w-full h-full object-cover brightness-[0.35]"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-island-volcanic/70 via-transparent to-slate-50"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/10 to-transparent"></div>
         
         <div className="relative z-10 max-w-[1600px] mx-auto px-6 w-full">
-          <div className="flex flex-col lg:flex-row gap-16 min-h-[80vh] py-20 items-center">
+          <div className="flex flex-col min-h-[80vh] py-32 justify-center">
             
-            {/* Left Content Area */}
-            <div className="flex-1 flex flex-col justify-center">
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8 }}
+            {/* Left Content */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.2, 0, 0.2, 1] }}
+              className="max-w-3xl"
+            >
+              <h1 className="text-6xl md:text-8xl lg:text-[8.5rem] font-black text-white leading-[0.85] tracking-tighter mb-10">
+                Overseas<br />
+                Holiday<br />
+                <span className="text-white/90">Solutions.</span>
+              </h1>
+
+              <p className="text-white/60 text-lg md:text-xl font-medium leading-relaxed max-w-xl mb-14">
+                Discover curated travel experiences across Catarman's most breathtaking destinations.
+              </p>
+
+              <button 
+                onClick={() => navigate('/stay')}
+                className="bg-white text-island-volcanic px-12 py-5 rounded-full text-sm font-bold tracking-wide flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20 group"
               >
-                <div className="flex items-center gap-4 mb-10 group">
-                  <div className="w-12 h-[2px] bg-white/40 group-hover:w-20 transition-all duration-500"></div>
-                  <p className="text-white/60 text-xs font-bold uppercase tracking-[0.4em]">
-                    Welcome to Catarman eSuroy
-                  </p>
-                </div>
-
-                <h1 className="text-6xl md:text-[7rem] lg:text-[8rem] font-black text-white leading-[0.8] tracking-tighter mb-12 uppercase italic">
-                  Discover <br />
-                  The Heart <br />
-                  <span className="text-island-emerald not-italic">Of Catarman</span>
-                </h1>
-
-                <p className="text-white/70 text-lg font-medium leading-relaxed max-w-lg mb-16">
-                  Explore the historic Sunken Cemetery, the mystical Church Ruins, and the crystal waters of Tuasan. 
-                  Experience a municipality where heritage meets horizon.
-                </p>
-
-                <div className="flex flex-wrap gap-6">
-                  <button 
-                    onClick={() => navigate('/stay')}
-                    className="bg-white text-island-volcanic px-12 py-6 rounded-full text-xs font-black uppercase tracking-[0.2em] flex items-center gap-4 hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20 group"
-                  >
-                    Start Exploring 
-                    <div className="w-10 h-10 bg-island-volcanic/10 rounded-full flex items-center justify-center group-hover:bg-island-emerald group-hover:text-white transition-colors">
-                      <UilArrowUpRight size="20" />
-                    </div>
-                  </button>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Right Image Area */}
-            <div className="flex-1 relative z-10">
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 1, ease: [0.2, 0, 0.2, 1] }}
-                className="h-full w-full rounded-[3.5rem] overflow-hidden shadow-2xl relative border-8 border-white/10 min-h-[500px]"
-              >
-                <img 
-                  src="/images/explore-bg.jpg" 
-                  alt="Sunken Cemetery Aerial" 
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-                
-                <div className="absolute top-10 right-10 bg-white/10 backdrop-blur-2xl px-10 py-6 rounded-3xl border border-white/20">
-                  <p className="text-white text-5xl font-black tracking-tighter leading-none mb-1">98%</p>
-                  <p className="text-white/60 text-xs font-medium tracking-tight">Satisfaction Rate</p>
-                </div>
-              </motion.div>
-
-              </div>
+                Get Started
+                <UilArrowRight size="20" className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </motion.div>
           </div>
+        </div>
+
+        {/* Floating Avatars — bottom left */}
+        <div className="absolute bottom-12 left-6 md:left-12 z-10 flex items-center gap-4">
+          <div className="flex -space-x-3">
+            <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-gradient-to-br from-amber-300 to-amber-500 flex items-center justify-center text-[10px] font-bold text-white">M</div>
+            <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-gradient-to-br from-emerald-300 to-emerald-500 flex items-center justify-center text-[10px] font-bold text-white">J</div>
+            <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-gradient-to-br from-sky-300 to-sky-500 flex items-center justify-center text-[10px] font-bold text-white">S</div>
+            <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-gradient-to-br from-rose-300 to-rose-500 flex items-center justify-center text-[10px] font-bold text-white">K</div>
+          </div>
+          <p className="text-white/50 text-xs font-semibold tracking-tight">2k+ explorers</p>
+        </div>
+
+        {/* Pill Tags — bottom right */}
+        <div className="absolute bottom-12 right-6 md:right-12 z-10 flex gap-3">
+          {['Serenity', 'Nature', 'Haven'].map((tag) => (
+            <span key={tag} className="px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/80 text-xs font-semibold tracking-tight">
+              {tag}
+            </span>
+          ))}
         </div>
       </section>
 
