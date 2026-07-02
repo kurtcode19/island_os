@@ -3,7 +3,7 @@ import IslandMap from '../components/IslandMap';
 
 export default function LocationsView() {
   return (
-    <div className="min-h-screen bg-[#F4F4F1]">
+    <div className="min-h-screen bg-white">
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

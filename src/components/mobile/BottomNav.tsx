@@ -7,33 +7,48 @@ interface BottomNavProps {
 }
 
 const navItems = [
-  { id: 'explore', icon: UilCompass },
-  { id: 'map', icon: UilMap },
-  { id: 'planner', icon: UilCalendarAlt },
-  { id: 'mobility', icon: UilCar },
-  { id: 'profile', icon: UilUser },
+  { id: 'explore', icon: UilCompass, label: 'Explore' },
+  { id: 'map', icon: UilMap, label: 'Map' },
+  { id: 'planner', icon: UilCalendarAlt, label: 'Planner' },
+  { id: 'mobility', icon: UilCar, label: 'Mobility' },
+  { id: 'profile', icon: UilUser, label: 'Profile' },
 ];
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
-    <nav className="flex items-center justify-around w-[250px] h-10 bg-black rounded-[10px] mx-auto absolute bottom-6 left-1/2 -translate-x-1/2" aria-label="Main navigation">
-      {navItems.map((item) => (
-        <button
-          key={item.id}
-          onClick={() => onTabChange(item.id)}
-          aria-label={item.id}
-          className="w-10 h-10 rounded-full bg-transparent flex items-center justify-center text-white transition-all duration-300 cursor-pointer outline-none border-none hover:-translate-y-[3px]"
-        >
-          <motion.div
-            whileTap={{ scale: 0.9 }}
-            className={`transition-colors duration-300 text-lg ${
-              activeTab === item.id ? 'text-white' : 'text-white/60'
-            }`}
+    <nav className="flex items-center justify-around w-full max-w-[340px] h-14 bg-black rounded-2xl mx-auto absolute bottom-6 left-1/2 -translate-x-1/2 px-2 shadow-lg" aria-label="Main navigation">
+      {navItems.map((item) => {
+        const isActive = activeTab === item.id;
+        return (
+          <button
+            key={item.id}
+            onClick={() => onTabChange(item.id)}
+            aria-label={item.label}
+            className="relative flex flex-col items-center justify-center gap-0.5 w-14 h-12 rounded-xl transition-all duration-200 cursor-pointer outline-none border-none"
           >
-            <item.icon size="20" />
-          </motion.div>
-        </button>
-      ))}
+            {isActive && (
+              <motion.div
+                layoutId="mobileActiveTab"
+                className="absolute inset-0 bg-white/15 rounded-xl"
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              />
+            )}
+            <motion.div
+              whileTap={{ scale: 0.9 }}
+              className={`relative z-10 transition-colors duration-200 ${
+                isActive ? 'text-white' : 'text-white/50'
+              }`}
+            >
+              <item.icon size="22" />
+            </motion.div>
+            <span className={`relative z-10 text-[9px] font-semibold tracking-tight transition-colors duration-200 ${
+              isActive ? 'text-white' : 'text-white/40'
+            }`}>
+              {item.label}
+            </span>
+          </button>
+        );
+      })}
     </nav>
   );
 }

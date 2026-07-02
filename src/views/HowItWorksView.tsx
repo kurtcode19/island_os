@@ -11,7 +11,7 @@ export default function HowItWorksView() {
   const currentFlow = activeFlow === 'booking' ? bookingFlow : tripPlannerFlow;
 
   return (
-    <div className="bg-island-warm-cream min-h-screen pb-40">
+    <div className="bg-white min-h-screen pb-40">
       {/* Header */}
       <section className="relative pt-32 pb-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-island-emerald/5 to-transparent" />

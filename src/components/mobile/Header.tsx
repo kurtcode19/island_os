@@ -12,11 +12,11 @@ export function Header({ title, subtitle, onNotificationClick, showNotification 
     <div className="flex justify-between items-center">
       <div>
         {subtitle && (
-          <span className="text-[10px] font-black text-[var(--muted)] uppercase tracking-[0.3em] mb-1 block">
+          <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.3em] mb-1 block">
             {subtitle}
           </span>
         )}
-        <h2 className="text-[26px] font-black text-[var(--text)] tracking-tighter leading-tight">
+        <h2 className="text-[26px] font-bold text-gray-900 tracking-tight leading-tight whitespace-pre-line">
           {title}
         </h2>
       </div>
@@ -24,11 +24,11 @@ export function Header({ title, subtitle, onNotificationClick, showNotification 
         <button
           onClick={onNotificationClick}
           aria-label="Notifications"
-          className="relative w-11 h-11 rounded-full bg-white/70 border border-gray-100 flex items-center justify-center text-[var(--text)] shadow-sm active:scale-90 transition-all"
+          className="relative w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 active:scale-90 transition-all"
         >
-          <UilBell size="20" />
+          <UilBell size="18" />
           {showNotification && (
-            <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white" />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
           )}
         </button>
       )}

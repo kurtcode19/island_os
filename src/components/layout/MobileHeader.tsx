@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 export function MobileHeader() {
   const { user } = useAuth();
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-tropic-cream/80 backdrop-blur-xl border-b border-tropic-sand/20 h-16 flex items-center justify-between px-6 md:hidden">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100 h-16 flex items-center justify-between px-6 md:hidden">
       <Link to="/mobile?tab=explore" className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-tropic-emerald to-tropic-ocean flex items-center justify-center text-white text-[10px] font-black">
           CE

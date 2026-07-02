@@ -295,7 +295,7 @@ export default function BusinessDashboard() {
   );
 
   return (
-    <div className="flex h-screen bg-[#F4F4F1] selection:bg-island-emerald/20 overflow-hidden">
+    <div className="flex h-screen bg-white selection:bg-island-emerald/20 overflow-hidden">
       <aside className="w-[320px] bg-white border-r border-emerald-50 hidden lg:flex flex-col shadow-2xl shrink-0">
         <div className="p-10 flex-1 overflow-y-auto no-scrollbar">
           <div className="flex items-center gap-5 mb-16 px-4">

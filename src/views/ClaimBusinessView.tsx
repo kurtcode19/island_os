@@ -79,7 +79,7 @@ export default function ClaimBusinessView() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F0FDF4] pt-20 pb-32 selection:bg-island-emerald/20">
+    <div className="min-h-screen bg-white pt-20 pb-32 selection:bg-island-emerald/20">
       <div className="max-w-4xl mx-auto px-6">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}

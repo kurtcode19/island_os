@@ -1,9 +1,6 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ===============================================================
-    // Helper Functions
-    // ===============================================================
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -13,8 +10,7 @@ service cloud.firestore {
     }
 
     function getUserData() {
-      let path = /databases/$(database)/documents/users/$(request.auth.uid);
-      return exists(path) ? get(path).data : {};
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
     function hasRole(role) {
@@ -29,17 +25,13 @@ service cloud.firestore {
     }
 
     function isBusinessOwner(businessId) {
-      let data = getUserData();
-      return isAuthenticated() && data.get('role', '') == 'BUSINESS' && data.get('businessId', '') == businessId;
+      return isAuthenticated() && 
+        getUserData().get('role', '') == 'BUSINESS' && 
+        getUserData().get('businessId', '') == businessId;
     }
 
-    // ===============================================================
-    // Match Rules
-    // ===============================================================
-
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+      allow read, write: if isAuthenticated();
     }
 
     match /bookings/{bookingId} {
@@ -95,9 +87,8 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
-    match /services_{serviceType}/{id} {
-      allow read: if true;
-      allow write: if isAuthenticated();
+    match /manual_earnings/{earningId} {
+      allow read, write: if isAuthenticated();
     }
 
     match /test/connection {

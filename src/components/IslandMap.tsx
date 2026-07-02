@@ -178,7 +178,7 @@ const IslandMap: React.FC = () => {
   const filteredLocations = mapFilter === 'attractions' ? locations : shopLocations;
 
   return (
-    <div className="flex flex-col lg:flex-row h-full w-full overflow-hidden bg-[#F0FDF4] selection:bg-island-emerald/20">
+    <div className="flex flex-col lg:flex-row h-full w-full overflow-hidden bg-white selection:bg-island-emerald/20">
       <div className="relative w-full h-[65vh] lg:h-full lg:flex-1 order-1 lg:order-2">
         <MapContainer
           center={catarmanCenter}

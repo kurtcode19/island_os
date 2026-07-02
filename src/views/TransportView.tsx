@@ -86,7 +86,7 @@ export default function TransportView() {
   };
 
   return (
-    <div className="bg-[#F0FDF4] min-h-screen pb-40 selection:bg-island-emerald/20">
+    <div className="bg-white min-h-screen pb-40 selection:bg-island-emerald/20">
       {/* Header */}
       <section className="relative h-[calc(45vh+5rem)] flex items-center overflow-hidden">
         <motion.img 
@@ -98,7 +98,7 @@ export default function TransportView() {
           className="absolute inset-0 w-full h-full object-cover brightness-50"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-island-volcanic/60 via-transparent to-[#F4F4F1]"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-island-volcanic/60 via-transparent to-white"></div>
         
         <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
           <motion.div

@@ -293,7 +293,7 @@ export default function MobileAppView() {
               className="flex flex-col"
             >
               {/* Sticky Header Section */}
-              <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-xl px-6 pt-6 pb-4 space-y-5 border-b border-gray-100">
+              <div className="sticky top-0 z-30 bg-white px-6 pt-6 pb-4 space-y-5">
                 <Header
                   title="Find your&#10;favorite place"
                   subtitle="Current Location"
@@ -306,11 +306,11 @@ export default function MobileAppView() {
                 <SearchBar onSearch={setSearchQuery} onFilter={() => {}} />
 
                 {/* Section Filter Toggle */}
-                <div className="inline-flex items-center gap-1 p-1.5 bg-white border border-[#e3e8ee] rounded-full shadow-[0_1px_1px_rgba(14,17,22,0.04),0_20px_40px_-24px_rgba(14,17,22,0.18)] overflow-x-auto no-scrollbar">
+                <div className="inline-flex items-center gap-1 p-1 bg-gray-100 rounded-full overflow-x-auto no-scrollbar">
                   {['All', 'Spots', 'Stays', 'Vehicles'].map(s => (
                     <button key={s} onClick={() => setSectionFilter(s)}
-                      className={`h-9 px-[18px] rounded-full text-sm font-medium text-[#5b6472] whitespace-nowrap transition-[background-color,color,box-shadow] duration-220 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[#0e1116] focus-visible:shadow-[0_0_0_3px_rgba(46,125,239,0.32)] ${
-                        sectionFilter === s ? '!bg-[#0e1116] !text-white shadow-[0_1px_1px_rgba(14,17,22,0.06),0_8px_18px_-10px_rgba(14,17,22,0.5)]' : ''
+                      className={`h-8 px-4 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                        sectionFilter === s ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
                       }`}>
                       {s}
                     </button>
@@ -326,127 +326,156 @@ export default function MobileAppView() {
                   />
                 )}
 
-                {/* Popular Destinations Section */}
-                {sectionFilter !== 'Stays' && sectionFilter !== 'Vehicles' && (
-                <div>
-                  <div className="flex justify-between items-center mb-8">
-                    <h3 className="text-2xl font-black text-tropic-green tracking-tighter">Popular Destination</h3>
-                    <button className="text-[10px] font-black text-white uppercase tracking-widest bg-tropic-green px-4 py-1.5 rounded-full hover:bg-tropic-emerald transition-colors">View All</button>
-                  </div>
-                  
-                  <div className="space-y-8">
-                    {/* Spot Cards */}
-                    {filteredSpots.map((spot) => (
-                        <motion.div 
-                          key={`spot-${spot.id}`}
-                          whileTap={{ scale: 0.98 }}
-                  onClick={() => setSelectedSpot({ ...spot, type: 'spot', serviceType: 'spot' })}
-                  className="group relative bg-white rounded-[3rem] border border-tropic-sand/40 overflow-hidden tropic-shadow-lg hover:tropic-shadow-xl transition-shadow p-4 cursor-pointer"
-                        >
-                          <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
-                            <img src={spot.image} alt={spot.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" referrerPolicy="no-referrer" />
-                            <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-2xl flex items-center gap-1.5 text-tropic-green tropic-shadow">
-                              <UilStar size="14" className="text-tropic-sunset" />
-                              <span className="text-xs font-black">{spot.rating}</span>
-                            </div>
-                            <button className="absolute top-5 right-5 w-10 h-10 bg-white/20 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20 hover:bg-tropic-rose/60 transition-colors">
-                              <UilHeart size="18" />
-                            </button>
-                            <div className="absolute bottom-5 right-5 w-12 h-12 bg-white/90 backdrop-blur-xl text-tropic-coral rounded-full flex items-center justify-center shadow-2xl group-hover:bg-tropic-coral group-hover:text-white transition-colors">
-                              <UilArrowLeft className="rotate-[135deg]" size="20" />
-                            </div>
-                          </div>
-                          <div className="px-4 pb-4">
-                            <div className="flex items-center gap-1.5 text-[10px] font-black text-tropic-emerald uppercase tracking-widest mb-2">
-                              <UilMapMarker size="12" />
-                              {spot.category}
-                            </div>
-                            <h4 className="text-3xl font-black text-tropic-green tracking-tighter">{spot.name}</h4>
-                          </div>
-                        </motion.div>
-                    ))}
+                {/* Airbnb-style Listing Cards */}
+                <div className="space-y-4">
+                  {/* Popular Destinations Title */}
+                  {sectionFilter !== 'Stays' && sectionFilter !== 'Vehicles' && (
+                    <div className="flex justify-between items-center mb-1">
+                      <h3 className="text-xl font-bold text-gray-900 tracking-tight">Popular Destination</h3>
+                      <button className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">View All</button>
+                    </div>
+                  )}
 
-                    {/* Stay Cards */}
-                    {sectionFilter !== 'Spots' && sectionFilter !== 'Vehicles' && filteredAccommodations.map((stay) => (
-                        <motion.div 
+                  {/* Spot Cards */}
+                  {sectionFilter !== 'Stays' && sectionFilter !== 'Vehicles' && filteredSpots.map((spot) => (
+                    <motion.div
+                      key={`spot-${spot.id}`}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedSpot({ ...spot, type: 'spot', serviceType: 'spot' })}
+                      className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer"
+                    >
+                      <div className="relative aspect-[4/3] overflow-hidden">
+                        <img src={spot.image} alt={spot.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        <button
+                          onClick={(e) => { e.stopPropagation(); }}
+                          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-700 hover:bg-white hover:scale-105 transition-all shadow-sm"
+                        >
+                          <UilHeart size="15" />
+                        </button>
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
+                          {[0, 1, 2].map((i) => (
+                            <span key={i} className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-white' : 'bg-white/40'}`} />
+                          ))}
+                        </div>
+                      </div>
+                      <div className="px-4 pt-3 pb-4 space-y-1">
+                        <div className="flex items-start justify-between">
+                          <h4 className="text-base font-semibold text-gray-900 leading-tight">{spot.name}</h4>
+                          <div className="flex items-center gap-1 shrink-0 ml-2">
+                            <UilStar size="12" className="text-amber-500" />
+                            <span className="text-xs font-semibold text-gray-700">{spot.rating}</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500">{spot.distance}</p>
+                        <p className="text-xs text-gray-500">Mar 15 - 20</p>
+                        <div className="pt-1">
+                          <span className="text-sm font-semibold text-gray-900">₱{spot.price.toLocaleString()}</span>
+                          <span className="text-xs text-gray-500"> night</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {/* Stay Cards */}
+                  {sectionFilter !== 'Spots' && sectionFilter !== 'Vehicles' && (
+                    <div>
+                      <div className="flex justify-between items-center mb-1 mt-1">
+                        <h3 className="text-xl font-bold text-gray-900 tracking-tight">Stays</h3>
+                        <button className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">View All</button>
+                      </div>
+                      {filteredAccommodations.map((stay) => (
+                        <motion.div
                           key={`stay-${stay.id}`}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => setSelectedSpot({ ...stay, type: 'stay', serviceType: 'stay' })}
-                          className="bg-white rounded-[3rem] border border-tropic-sand/40 overflow-hidden tropic-shadow-lg hover:tropic-shadow-xl transition-shadow p-4 cursor-pointer"
+                          className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer mb-4"
                         >
-                          <div className="relative h-64 rounded-[2.5rem] overflow-hidden mb-6">
+                          <div className="relative aspect-[4/3] overflow-hidden">
                             <img src={stay.image} alt={stay.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                            <div className="absolute top-5 left-5 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-2xl flex items-center gap-1.5 text-tropic-green tropic-shadow">
-                              <UilStar size="14" className="text-tropic-sunset" />
-                              <span className="text-xs font-black">{stay.rating}</span>
-                            </div>
-                            <div className="absolute bottom-5 right-5 w-12 h-12 bg-white/90 backdrop-blur-xl text-tropic-coral rounded-full flex items-center justify-center shadow-2xl group-hover:bg-tropic-coral group-hover:text-white transition-colors">
-                              <UilArrowLeft className="rotate-[135deg]" size="20" />
-                            </div>
-                          </div>
-                          <div className="px-4 pb-4 flex justify-between items-end">
-                            <div>
-                              <div className="text-[10px] font-black text-tropic-emerald uppercase tracking-widest mb-2">Resort • {stay.type}</div>
-                              <h4 className="text-3xl font-black text-tropic-green tracking-tighter">{stay.name}</h4>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-2xl font-black text-tropic-emerald tracking-tighter">₱{stay.price.toLocaleString()}</span>
-                              <span className="block text-[10px] font-black text-tropic-green/40 uppercase tracking-widest">/ night</span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); }}
+                              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-700 hover:bg-white hover:scale-105 transition-all shadow-sm"
+                            >
+                              <UilHeart size="15" />
+                            </button>
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
+                              {[0, 1, 2, 3].map((i) => (
+                                <span key={i} className={`w-1.5 h-1.5 rounded-full ${i === 1 ? 'bg-white' : 'bg-white/40'}`} />
+                              ))}
                             </div>
                           </div>
-                        </motion.div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-                {/* Rental Vehicles Section */}
-                {sectionFilter !== 'Spots' && sectionFilter !== 'Stays' && (
-                <div>
-                  <div className="flex justify-between items-center mb-8">
-                    <h3 className="text-2xl font-black text-tropic-green tracking-tighter">Rental Vehicles</h3>
-                    <button className="text-[10px] font-black text-white uppercase tracking-widest bg-tropic-green px-4 py-1.5 rounded-full hover:bg-tropic-emerald transition-colors">View All</button>
-                  </div>
-                  <div className="space-y-8">
-                    {filteredVehicles.map((vehicle) => (
-                        <motion.div
-                          key={vehicle.id}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => setSelectedSpot({ ...vehicle, type: 'rental', serviceType: 'rental', price: vehicle.rate })}
-                          className="bg-white rounded-[3rem] border border-tropic-sand/40 overflow-hidden tropic-shadow-lg hover:tropic-shadow-xl transition-shadow p-4 cursor-pointer"
-                        >
-                          <div className="relative h-56 rounded-[2.5rem] overflow-hidden mb-5">
-                            <img src={vehicle.image} alt={vehicle.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-xl px-3 py-1.5 rounded-2xl flex items-center gap-1.5 text-tropic-green tropic-shadow">
-                              <span className="text-[10px] font-black">{vehicle.available} left</span>
-                            </div>
-                            <div className={`absolute top-4 right-4 w-10 h-10 ${vehicle.color} rounded-full flex items-center justify-center text-white shadow-lg`}>
-                              <vehicle.icon size="18" />
-                            </div>
-                          </div>
-                          <div className="px-4 pb-2 flex justify-between items-end">
-                            <div>
-                              <div className="text-[10px] font-black text-tropic-emerald uppercase tracking-widest mb-1">{vehicle.type} • {vehicle.transmission}</div>
-                              <h4 className="text-2xl font-black text-tropic-green tracking-tighter">{vehicle.name}</h4>
-                              {(() => { const m = getMerchantByVehicle(vehicle); return m ? <span className="text-[9px] font-bold text-tropic-green/40 tracking-wide">{m.name}</span> : null; })()}
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-[10px] text-tropic-green/50 font-medium">{vehicle.capacity} seats</span>
-                                <span className="w-1 h-1 rounded-full bg-tropic-green/30" />
-                                {vehicle.features.slice(0, 2).map((f, i) => (
-                                  <span key={i} className="text-[10px] text-tropic-green/50 font-medium">{f}</span>
-                                ))}
+                          <div className="px-4 pt-3 pb-4 space-y-1">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-base font-semibold text-gray-900 leading-tight truncate">{stay.name}</h4>
+                                <p className="text-xs text-gray-500 mt-0.5">{stay.type} · Catarman</p>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0 ml-2">
+                                <UilStar size="12" className="text-amber-500" />
+                                <span className="text-xs font-semibold text-gray-700">{stay.rating}</span>
                               </div>
                             </div>
-                            <div className="text-right shrink-0 ml-4">
-                              <span className="text-2xl font-black text-tropic-emerald tracking-tighter">₱{vehicle.rate.toLocaleString()}</span>
-                              <span className="block text-[10px] font-black text-tropic-green/40 uppercase tracking-widest">/ {vehicle.rateUnit}</span>
+                            <p className="text-xs text-gray-500">Mar 15 - 20</p>
+                            <div className="pt-1">
+                              <span className="text-sm font-semibold text-gray-900">₱{stay.price.toLocaleString()}</span>
+                              <span className="text-xs text-gray-500"> night</span>
                             </div>
                           </div>
                         </motion.div>
                       ))}
-                  </div>
+                    </div>
+                  )}
+
+                  {/* Vehicle Cards */}
+                  {sectionFilter !== 'Spots' && sectionFilter !== 'Stays' && (
+                    <div>
+                      <div className="flex justify-between items-center mb-1 mt-1">
+                        <h3 className="text-xl font-bold text-gray-900 tracking-tight">Rental Vehicles</h3>
+                        <button className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">View All</button>
+                      </div>
+                      {filteredVehicles.map((vehicle) => (
+                        <motion.div
+                          key={vehicle.id}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setSelectedSpot({ ...vehicle, type: 'rental', serviceType: 'rental', price: vehicle.rate })}
+                          className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer mb-4"
+                        >
+                          <div className="relative aspect-[4/3] overflow-hidden">
+                            <img src={vehicle.image} alt={vehicle.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            <button
+                              onClick={(e) => { e.stopPropagation(); }}
+                              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-700 hover:bg-white hover:scale-105 transition-all shadow-sm"
+                            >
+                              <UilHeart size="15" />
+                            </button>
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
+                              {[0, 1, 2].map((i) => (
+                                <span key={i} className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-white' : 'bg-white/40'}`} />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="px-4 pt-3 pb-4 space-y-1">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-base font-semibold text-gray-900 leading-tight truncate">{vehicle.name}</h4>
+                                <p className="text-xs text-gray-500 mt-0.5">{vehicle.type} · {vehicle.transmission}</p>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0 ml-2">
+                                <UilStar size="12" className="text-amber-500" />
+                                <span className="text-xs font-semibold text-gray-700">4.8</span>
+                              </div>
+                            </div>
+                            <p className="text-xs text-gray-500">{vehicle.capacity} seats</p>
+                            <div className="pt-1">
+                              <span className="text-sm font-semibold text-gray-900">₱{vehicle.rate.toLocaleString()}</span>
+                              <span className="text-xs text-gray-500"> {vehicle.rateUnit}</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
               </div>
             </motion.div>
           )}
@@ -1042,9 +1071,9 @@ export default function MobileAppView() {
   );
 
   return (
-    <div className={`flex justify-center items-center ${isDesktop ? 'min-h-[calc(100vh-64px)] bg-[#F4F6F8] p-6 md:p-14' : 'min-h-screen bg-white'}`}>
+    <div className={`flex justify-center items-center ${isDesktop ? 'min-h-[calc(100vh-64px)] bg-white p-6 md:p-14' : 'min-h-screen bg-white'}`}>
       {isDesktop ? (
-        <div className="relative w-full max-w-[440px] aspect-[9/19.5] bg-tropic-cream rounded-[5rem] shadow-[0_0_0_14px_#1a3a2a,0_60px_100px_-20px_rgba(45,106,79,0.45)] overflow-hidden border-[12px] border-tropic-green ring-[16px] ring-white">
+        <div className="relative w-full max-w-[440px] aspect-[9/19.5] bg-white rounded-[5rem] shadow-[0_0_0_14px_#1a3a2a,0_60px_100px_-20px_rgba(45,106,79,0.45)] overflow-hidden border-[12px] border-tropic-green ring-[16px] ring-white">
           {/* Notch */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-10 bg-tropic-green rounded-b-[2.5rem] z-50 flex items-center justify-center">
             <div className="w-14 h-1.5 bg-white/20 rounded-full"></div>

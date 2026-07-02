@@ -1,4 +1,4 @@
-import { UilSearch, UilSlidersV } from '@/icons';
+import { UilSearch } from '@/icons';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -6,29 +6,18 @@ interface SearchBarProps {
   onFilter?: () => void;
 }
 
-export function SearchBar({ placeholder = 'Search destination, place', onSearch, onFilter }: SearchBarProps) {
+export function SearchBar({ placeholder = 'Search destinations', onSearch }: SearchBarProps) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="relative flex-1">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--muted)]">
-          <UilSearch size="18" />
-        </div>
-        <input
-          type="text"
-          placeholder={placeholder}
-          onChange={(e) => onSearch?.(e.target.value)}
-          className="w-full h-12 pl-11 pr-4 bg-[#F3F5F7] rounded-full text-sm font-semibold text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--accent-start)]/20 transition-all placeholder:text-[var(--muted)]/50"
-        />
+    <div className="relative">
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+        <UilSearch size="18" />
       </div>
-      {onFilter && (
-        <button
-          onClick={onFilter}
-          aria-label="Filter"
-          className="w-11 h-11 rounded-full bg-white border border-gray-100 flex items-center justify-center text-[var(--muted)] shadow-sm active:scale-90 transition-all shrink-0"
-        >
-          <UilSlidersV size="18" />
-        </button>
-      )}
+      <input
+        type="text"
+        placeholder={placeholder}
+        onChange={(e) => onSearch?.(e.target.value)}
+        className="w-full h-11 pl-11 pr-4 bg-gray-100 rounded-full text-sm font-medium text-gray-900 outline-none focus:ring-2 focus:ring-gray-300 transition-all placeholder:text-gray-400"
+      />
     </div>
   );
 }

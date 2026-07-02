@@ -50,7 +50,7 @@
   }
 
   body {
-    @apply font-sans text-island-green bg-island-warm-cream antialiased selection:bg-island-emerald/20 selection:text-island-emerald;
+    @apply font-sans text-island-green bg-white antialiased selection:bg-island-emerald/20 selection:text-island-emerald;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -157,7 +157,7 @@
 
 /* ── Design System Tokens (mobile UI kit) ── */
 :root {
-  --bg: #F4F6F8;
+  --bg: #ffffff;
   --text: #0B1220;
   --muted: #6B7280;
   --accent-start: #52B788;

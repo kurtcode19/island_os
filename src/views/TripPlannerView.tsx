@@ -703,7 +703,7 @@ export default function TripPlannerView() {
   const steps: Step[] = ['duration', 'group', 'transport', 'pace', 'interests', 'style', 'budget', 'result'];
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden selection:bg-island-emerald/20 selection:text-island-emerald font-sans">
+    <div className="flex h-screen bg-white overflow-hidden selection:bg-island-emerald/20 selection:text-island-emerald font-sans">
       
       {/* Left Panel: Chat & Itinerary */}
       <div className={`flex flex-col ${isMobile ? 'w-full' : 'w-[600px] lg:w-[850px]'} bg-white relative z-20 shadow-[0_0_100px_-20px_rgba(0,0,0,0.1)] border-r border-slate-100`}>

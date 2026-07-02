@@ -35,7 +35,7 @@ export default function TouristPassView() {
   };
 
   return (
-    <div className="bg-[#F0FDF4] min-h-screen pb-40 selection:bg-island-emerald/20">
+    <div className="bg-white min-h-screen pb-40 selection:bg-island-emerald/20">
       {/* Header */}
       <section className="relative h-[35vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 volcanic-gradient"></div>

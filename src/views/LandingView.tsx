@@ -71,7 +71,7 @@ export default function LandingView() {
   };
 
   return (
-    <div className="bg-slate-50 selection:bg-island-volcanic selection:text-white overflow-x-hidden min-h-screen">
+    <div className="bg-white selection:bg-island-volcanic selection:text-white overflow-x-hidden min-h-screen">
       
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
@@ -117,7 +117,7 @@ export default function LandingView() {
       </section>
 
       {/* Rentals Section */}
-      <section className="py-24 md:py-32 px-6 bg-island-cream/30">
+      <section className="py-24 md:py-32 px-6 bg-white">
         <div className="max-w-[1600px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

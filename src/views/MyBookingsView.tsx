@@ -101,7 +101,7 @@ export default function MyBookingsView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F4F4F1] pb-40">
+      <div className="min-h-screen bg-white pb-40">
         <div className="bg-white border-b-2 border-stone-100 pt-16 pb-12 shadow-sm">
           <div className="max-w-5xl mx-auto px-6">
             <div className="w-32 h-4 bg-slate-100 rounded animate-pulse mb-8" />
@@ -128,7 +128,7 @@ export default function MyBookingsView() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F4F1] pb-40 selection:bg-island-emerald/20">
+    <div className="min-h-screen bg-white pb-40 selection:bg-island-emerald/20">
       {/* Header */}
       <div className="bg-white border-b-2 border-stone-100 pt-16 pb-12 shadow-sm">
         <div className="max-w-5xl mx-auto px-6">
