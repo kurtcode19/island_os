@@ -90,9 +90,14 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
   const navItems = getNavItems();
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        location.pathname === '/' ? 'bg-transparent' : 'bg-white border-b border-slate-100'
-      } ${visible ? 'translate-y-0' : '-translate-y-full'}`}>
+    <>
+      {/* Subtle dark gradient overlay at the top for readability */}
+      {location.pathname === '/' && (
+        <div className="fixed top-0 left-0 right-0 z-40 h-24 bg-gradient-to-b from-black/30 to-transparent pointer-events-none" />
+      )}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+          location.pathname === '/' ? 'bg-black/10 backdrop-blur-xl' : 'bg-white'
+        } ${visible ? 'translate-y-0' : '-translate-y-full'}`}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between h-20 items-center">
           
@@ -109,7 +114,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
           </div>
 
           {/* Center: Navigation Links - Will be perfectly centered between logo and auth sections */}
-          <div className="hidden lg:flex flex-1 justify-center">
+          <div className="hidden md:flex flex-1 justify-center">
             <div className="flex items-center space-x-1">
               {navItems.map((item) => {
                 const isActive = item.path === '/' 
@@ -120,14 +125,14 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`relative px-5 py-2.5 rounded-full text-sm font-semibold tracking-tight transition-all group ${
-                      isActive ? 'text-white' : location.pathname === '/' ? 'text-white/70 hover:text-white' : 'text-slate-600 hover:text-island-green'
-                    }`}
+className={`relative px-5 py-2.5 rounded-full text-sm font-semibold tracking-tight transition-all group ${
+                       isActive ? (location.pathname === '/' ? 'text-black' : 'text-white') : location.pathname === '/' ? 'text-white/70 hover:text-white' : 'text-slate-600 hover:text-island-green'
+                     }`}
                   >
                     {isActive && (
                       <motion.div
                         layoutId="navActiveBackground"
-                        className={`absolute inset-0 rounded-full -z-10 ${location.pathname === '/' ? 'bg-white/20' : 'bg-island-volcanic'}`}
+                        className={`absolute inset-0 rounded-full -z-10 ${location.pathname === '/' ? 'bg-white' : 'bg-island-volcanic'}`}
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                       />
                     )}
@@ -159,9 +164,9 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className={`absolute right-0 mt-4 w-56 rounded-3xl shadow-2xl p-2 z-50 overflow-hidden ${
-                          location.pathname === '/' ? 'bg-island-volcanic/90 backdrop-blur-xl border border-white/10' : 'bg-white border border-slate-100'
-                        }`}
+className={`absolute right-0 mt-4 w-56 rounded-3xl shadow-2xl p-2 z-50 overflow-hidden ${
+                           location.pathname === '/' ? 'bg-island-volcanic/90 backdrop-blur-xl border border-white/10' : 'bg-white'
+                         }`}
                       >
                         {(['TOURIST', 'BUSINESS', 'LGU'] as UserRole[]).map((role) => (
                           <button
@@ -201,11 +206,11 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className={`absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 ${
-                          location.pathname === '/' ? 'bg-island-volcanic/90 backdrop-blur-xl border border-white/10' : 'bg-white border border-slate-100'
-                        }`}
+className={`absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 ${
+                           location.pathname === '/' ? 'bg-island-volcanic/90 backdrop-blur-xl border border-white/10' : 'bg-white'
+                         }`}
                       >
-                        <div className={`mb-6 pb-6 text-center ${location.pathname === '/' ? 'border-b border-white/10' : 'border-b border-slate-50'}`}>
+                        <div className={`mb-6 pb-6 text-center ${location.pathname === '/' ? 'border-b border-white/10' : ''}`}>
                           <p className={`text-sm font-bold mb-1 ${location.pathname === '/' ? 'text-white' : 'text-slate-800'}`}>{user.displayName}</p>
                           <p className={`text-[10px] font-medium uppercase tracking-widest ${location.pathname === '/' ? 'text-white/50' : 'text-slate-400'}`}>{user.email}</p>
                         </div>
@@ -246,7 +251,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
 
             <button 
               onClick={() => navigate('/planner')}
-              className={`px-8 py-3 rounded-full text-xs font-bold tracking-wider transition-all hover:scale-105 active:scale-95 text-white bg-black shadow-lg ${
+              className={`px-8 py-3 rounded-full text-xs font-bold tracking-wider transition-all hover:scale-105 active:scale-95 text-white bg-black ${
                 location.pathname === '/' 
                   ? 'hover:bg-black/80' 
                   : ''
@@ -281,7 +286,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             className={`md:hidden overflow-hidden ${
-              location.pathname === '/' ? 'bg-island-volcanic/90 backdrop-blur-xl' : 'bg-white border-b border-slate-100'
+              location.pathname === '/' ? 'bg-island-volcanic/90 backdrop-blur-xl' : 'bg-white'
             }`}
           >
             <div className="px-6 pt-4 pb-10 space-y-3">
@@ -345,7 +350,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             className={`md:hidden overflow-hidden ${
-              location.pathname === '/' ? 'bg-island-volcanic/90 backdrop-blur-xl' : 'bg-white border-b border-slate-100'
+              location.pathname === '/' ? 'bg-island-volcanic/90 backdrop-blur-xl' : 'bg-white'
             }`}
           >
             <div className="px-6 pt-4 pb-10 space-y-3">
@@ -369,5 +374,6 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
         )}
       </AnimatePresence>
     </nav>
+    </>
   );
 }

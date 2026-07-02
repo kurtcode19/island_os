@@ -19,7 +19,7 @@ import HowItWorksView from './views/HowItWorksView';
 import RentalsView from './views/RentalsView';
 
 import { Navigation } from './components/layout/Navigation';
-import { MobileHeader } from './components/layout/MobileHeader';
+
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
 import SOSButton from './components/shared/SOSButton';
 
@@ -49,14 +49,10 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
         } />
         <Route path="*" element={
           <>
-            {!isMobile ? (
-              <Navigation currentRole={role} onRoleChange={setRole} />
-            ) : (
-              location.pathname !== '/mobile' && <MobileHeader />
-            )}
+            {location.pathname !== '/mobile' && <Navigation currentRole={role} onRoleChange={setRole} />}
             {/* SOS Button on tourist-facing pages */}
             {role === 'TOURIST' && !location.pathname.startsWith('/business') && !location.pathname.startsWith('/government') && <SOSButton />}
-              <main className={!isMobile ? (location.pathname === '/' ? "" : "pt-20") : (location.pathname === '/mobile' ? "" : "pt-16 pb-24")}>
+              <main className={`${isMobile && location.pathname !== '/mobile' ? "pb-24 " : ""}${location.pathname === '/' || location.pathname === '/mobile' ? "" : "pt-20"}`}>
               <AnimatePresence mode="wait">
                 <motion.div 
                   key={location.pathname}

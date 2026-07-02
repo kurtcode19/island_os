@@ -7,7 +7,6 @@ import {
   UilTimes, 
   UilCheckCircle, 
   UilRefresh, 
-  UilAngleRightB,
   UilArrowUpRight
 } from '@/icons';
 import { useAuth } from '../context/AuthContext';
@@ -109,31 +108,12 @@ export default function LandingView() {
                 className="bg-white text-island-volcanic px-12 py-5 rounded-full text-sm font-bold tracking-wide flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/20 group"
               >
                 Get Started
-                <UilArrowRight size="20" className="group-hover:translate-x-1 transition-transform" />
               </button>
             </motion.div>
           </div>
         </div>
 
-        {/* Floating Avatars — bottom left */}
-        <div className="absolute bottom-12 left-6 md:left-12 z-10 flex items-center gap-4">
-          <div className="flex -space-x-3">
-            <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-gradient-to-br from-amber-300 to-amber-500 flex items-center justify-center text-[10px] font-bold text-white">M</div>
-            <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-gradient-to-br from-emerald-300 to-emerald-500 flex items-center justify-center text-[10px] font-bold text-white">J</div>
-            <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-gradient-to-br from-sky-300 to-sky-500 flex items-center justify-center text-[10px] font-bold text-white">S</div>
-            <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-gradient-to-br from-rose-300 to-rose-500 flex items-center justify-center text-[10px] font-bold text-white">K</div>
-          </div>
-          <p className="text-white/50 text-xs font-semibold tracking-tight">2k+ explorers</p>
-        </div>
 
-        {/* Pill Tags — bottom right */}
-        <div className="absolute bottom-12 right-6 md:right-12 z-10 flex gap-3">
-          {['Serenity', 'Nature', 'Haven'].map((tag) => (
-            <span key={tag} className="px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/80 text-xs font-semibold tracking-tight">
-              {tag}
-            </span>
-          ))}
-        </div>
       </section>
 
       {/* Rentals Section */}
