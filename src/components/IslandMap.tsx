@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { toast } from 'sonner';
-import { UilMapMarker as MapPin, UilNavigator as Navigation, UilBookOpen as BookOpen, UilCrosshair as Crosshair, UilExternalLinkAlt as ExternalLink, UilStar as Sparkles, UilTimes as X, UilClock as Clock, UilShoppingBag as ShoppingBag, UilStore as Store, UilStar as Star, UilPhone as Phone } from '@/icons';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { getPilotConfig, type PilotConfig } from '../lib/pilotService';
+import { UilMapMarker as MapPin, UilNavigator as Navigation, UilBookOpen as BookOpen, UilCrosshair as Crosshair, UilExternalLinkAlt as ExternalLink, UilStar as Sparkles, UilTimes as X, UilClock as Clock, UilShoppingBag as ShoppingBag, UilStore as Store, UilStar as Star, UilPhone as Phone, UilMapMarker as MapMarker } from '@/icons';
 import { motion, AnimatePresence } from 'motion/react';
 
 const DefaultIcon = L.icon({
@@ -149,6 +152,69 @@ const IslandMap: React.FC = () => {
 
   const catarmanCenter: [number, number] = [9.2014, 124.6675];
 
+  const [nearMeInfo, setNearMeInfo] = useState<{ name: string; distance: number } | null>(null);
+  const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
+  const [pilotBusinessCoords, setPilotBusinessCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isNearMeLoading, setIsNearMeLoading] = useState(false);
+
+  useEffect(() => {
+    getPilotConfig().then(async (config) => {
+      setPilotConfig(config);
+      if (config.enabled && config.businessId) {
+        try {
+          const bizSnap = await getDoc(doc(db, 'businesses', config.businessId));
+          if (bizSnap.exists()) {
+            const data = bizSnap.data();
+            if (data.location) {
+              setPilotBusinessCoords({ lat: data.location.lat, lng: data.location.lng });
+            }
+          }
+        } catch {}
+      }
+    });
+  }, []);
+
+  function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371;
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  const handleNearMe = () => {
+    if (!pilotBusinessCoords) {
+      toast.error('Pilot business location not available');
+      return;
+    }
+    setIsNearMeLoading(true);
+    setNearMeInfo(null);
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser');
+      setIsNearMeLoading(false);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+        const dist = haversineKm(userLat, userLng, pilotBusinessCoords.lat, pilotBusinessCoords.lng);
+        setNearMeInfo({ name: pilotConfig?.businessId || 'Pilot Business', distance: dist });
+        setUserPos([userLat, userLng]);
+        setIsNearMeLoading(false);
+        toast.success(`Distance: ${dist.toFixed(2)} km`);
+      },
+      () => {
+        toast.error('Unable to retrieve your location');
+        setIsNearMeLoading(false);
+      }
+    );
+  };
+
   const handleLocateMe = () => {
     setIsLocating(true);
     if (!navigator.geolocation) {
@@ -252,6 +318,19 @@ const IslandMap: React.FC = () => {
         >
           <Crosshair size="28" className={isLocating ? 'animate-spin text-island-emerald' : ''} />
         </motion.button>
+
+        {pilotConfig?.enabled && pilotBusinessCoords && (
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={handleNearMe}
+            disabled={isNearMeLoading}
+            className="absolute top-8 right-[88px] z-[1000] px-5 h-14 bg-white/90 backdrop-blur-xl rounded-full flex items-center gap-2 text-island-volcanic hover:text-island-emerald transition-all shadow-2xl border border-emerald-50 text-xs font-bold"
+            title="Near Me"
+          >
+            <MapMarker size="20" className={isNearMeLoading ? 'animate-pulse' : ''} />
+            Near Me
+          </motion.button>
+        )}
 
         <div className="lg:hidden absolute top-8 left-8 z-[1000] flex gap-2">
           <button onClick={() => { setMapFilter('attractions'); setSelectedLocation(null); setSelectedShop(null); }}
@@ -374,6 +453,41 @@ const IslandMap: React.FC = () => {
                   <Navigation size="20" />
                   Get Directions
                 </a>
+              </div>
+            </motion.div>
+          )}
+
+          {nearMeInfo && (
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="absolute bottom-0 left-0 right-0 z-[1001] p-6 lg:p-10"
+            >
+              <div className="bg-white rounded-[3.5rem] p-8 max-w-md mx-auto shadow-2xl border-2 border-emerald-50 relative">
+                <button
+                  onClick={() => setNearMeInfo(null)}
+                  className="absolute top-6 right-6 p-3 bg-emerald-50 rounded-full text-island-green hover:text-island-coral transition-all"
+                >
+                  <X size="20" />
+                </button>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-2xl forest-gradient flex items-center justify-center text-white shadow-lg">
+                    <MapPin size="24" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-island-volcanic tracking-tighter">Near Me</h3>
+                    <p className="text-[10px] font-bold text-island-emerald uppercase tracking-wider">Pilot Business</p>
+                  </div>
+                </div>
+                <p className="text-lg font-bold text-island-green mb-2">
+                  {nearMeInfo.name}
+                </p>
+                <div className="flex items-center gap-2 text-sm text-slate-600 font-medium bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                  <MapPin size="18" className="text-island-coral" />
+                  Distance: <strong className="text-island-volcanic">{nearMeInfo.distance.toFixed(2)} km</strong> away
+                </div>
               </div>
             </motion.div>
           )}

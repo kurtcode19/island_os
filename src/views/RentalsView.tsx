@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UilCar, UilTruck, UilStore, UilMapMarker, UilClock, UilUsersAlt, UilCheckCircle, UilTimes, UilCalendar, UilRefresh, UilArrowRight, UilStar, UilPhone } from '@/icons';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { rentalVehicles, rentalMerchants, getVehiclesByMerchant } from '../data/rentals';
+import { getPilotConfig, type PilotConfig } from '../lib/pilotService';
 
 export default function RentalsView() {
   const { user, login } = useAuth();
@@ -12,6 +13,15 @@ export default function RentalsView() {
   const [expandedMerchant, setExpandedMerchant] = useState<string | null>(null);
   const [rentDays, setRentDays] = useState(1);
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
+
+  useEffect(() => {
+    getPilotConfig().then(setPilotConfig);
+  }, []);
+
+  const visibleMerchants = pilotConfig?.enabled && pilotConfig.businessId
+    ? rentalMerchants.filter(m => m.id === pilotConfig.businessId)
+    : rentalMerchants;
 
   const handleBook = async (vehicle: any) => {
     if (!user) { login(); return; }
@@ -51,7 +61,7 @@ export default function RentalsView() {
       </motion.div>
 
       <div className="space-y-16">
-        {rentalMerchants.map((merchant, mIdx) => {
+        {visibleMerchants.map((merchant, mIdx) => {
           const vehicles = getVehiclesByMerchant(merchant.id);
           const isExpanded = expandedMerchant === merchant.id;
           return (

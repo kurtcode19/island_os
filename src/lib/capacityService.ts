@@ -1,5 +1,5 @@
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../firebase';
+import { db, handleFirestoreError, OperationType, Timestamp } from '../firebase';
 import type { Booking } from '../types';
 
 const DEFAULT_MAX_GUESTS: Record<string, number> = {
@@ -41,5 +41,39 @@ export async function checkAvailability(
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, 'bookings');
     return { available: true, remaining: 999, error: 'Could not check availability' };
+  }
+}
+
+export async function checkEventVenueAvailability(
+  eventVenueId: string,
+  startTimestamp: Timestamp,
+  endTimestamp: Timestamp
+): Promise<{ available: boolean; conflictingBookings: number }> {
+  try {
+    const startMillis = startTimestamp.toMillis();
+    const endMillis = endTimestamp.toMillis();
+
+    const q = query(
+      collection(db, 'bookings'),
+      where('eventVenueId', '==', eventVenueId),
+      where('status', 'in', ['pending', 'confirmed'])
+    );
+    const snapshot = await getDocs(q);
+
+    const conflicting = snapshot.docs.filter((doc) => {
+      const data = doc.data();
+      if (!data.eventStartTimestamp || !data.eventEndTimestamp) return false;
+      const existingStart = data.eventStartTimestamp.toMillis();
+      const existingEnd = data.eventEndTimestamp.toMillis();
+      return startMillis < existingEnd && endMillis > existingStart;
+    });
+
+    return {
+      available: conflicting.length === 0,
+      conflictingBookings: conflicting.length,
+    };
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, 'bookings');
+    return { available: true, conflictingBookings: 0 };
   }
 }

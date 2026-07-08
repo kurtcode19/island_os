@@ -48,6 +48,7 @@ import CheckInView from './CheckInView';
 
 import { businesses as staticBusinesses } from '../data/businesses';
 import { BusinessType, BUSINESS_TYPE_CONFIGS } from '../types';
+import { getPilotConfig, type PilotConfig } from '../lib/pilotService';
 
 const typeIcons: Record<string, any> = {
   accommodation: Hotel,
@@ -60,13 +61,22 @@ export default function BusinessDashboard() {
   const location = useLocation();
   const [businessType, setBusinessType] = useState<BusinessType | null>(null);
   const [businessName, setBusinessName] = useState('Business');
+  const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
 
   useEffect(() => {
-    if (!profile?.businessId) return;
+    getPilotConfig().then(setPilotConfig);
+  }, []);
+
+  const effectiveBusinessId = pilotConfig?.enabled && pilotConfig.businessId
+    ? pilotConfig.businessId
+    : profile?.businessId;
+
+  useEffect(() => {
+    if (!effectiveBusinessId) return;
 
     const loadBusinessType = async () => {
       try {
-        const bizDoc = await getDoc(doc(db, 'businesses', profile.businessId!));
+        const bizDoc = await getDoc(doc(db, 'businesses', effectiveBusinessId!));
         if (bizDoc.exists()) {
           const data = bizDoc.data();
           setBusinessType(data.businessType as BusinessType);
@@ -74,7 +84,7 @@ export default function BusinessDashboard() {
           return;
         }
       } catch {}
-      const staticBiz = staticBusinesses.find(b => b.id === profile.businessId);
+      const staticBiz = staticBusinesses.find(b => b.id === effectiveBusinessId);
       if (staticBiz) {
         setBusinessType(staticBiz.businessType);
         setBusinessName(staticBiz.name);
@@ -82,17 +92,17 @@ export default function BusinessDashboard() {
     };
 
     loadBusinessType();
-  }, [profile?.businessId]);
+  }, [effectiveBusinessId]);
 
   const [unreadCount, setUnreadCount] = useState(0);
   const [previousBookingIds, setPreviousBookingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!profile?.businessId) return;
+    if (!effectiveBusinessId) return;
 
     const q = query(
       collection(db, 'bookings'),
-      where('businessId', '==', profile.businessId),
+      where('businessId', '==', effectiveBusinessId),
       where('status', '==', 'pending'),
       orderBy('createdAt', 'desc')
     );
@@ -114,7 +124,7 @@ export default function BusinessDashboard() {
     });
 
     return () => unsubscribe();
-  }, [profile?.businessId]);
+  }, [effectiveBusinessId]);
 
   const config = businessType ? BUSINESS_TYPE_CONFIGS[businessType] : null;
   const modules = config?.modules || ['analytics', 'bookings', 'inventory', 'tours', 'reviews', 'checkin'];
@@ -140,13 +150,13 @@ export default function BusinessDashboard() {
       toast.error('Please fill in all fields');
       return;
     }
-    if (!profile?.businessId) {
+    if (!effectiveBusinessId) {
       toast.error('No business ID found');
       return;
     }
     try {
       await addDoc(collection(db, 'manual_earnings'), {
-        businessId: profile.businessId,
+        businessId: effectiveBusinessId,
         product: manualProduct,
         amount: Number(manualAmount),
         recordedAt: serverTimestamp(),

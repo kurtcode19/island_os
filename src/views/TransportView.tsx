@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UilShip, UilCar, UilMapMarker, UilClock, UilCalendar, UilArrowRight, UilInfoCircle, UilShieldCheck, UilWater, UilNavigator, UilTimes, UilCheckCircle, UilRefresh, UilStar, UilExclamationTriangle, UilPlane, UilPlus, UilMinus, UilUsersAlt, UilTruck, UilExchange, UilUser } from '@/icons';
 import { db, handleFirestoreError, OperationType } from '../firebase';
@@ -11,6 +11,7 @@ import { transportOptions, schedules, type TransportOption } from '../data/trans
 import DateGuestPicker from '../components/shared/DateGuestPicker';
 import { checkAvailability } from '../lib/capacityService';
 import { logEvent } from '../lib/auditService';
+import { getPilotConfig, type PilotConfig } from '../lib/pilotService';
 
 export default function TransportView() {
   const { user, login } = useAuth();
@@ -24,6 +25,15 @@ export default function TransportView() {
   const [childrenCount, setChildrenCount] = useState(0);
   const [bringVehicle, setBringVehicle] = useState(false);
   const [roundtrip, setRoundtrip] = useState(false);
+  const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
+
+  useEffect(() => {
+    getPilotConfig().then(setPilotConfig);
+  }, []);
+
+  const visibleTransportOptions = pilotConfig?.enabled && pilotConfig.businessId
+    ? transportOptions.filter(o => o.businessId === pilotConfig.businessId)
+    : transportOptions;
 
   const handleBookTransport = async (transport: any) => {
     if (!user) {
@@ -148,7 +158,7 @@ export default function TransportView() {
               <h2 className="text-5xl md:text-6xl font-black text-island-volcanic tracking-tighter mb-12">Transit Options.</h2>
               
               <div className="grid grid-cols-1 gap-8">
-                {transportOptions.filter(o => o.tab === transportTab).map((opt, idx) => (
+                {visibleTransportOptions.filter(o => o.tab === transportTab).map((opt, idx) => (
                   <motion.div
                     key={opt.id}
                     initial={{ opacity: 0, x: -20 }}

@@ -10,6 +10,7 @@ import { AppRoutes } from './AppRoutes';
 import { createPass } from './lib/passService';
 import { logEvent } from './lib/auditService';
 import { isNativePlatform } from './lib/capacitorAuth';
+import OnboardingModal from './components/modals/OnboardingModal';
 
 export default function App() {
   const [role, setRole] = useState<UserRole>('TOURIST');
@@ -147,6 +148,16 @@ export default function App() {
           <p className="text-island-green font-bold uppercase tracking-widest text-xs">Loading Catarman eSuroy...</p>
         </div>
       </div>
+    );
+  }
+
+  const showOnboarding = !loading && profile && !profile.nationality;
+
+  if (showOnboarding) {
+    return (
+      <AuthContext.Provider value={{ user, profile, loading, login, logout }}>
+        <OnboardingModal uid={profile.uid} />
+      </AuthContext.Provider>
     );
   }
 

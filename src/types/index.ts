@@ -49,6 +49,7 @@ export interface UserProfile {
   email: string;
   role: UserRole;
   businessId?: string;
+  nationality?: string;
 }
 
 export type ServiceType = 'stay' | 'transport' | 'spot' | 'tour' | 'dining' | 'shop' | 'rental';
@@ -69,15 +70,28 @@ export interface Booking {
   date: string;
   checkInDate?: string;
   checkOutDate?: string;
+  checkInTimestamp?: any;
+  checkOutTimestamp?: any;
   guests?: number;
   status: BookingStatus;
   paymentStatus: PaymentStatus;
   amount: number;
+  totalPrice?: number;
   createdAt: any;
   checkedInAt?: any;
   departedAt?: any;
   ticketCode?: string;
   settledAt?: any;
+  purposeOfVisit?: 'leisure' | 'business' | 'family' | 'transit' | 'other';
+  addons?: { id: string; name: string; price: number }[];
+  bookingCategory?: 'stay' | 'event';
+  eventVenueId?: string;
+  eventType?: string;
+  expectedPax?: number;
+  eventStartTimestamp?: any;
+  eventEndTimestamp?: any;
+  refundStatus?: 'none' | 'pending' | 'approved' | 'rejected';
+  cancellationRequestedAt?: any;
 }
 
 export type PassStatus = 'active' | 'expired' | 'revoked';
@@ -123,6 +137,13 @@ export interface Business {
   verified: boolean;
   images: string[];
   createdAt: any;
+  media?: { featuredImage?: string; gallery?: string[] };
+  roomTypes?: { id: string; name: string; basePrice: number; capacity: number; priceModifiers?: { name: string; amount: number }[] }[];
+  policies?: { standardCheckInTime?: string; standardCheckOutTime?: string; cancellationHours?: number };
+  services?: { id: string; name: string; price: number; description?: string }[];
+  acceptsEvents?: boolean;
+  eventVenues?: { id: string; name: string; capacitySeated: number; halfDayPrice: number; fullDayPrice: number; overtimeRate: number }[];
+  location?: { lat: number; lng: number };
 }
 
 export interface AuditLog {

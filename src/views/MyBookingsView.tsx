@@ -25,6 +25,7 @@ import { collection, query, where, onSnapshot, doc, updateDoc, orderBy } from 'f
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import ReviewForm from '../components/shared/ReviewForm';
+import { requestCancellation } from '../lib/refundService';
 
 export default function MyBookingsView() {
   const { user } = useAuth();
@@ -339,7 +340,7 @@ export default function MyBookingsView() {
                               onClick={async () => {
                                 if (!window.confirm('Cancel this booking?')) return;
                                 try {
-                                  await updateDoc(doc(db, 'bookings', booking.id), { status: 'cancelled' });
+                                  await requestCancellation(booking.id, 'User requested cancellation');
                                 } catch (error) {
                                   handleFirestoreError(error, OperationType.UPDATE, `bookings/${booking.id}`);
                                 }

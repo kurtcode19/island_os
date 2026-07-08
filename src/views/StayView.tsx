@@ -1,78 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { UilBuilding, UilStar, UilMapMarker, UilWifi, UilCoffee, UilWind, UilWater, UilArrowRight, UilSearch, UilFilter, UilCheckCircle, UilRefresh, UilCalendarAlt, UilPlus, UilMinus, UilSun, UilMoon, UilTimes, UilAngleLeftB, UilAngleRightB, UilUsersAlt, UilGift, UilUser, UilUtensils, UilAngleDown } from '@/icons';
+import { UilBuilding, UilStar, UilMapMarker, UilWifi, UilCoffee, UilWind, UilWater, UilArrowRight, UilSearch, UilFilter, UilCheckCircle, UilRefresh, UilCalendarAlt, UilPlus, UilMinus, UilSun, UilMoon, UilTimes, UilAngleLeftB, UilAngleRightB, UilUsersAlt, UilGift, UilUser, UilUtensils, UilAngleDown, UilGlobe } from '@/icons';
 import { useAuth } from '../context/AuthContext';
-import { db, handleFirestoreError, OperationType } from '../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType, Timestamp } from '../firebase';
+import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { toast } from 'sonner';
 
 import { accommodations, type PromoPackage } from '../data/accommodations';
-
-function BookingCalendar({ checkIn, checkOut, onSelectCheckIn, onSelectCheckOut }: { 
-  checkIn: Date; checkOut: Date; 
-  onSelectCheckIn: (d: Date) => void; onSelectCheckOut: (d: Date) => void 
-}) {
-  const [viewDate, setViewDate] = useState(new Date(2026, 5, 1));
-  const [selecting, setSelecting] = useState<'checkin' | 'checkout'>('checkin');
-
-  const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
-  const firstDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  const emptyDays = Array.from({ length: firstDay }, (_, i) => i);
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-  const isSameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
-  const isInRange = (d: Date) => d > checkIn && d < checkOut;
-  const isPast = (d: Date) => d < new Date(2026, 5, 14);
-
-  const handleClick = (day: number) => {
-    const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
-    if (selecting === 'checkin') { onSelectCheckIn(date); setSelecting('checkout'); }
-    else {
-      if (date <= checkIn) { onSelectCheckIn(date); setSelecting('checkout'); }
-      else { onSelectCheckOut(date); setSelecting('checkin'); }
-    }
-  };
-
-  return (
-    <div className="bg-white rounded-2xl p-5 border border-slate-100">
-      <div className="flex items-center justify-between mb-5">
-        <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1))} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-island-green hover:text-white transition-all">
-          <UilAngleLeftB size="16" />
-        </button>
-        <span className="text-sm font-bold text-island-green">{viewDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-        <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 hover:bg-island-green hover:text-white transition-all">
-          <UilAngleRightB size="16" />
-        </button>
-      </div>
-      <div className="flex gap-2 mb-3">
-        <button onClick={() => setSelecting('checkin')} className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${selecting === 'checkin' ? 'bg-island-green text-white' : 'bg-slate-50 text-slate-500'}`}>Check-in</button>
-        <button onClick={() => setSelecting('checkout')} className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${selecting === 'checkout' ? 'bg-island-green text-white' : 'bg-slate-50 text-slate-500'}`}>Check-out</button>
-      </div>
-      <div className="grid grid-cols-7 gap-0.5">
-        {dayNames.map(d => <div key={d} className="text-center text-[9px] font-semibold text-slate-400 py-1">{d}</div>)}
-        {emptyDays.map(i => <div key={`e-${i}`} />)}
-        {days.map(d => {
-          const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), d);
-          const isCI = isSameDay(date, checkIn);
-          const isCO = isSameDay(date, checkOut);
-          return (
-            <button key={d} onClick={() => !isPast(date) && handleClick(d)} disabled={isPast(date)}
-              className={`p-1.5 text-xs font-semibold rounded-full transition-all
-                ${isCI || isCO ? 'bg-island-green text-white scale-105 z-10 shadow-lg' : ''}
-                ${isInRange(date) ? 'bg-island-green/10 text-island-green' : ''}
-                ${!isCI && !isCO && !isInRange(date) && !isPast(date) ? 'text-slate-700 hover:bg-slate-50' : ''}
-                ${isPast(date) ? 'text-slate-200 cursor-not-allowed' : ''}`}
-            >{d}</button>
-          );
-        })}
-      </div>
-      <div className="flex justify-between mt-3 pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-medium">
-        <span>In: <strong className="text-island-green">{checkIn.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</strong></span>
-        <span>Out: <strong className="text-island-green">{checkOut.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</strong></span>
-      </div>
-    </div>
-  );
-}
+import { getPilotConfig, type PilotConfig } from '../lib/pilotService';
+import PriceCalculator from '../components/shared/PriceCalculator';
 
 export default function StayView() {
   const { user, login } = useAuth();
@@ -90,13 +29,71 @@ export default function StayView() {
   const [breakfastPeople, setBreakfastPeople] = useState(2);
   const [selectedPromo, setSelectedPromo] = useState<PromoPackage | null>(null);
   const [expandedPromo, setExpandedPromo] = useState<string | null>(null);
+  const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
+  const [purposeOfVisit, setPurposeOfVisit] = useState<'leisure' | 'business' | 'family' | 'transit' | 'other'>('leisure');
+  const [businessServices, setBusinessServices] = useState<{ id: string; name: string; price: number }[]>([]);
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [showTime, setShowTime] = useState(false);
+  const [checkInTime, setCheckInTime] = useState<Date | null>(null);
+  const [checkOutTime, setCheckOutTime] = useState<Date | null>(null);
+  const [bookingMode, setBookingMode] = useState<'stays' | 'events'>('stays');
+  const [eventVenues, setEventVenues] = useState<{ id: string; name: string; capacitySeated: number; halfDayPrice: number; fullDayPrice: number; overtimeRate: number }[]>([]);
+  const [selectedVenue, setSelectedVenue] = useState<typeof eventVenues[0] | null>(null);
+  const [eventType, setEventType] = useState('');
+  const [expectedPax, setExpectedPax] = useState(50);
+  const [eventStart, setEventStart] = useState<Date | null>(null);
+  const [eventEnd, setEventEnd] = useState<Date | null>(null);
 
-  const types = ['All', ...new Set(accommodations.map(a => a.type))];
-  const filtered = accommodations.filter(a =>
+  useEffect(() => {
+    getPilotConfig().then(setPilotConfig);
+  }, []);
+
+  const visibleAccommodations = pilotConfig?.enabled && pilotConfig.businessId
+    ? accommodations.filter(a => a.businessId === pilotConfig.businessId)
+    : accommodations;
+
+  const types = ['All', ...new Set(visibleAccommodations.map(a => a.type))];
+  const filtered = visibleAccommodations.filter(a =>
     (selectedTab === 'All' || a.type === selectedTab) &&
     (a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
      a.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase())))
   );
+
+  useEffect(() => {
+    if (!selectedHotel) return;
+    const fetchServices = async () => {
+      try {
+        const bizDoc = await getDoc(doc(db, 'businesses', selectedHotel.businessId));
+        if (bizDoc.exists()) {
+          const data = bizDoc.data();
+          if (data.services) {
+            setBusinessServices(data.services);
+          }
+        }
+      } catch {}
+    };
+    fetchServices();
+  }, [selectedHotel?.businessId]);
+
+  useEffect(() => {
+    if (bookingMode !== 'events') return;
+    const bizId = pilotConfig?.enabled && pilotConfig.businessId
+      ? pilotConfig.businessId
+      : (selectedHotel?.businessId || '');
+    if (!bizId) return;
+    const fetchVenues = async () => {
+      try {
+        const bizDoc = await getDoc(doc(db, 'businesses', bizId));
+        if (bizDoc.exists()) {
+          const data = bizDoc.data();
+          if (data.eventVenues) {
+            setEventVenues(data.eventVenues);
+          }
+        }
+      } catch {}
+    };
+    fetchVenues();
+  }, [bookingMode, pilotConfig, selectedHotel?.businessId]);
 
   const calculateTotal = (hotel: typeof accommodations[0]) => {
     const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
@@ -124,6 +121,10 @@ export default function StayView() {
 
     const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
     const total = calculateTotal(hotel);
+    const selectedAddonDetails = businessServices.filter(s => selectedAddons.includes(s.id));
+    const legacyAddons: { id: string; name: string; price: number }[] = [];
+    if (addons.breakfast) legacyAddons.push({ id: 'breakfast', name: 'Breakfast Bundle', price: 250 * breakfastPeople });
+    if (addons.lateCheckin) legacyAddons.push({ id: 'lateCheckin', name: 'Late Check-in', price: 150 });
 
     try {
       await addDoc(collection(db, 'bookings'), {
@@ -134,6 +135,8 @@ export default function StayView() {
         serviceType: 'stay',
         businessId: hotel.businessId,
         date: `${checkIn.toLocaleDateString()} - ${checkOut.toLocaleDateString()}`,
+        checkInTimestamp: Timestamp.fromDate(checkIn),
+        checkOutTimestamp: Timestamp.fromDate(checkOut),
         adults,
         children,
         tweens,
@@ -142,6 +145,9 @@ export default function StayView() {
         status: 'pending',
         paymentStatus: 'UNPAID',
         amount: total,
+        totalPrice: total,
+        purposeOfVisit,
+        addons: selectedAddonDetails.length > 0 ? selectedAddonDetails : legacyAddons,
         createdAt: serverTimestamp()
       });
       setBookingStatus(prev => ({ ...prev, [hotel.id]: 'success' }));
@@ -152,6 +158,9 @@ export default function StayView() {
         setChildren(0);
         setTweens(0);
         setBreakfastPeople(2);
+        setSelectedAddons([]);
+        setBusinessServices([]);
+        setPurposeOfVisit('leisure');
       }, 3000);
     } catch (error: any) {
       console.error("Booking error:", error);
@@ -226,30 +235,104 @@ export default function StayView() {
         )}
       </div>
 
-      {/* Listings */}
+        {/* Listings */}
       <section className="max-w-7xl mx-auto px-6 mt-32">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
           <div>
             <span className="text-island-coral font-bold tracking-wider text-xs mb-4 block">Availability Grid</span>
-            <h2 className="text-5xl md:text-6xl font-black text-island-volcanic tracking-tighter">Verified Stays.</h2>
+            <h2 className="text-5xl md:text-6xl font-black text-island-volcanic tracking-tighter">
+              {bookingMode === 'stays' ? 'Verified Stays.' : 'Event Venues.'}
+            </h2>
           </div>
-          <div className="inline-flex items-center gap-1 p-1.5 bg-white border border-[#e3e8ee] rounded-full shadow-[0_1px_1px_rgba(14,17,22,0.04),0_20px_40px_-24px_rgba(14,17,22,0.18)] overflow-x-auto">
-            {types.map((tab) => (
-              <button 
-                key={tab} 
-                onClick={() => setSelectedTab(tab)}
-                className={`h-9 px-[18px] rounded-full text-sm font-medium text-[#5b6472] whitespace-nowrap transition-[background-color,color,box-shadow] duration-220 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[#0e1116] focus-visible:shadow-[0_0_0_3px_rgba(46,125,239,0.32)] ${
-                  selectedTab === tab 
-                    ? '!bg-[#0e1116] !text-white shadow-[0_1px_1px_rgba(14,17,22,0.06),0_8px_18px_-10px_rgba(14,17,22,0.5)]' 
-                    : ''
+          <div className="flex items-center gap-4">
+            <div className="inline-flex items-center gap-1 p-1.5 bg-white border border-[#e3e8ee] rounded-full shadow-[0_1px_1px_rgba(14,17,22,0.04),0_20px_40px_-24px_rgba(14,17,22,0.18)]">
+              <button
+                onClick={() => setBookingMode('stays')}
+                className={`h-9 px-[18px] rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                  bookingMode === 'stays'
+                    ? '!bg-[#0e1116] !text-white shadow-[0_1px_1px_rgba(14,17,22,0.06),0_8px_18px_-10px_rgba(14,17,22,0.5)]'
+                    : 'text-[#5b6472] hover:text-[#0e1116]'
                 }`}
               >
-                {tab}
+                Stays
               </button>
-            ))}
+              <button
+                onClick={() => setBookingMode('events')}
+                className={`h-9 px-[18px] rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                  bookingMode === 'events'
+                    ? '!bg-[#0e1116] !text-white shadow-[0_1px_1px_rgba(14,17,22,0.06),0_8px_18px_-10px_rgba(14,17,22,0.5)]'
+                    : 'text-[#5b6472] hover:text-[#0e1116]'
+                }`}
+              >
+                Events
+              </button>
+            </div>
+            {bookingMode === 'stays' && (
+              <div className="inline-flex items-center gap-1 p-1.5 bg-white border border-[#e3e8ee] rounded-full shadow-[0_1px_1px_rgba(14,17,22,0.04),0_20px_40px_-24px_rgba(14,17,22,0.18)] overflow-x-auto">
+                {types.map((tab) => (
+                  <button 
+                    key={tab} 
+                    onClick={() => setSelectedTab(tab)}
+                    className={`h-9 px-[18px] rounded-full text-sm font-medium text-[#5b6472] whitespace-nowrap transition-[background-color,color,box-shadow] duration-220 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[#0e1116] focus-visible:shadow-[0_0_0_3px_rgba(46,125,239,0.32)] ${
+                      selectedTab === tab 
+                        ? '!bg-[#0e1116] !text-white shadow-[0_1px_1px_rgba(14,17,22,0.06),0_8px_18px_-10px_rgba(14,17,22,0.5)]' 
+                        : ''
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
+        {bookingMode === 'events' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            {eventVenues.length === 0 ? (
+              <div className="col-span-full text-center py-20">
+                <p className="text-2xl font-black text-slate-300 tracking-tighter">No event venues available</p>
+                <p className="text-sm text-slate-400 mt-2">Check back later for event venue listings.</p>
+              </div>
+            ) : eventVenues.map((venue, idx) => (
+              <motion.div
+                key={venue.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="group bg-white rounded-[4rem] overflow-hidden border-2 border-slate-100 shadow-xl hover:shadow-2xl transition-all duration-500 p-5"
+              >
+                <div className="px-5 pb-5">
+                  <div className="flex justify-between items-start mb-8">
+                    <div>
+                      <span className="text-xs font-bold text-island-emerald tracking-wider mb-2 block">Event Venue</span>
+                      <h3 className="text-4xl font-black text-island-volcanic tracking-tighter leading-tight">{venue.name}</h3>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 mb-6 flex-wrap">
+                    <span className="px-4 py-1.5 bg-stone-50 rounded-full text-[10px] font-bold text-slate-500 border border-slate-100">
+                      Seats {venue.capacitySeated}
+                    </span>
+                    <span className="px-4 py-1.5 bg-stone-50 rounded-full text-[10px] font-bold text-slate-500 border border-slate-100">
+                      Half-day: ₱{venue.halfDayPrice.toLocaleString()}
+                    </span>
+                    <span className="px-4 py-1.5 bg-stone-50 rounded-full text-[10px] font-bold text-slate-500 border border-slate-100">
+                      Full-day: ₱{venue.fullDayPrice.toLocaleString()}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => { setSelectedVenue(venue); setEventStart(null); setEventEnd(null); setEventType(''); setExpectedPax(50); }}
+                    className="w-full bg-island-green text-white py-6 rounded-3xl font-bold text-xs uppercase tracking-widest hover:shadow-xl hover:shadow-island-green/20 active:scale-95 transition-all flex items-center justify-center gap-3"
+                  >
+                    <UilCalendarAlt size="20" /> Book This Venue
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {bookingMode === 'stays' && 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {filtered.length === 0 ? (
             <div className="col-span-full text-center py-20">
@@ -385,6 +468,7 @@ export default function StayView() {
             </motion.div>
           ))}
         </div>
+      }
       </section>
 
       {/* Booking Modal */}
@@ -403,19 +487,74 @@ export default function StayView() {
                   <h3 className="text-xl font-bold text-island-green tracking-tight">{selectedHotel.name}</h3>
                   <p className="text-xs text-slate-400 font-medium">₱{selectedHotel.price.toLocaleString()} / night</p>
                 </div>
-                <button onClick={() => { setSelectedHotel(null); setSelectedPromo(null); setAddons({ breakfast: false, lateCheckin: false }); setChildren(0); setTweens(0); setBreakfastPeople(2); }}
+                <button onClick={() => { setSelectedHotel(null); setSelectedPromo(null); setAddons({ breakfast: false, lateCheckin: false }); setChildren(0); setTweens(0); setBreakfastPeople(2); setSelectedAddons([]); setBusinessServices([]); setPurposeOfVisit('leisure'); }}
                   className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:bg-island-green hover:text-white transition-all">
                   <UilTimes size="18" />
                 </button>
               </div>
 
               <div className="px-8 pt-6 pb-8 space-y-6">
-                {/* Calendar */}
+                {/* Date/Time Pickers */}
                 <div>
                   <h4 className="text-sm font-bold text-island-green mb-3 flex items-center gap-2">
-                    <UilCalendarAlt size="16" className="text-island-emerald" /> Select dates
+                    <UilCalendarAlt size="16" className="text-island-emerald" /> Check-in / Check-out
                   </h4>
-                  <BookingCalendar checkIn={checkIn} checkOut={checkOut} onSelectCheckIn={setCheckIn} onSelectCheckOut={setCheckOut} />
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <label className="text-[10px] font-bold text-slate-400 mb-1 block">Check-in</label>
+                      <DatePicker
+                        selected={checkIn}
+                        onChange={(date: Date | null) => { if (date) { setCheckIn(date); setCheckInTime(date); } }}
+                        showTimeSelect
+                        dateFormat="MMM d, yyyy h:mm aa"
+                        timeFormat="h:mm aa"
+                        timeIntervals={30}
+                        minDate={new Date()}
+                        className="w-full px-4 py-3 bg-stone-50 border-2 border-stone-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 text-sm font-semibold text-slate-800"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-[10px] font-bold text-slate-400 mb-1 block">Check-out</label>
+                      <DatePicker
+                        selected={checkOut}
+                        onChange={(date: Date | null) => { if (date) { setCheckOut(date); setCheckOutTime(date); } }}
+                        showTimeSelect
+                        dateFormat="MMM d, yyyy h:mm aa"
+                        timeFormat="h:mm aa"
+                        timeIntervals={30}
+                        minDate={checkIn || new Date()}
+                        className="w-full px-4 py-3 bg-stone-50 border-2 border-stone-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 text-sm font-semibold text-slate-800"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Purpose of Visit */}
+                <div>
+                  <h4 className="text-sm font-bold text-island-green mb-3 flex items-center gap-2">
+                    <UilGlobe size="16" className="text-island-emerald" /> Purpose of Visit
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { value: 'leisure', label: 'Leisure' },
+                      { value: 'business', label: 'Business' },
+                      { value: 'family', label: 'Family' },
+                      { value: 'transit', label: 'Transit' },
+                      { value: 'other', label: 'Other' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setPurposeOfVisit(opt.value as typeof purposeOfVisit)}
+                        className={`px-5 py-2.5 rounded-full text-[10px] font-bold tracking-wider border-2 transition-all ${
+                          purposeOfVisit === opt.value
+                            ? 'bg-island-green text-white border-island-green'
+                            : 'bg-white text-slate-400 border-slate-100 hover:border-island-green/30'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Guests */}
@@ -483,80 +622,93 @@ export default function StayView() {
                   </div>
                 </div>
 
-                {/* Add-ons */}
+                {/* Add-ons (from business services) */}
                 <div>
                   <h4 className="text-sm font-bold text-island-green mb-3">Add-ons</h4>
                   <div className="space-y-2">
-                    {[
-                      { id: 'breakfast', label: 'Breakfast Bundle', price: 250, icon: UilUtensils },
-                      { id: 'lateCheckin', label: 'Late Check-in', price: 150, icon: UilMoon },
-                    ].map(item => (
-                      <div key={item.id} className={`rounded-2xl border-2 transition-all ${
-                        (addons as any)[item.id] ? 'border-island-green bg-island-green/5' : 'border-slate-100 bg-white'
-                      }`}>
-                        <button onClick={() => setAddons(prev => ({ ...prev, [item.id]: !(prev as any)[item.id] }))}
-                          className="w-full flex items-center justify-between p-4"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${(addons as any)[item.id] ? 'bg-island-green text-white' : 'bg-slate-50 text-slate-400'}`}>
-                              <item.icon size="18" />
-                            </div>
-                            <div className="text-left">
-                              <span className="block text-sm font-semibold text-slate-800">{item.label}</span>
-                              <span className="text-[10px] text-slate-400 font-medium">+ ₱{item.price}</span>
-                            </div>
+                    {businessServices.length === 0 ? (
+                      <>
+                        {[
+                          { id: 'breakfast', label: 'Breakfast Bundle', price: 250, icon: UilUtensils },
+                          { id: 'lateCheckin', label: 'Late Check-in', price: 150, icon: UilMoon },
+                        ].map(item => (
+                          <div key={item.id} className={`rounded-2xl border-2 transition-all ${
+                            (addons as any)[item.id] ? 'border-island-green bg-island-green/5' : 'border-slate-100 bg-white'
+                          }`}>
+                            <button onClick={() => setAddons(prev => ({ ...prev, [item.id]: !(prev as any)[item.id] }))}
+                              className="w-full flex items-center justify-between p-4"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${(addons as any)[item.id] ? 'bg-island-green text-white' : 'bg-slate-50 text-slate-400'}`}>
+                                  <item.icon size="18" />
+                                </div>
+                                <div className="text-left">
+                                  <span className="block text-sm font-semibold text-slate-800">{item.label}</span>
+                                  <span className="text-[10px] text-slate-400 font-medium">+ ₱{item.price}</span>
+                                </div>
+                              </div>
+                              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${(addons as any)[item.id] ? 'bg-island-green border-island-green text-white' : 'border-slate-300'}`}>
+                                {(addons as any)[item.id] && <UilCheckCircle size="12" />}
+                              </div>
+                            </button>
+                            {(addons as any)[item.id] && item.id === 'breakfast' && (
+                              <div className="px-4 pb-4 flex items-center justify-between border-t border-island-green/10 pt-3">
+                                <span className="text-xs font-semibold text-slate-600">For how many people?</span>
+                                <div className="flex items-center gap-3">
+                                  <button onClick={() => setBreakfastPeople(Math.max(1, breakfastPeople - 1))} className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                                    <UilMinus size="12" />
+                                  </button>
+                                  <span className="w-5 text-center text-sm font-bold text-island-green">{breakfastPeople}</span>
+                                  <button onClick={() => setBreakfastPeople(Math.min(adults + children + tweens, breakfastPeople + 1))} className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
+                                    <UilPlus size="12" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${(addons as any)[item.id] ? 'bg-island-green border-island-green text-white' : 'border-slate-300'}`}>
-                            {(addons as any)[item.id] && <UilCheckCircle size="12" />}
+                        ))}
+                      </>
+                    ) : (
+                      businessServices.map((svc) => {
+                        const isSelected = selectedAddons.includes(svc.id);
+                        return (
+                          <div key={svc.id} className={`rounded-2xl border-2 transition-all ${
+                            isSelected ? 'border-island-green bg-island-green/5' : 'border-slate-100 bg-white'
+                          }`}>
+                            <button onClick={() => setSelectedAddons(prev =>
+                              isSelected ? prev.filter(id => id !== svc.id) : [...prev, svc.id]
+                            )} className="w-full flex items-center justify-between p-4">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isSelected ? 'bg-island-green text-white' : 'bg-slate-50 text-slate-400'}`}>
+                                  <UilUtensils size="18" />
+                                </div>
+                                <div className="text-left">
+                                  <span className="block text-sm font-semibold text-slate-800">{svc.name}</span>
+                                  <span className="text-[10px] text-slate-400 font-medium">+ ₱{svc.price}</span>
+                                </div>
+                              </div>
+                              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-island-green border-island-green text-white' : 'border-slate-300'}`}>
+                                {isSelected && <UilCheckCircle size="12" />}
+                              </div>
+                            </button>
                           </div>
-                        </button>
-                        {(addons as any)[item.id] && item.id === 'breakfast' && (
-                          <div className="px-4 pb-4 flex items-center justify-between border-t border-island-green/10 pt-3">
-                            <span className="text-xs font-semibold text-slate-600">For how many people?</span>
-                            <div className="flex items-center gap-3">
-                              <button onClick={() => setBreakfastPeople(Math.max(1, breakfastPeople - 1))} className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                                <UilMinus size="12" />
-                              </button>
-                              <span className="w-5 text-center text-sm font-bold text-island-green">{breakfastPeople}</span>
-                              <button onClick={() => setBreakfastPeople(Math.min(adults + children + tweens, breakfastPeople + 1))} className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                                <UilPlus size="12" />
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                        );
+                      })
+                    )}
                   </div>
                 </div>
 
-                {/* Total */}
-                <div className="bg-island-green/5 rounded-2xl p-5 border border-island-green/10 space-y-3">
-                  {selectedPromo ? (
-                    <div className="flex justify-between text-sm text-slate-600">
-                      <span>{selectedPromo.name} ({selectedPromo.days}D/{selectedPromo.nights}N)</span>
-                      <span className="font-semibold">₱{selectedPromo.price.toLocaleString()}</span>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex justify-between text-sm text-slate-600">
-                        <span>₱{selectedHotel.price.toLocaleString()} x {Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))} nights</span>
-                        <span className="font-semibold">₱{(selectedHotel.price * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))).toLocaleString()}</span>
-                      </div>
-                      {children > 0 && selectedHotel.childPrice && (
-                        <div className="flex justify-between text-sm text-slate-600"><span>Children ({children} x ₱{selectedHotel.childPrice})</span><span>+ ₱{(children * selectedHotel.childPrice * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))).toLocaleString()}</span></div>
-                      )}
-                      {tweens > 0 && selectedHotel.tweenPrice && (
-                        <div className="flex justify-between text-sm text-slate-600"><span>Tweens ({tweens} x ₱{selectedHotel.tweenPrice})</span><span>+ ₱{(tweens * selectedHotel.tweenPrice * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))).toLocaleString()}</span></div>
-                      )}
-                      {addons.breakfast && <div className="flex justify-between text-sm text-slate-600"><span>Breakfast Bundle x {breakfastPeople}</span><span>+ ₱{(250 * breakfastPeople).toLocaleString()}</span></div>}
-                      {addons.lateCheckin && <div className="flex justify-between text-sm text-slate-600"><span>Late Check-in</span><span>+ ₱150</span></div>}
-                    </>
-                  )}
-                  <div className="border-t border-island-green/10 pt-3 flex justify-between items-center">
-                    <span className="text-base font-bold text-island-green">Total</span>
-                    <span className="text-xl font-black text-island-green">₱{calculateTotal(selectedHotel).toLocaleString()}</span>
-                  </div>
-                </div>
+                {/* Total - Price Calculator */}
+                <PriceCalculator
+                  basePrice={selectedHotel.price}
+                  nights={Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))}
+                  addons={[
+                    ...(businessServices.filter(s => selectedAddons.includes(s.id))),
+                    ...(addons.breakfast ? [{ id: 'breakfast', name: 'Breakfast Bundle', price: 250 * breakfastPeople }] : []),
+                    ...(addons.lateCheckin ? [{ id: 'lateCheckin', name: 'Late Check-in', price: 150 }] : []),
+                  ]}
+                  taxRate={12}
+                />
 
                 {/* Confirm */}
                 {adults + children + tweens > selectedHotel.maxAdults ? (
@@ -577,6 +729,149 @@ export default function StayView() {
                     )}
                   </button>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Event Booking Modal */}
+      <AnimatePresence>
+        {selectedVenue && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setSelectedVenue(null)}
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            />
+            <motion.div initial={{ opacity: 0, scale: 0.92, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: 30 }}
+              className="relative w-full max-w-lg bg-white rounded-[2.5rem] overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="sticky top-0 bg-white/95 backdrop-blur-3xl z-10 px-8 pt-8 pb-4 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-island-green tracking-tight">{selectedVenue.name}</h3>
+                  <p className="text-xs text-slate-400 font-medium">Event Venue</p>
+                </div>
+                <button onClick={() => { setSelectedVenue(null); }}
+                  className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:bg-island-green hover:text-white transition-all">
+                  <UilTimes size="18" />
+                </button>
+              </div>
+
+              <div className="px-8 pt-6 pb-8 space-y-6">
+                {/* Event Type */}
+                <div>
+                  <h4 className="text-sm font-bold text-island-green mb-3">Event Type</h4>
+                  <select
+                    value={eventType}
+                    onChange={(e) => setEventType(e.target.value)}
+                    className="w-full px-5 py-4 bg-stone-50 border-2 border-stone-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 text-sm font-semibold text-slate-800"
+                  >
+                    <option value="">Select event type...</option>
+                    <option value="wedding">Wedding</option>
+                    <option value="conference">Conference</option>
+                    <option value="party">Party</option>
+                    <option value="meeting">Meeting</option>
+                    <option value="workshop">Workshop</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                {/* Expected Pax */}
+                <div>
+                  <h4 className="text-sm font-bold text-island-green mb-3">Expected Pax</h4>
+                  <input
+                    type="number"
+                    value={expectedPax}
+                    onChange={(e) => setExpectedPax(Number(e.target.value))}
+                    min={1}
+                    max={selectedVenue.capacitySeated}
+                    className="w-full px-5 py-4 bg-stone-50 border-2 border-stone-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 text-sm font-semibold text-slate-800"
+                  />
+                  <p className="text-xs text-slate-400 mt-1">Max capacity: {selectedVenue.capacitySeated} pax</p>
+                </div>
+
+                {/* Event Date/Time */}
+                <div>
+                  <h4 className="text-sm font-bold text-island-green mb-3">Event Start</h4>
+                  <DatePicker
+                    selected={eventStart}
+                    onChange={(date: Date | null) => setEventStart(date)}
+                    showTimeSelect
+                    dateFormat="MMM d, yyyy h:mm aa"
+                    timeFormat="h:mm aa"
+                    timeIntervals={30}
+                    minDate={new Date()}
+                    className="w-full px-5 py-4 bg-stone-50 border-2 border-stone-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 text-sm font-semibold text-slate-800"
+                    placeholderText="Select event start"
+                  />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-island-green mb-3">Event End</h4>
+                  <DatePicker
+                    selected={eventEnd}
+                    onChange={(date: Date | null) => setEventEnd(date)}
+                    showTimeSelect
+                    dateFormat="MMM d, yyyy h:mm aa"
+                    timeFormat="h:mm aa"
+                    timeIntervals={30}
+                    minDate={eventStart || new Date()}
+                    className="w-full px-5 py-4 bg-stone-50 border-2 border-stone-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 text-sm font-semibold text-slate-800"
+                    placeholderText="Select event end"
+                  />
+                </div>
+
+                {/* Price breakdown */}
+                <div className="bg-island-green/5 rounded-2xl p-5 border border-island-green/10 space-y-2">
+                  <div className="flex justify-between text-sm text-slate-600">
+                    <span>Half-day rate</span>
+                    <span className="font-semibold">₱{selectedVenue.halfDayPrice.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-slate-600">
+                    <span>Full-day rate</span>
+                    <span className="font-semibold">₱{selectedVenue.fullDayPrice.toLocaleString()}</span>
+                  </div>
+                  <div className="border-t border-island-green/10 pt-2 flex justify-between items-center">
+                    <span className="text-base font-bold text-island-green">Overtime/hr</span>
+                    <span className="text-lg font-black text-island-volcanic">₱{selectedVenue.overtimeRate.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {/* Submit */}
+                <button
+                  onClick={async () => {
+                    if (!user) { login(); return; }
+                    if (!eventType || !eventStart || !eventEnd) return;
+                    try {
+                      const pilotBizId = pilotConfig?.enabled && pilotConfig.businessId ? pilotConfig.businessId : '';
+                      await addDoc(collection(db, 'bookings'), {
+                        touristUid: user.uid,
+                        touristName: user.displayName || 'Anonymous',
+                        touristEmail: user.email || '',
+                        serviceName: selectedVenue.name,
+                        serviceType: 'stay',
+                        businessId: pilotBizId || 'pilot_business',
+                        bookingCategory: 'event',
+                        eventVenueId: selectedVenue.id,
+                        eventType,
+                        expectedPax,
+                        eventStartTimestamp: Timestamp.fromDate(eventStart),
+                        eventEndTimestamp: Timestamp.fromDate(eventEnd),
+                        status: 'pending',
+                        paymentStatus: 'UNPAID',
+                        amount: selectedVenue.fullDayPrice,
+                        createdAt: serverTimestamp(),
+                      });
+                      toast.success('Event inquiry submitted!');
+                      setSelectedVenue(null);
+                    } catch (error: any) {
+                      handleFirestoreError(error, OperationType.CREATE, 'bookings');
+                    }
+                  }}
+                  disabled={!eventType || !eventStart || !eventEnd}
+                  className="w-full bg-island-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-island-green/20 hover:shadow-island-green/40 active:scale-[0.98] transition-all disabled:opacity-50"
+                >
+                  Submit Event Inquiry
+                </button>
               </div>
             </motion.div>
           </div>
