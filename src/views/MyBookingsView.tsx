@@ -18,14 +18,17 @@ import {
   UilStar,
   UilSearch,
   UilRepeat,
-  UilFilter
+  UilFilter,
+  UilTimes
 } from '@/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { collection, query, where, onSnapshot, doc, updateDoc, orderBy } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'sonner';
 import ReviewForm from '../components/shared/ReviewForm';
-import { requestCancellation } from '../lib/refundService';
+import { requestCancellation, processRefundEligibility } from '../lib/refundService';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function MyBookingsView() {
   const { user } = useAuth();
@@ -35,6 +38,8 @@ export default function MyBookingsView() {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
+  const [cancellingBooking, setCancellingBooking] = useState<{ id: string; eligibility: string } | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [reviewFilter, setReviewFilter] = useState<'all' | 'reviewable'>('all');
 
@@ -143,7 +148,7 @@ export default function MyBookingsView() {
             <div>
               <span className="text-island-emerald font-bold tracking-wider text-xs mb-3 block">My Bookings</span>
               <h1 className="text-5xl font-black text-island-volcanic tracking-tighter">Your Adventures.</h1>
-              <p className="text-slate-500 font-medium text-lg mt-2">Manage your stays, transport, and tours in Catarman.</p>
+              <p className="text-slate-500 font-medium text-lg mt-2">Manage your stays, transport, and tours.</p>
             </div>
             <div className="flex items-center gap-6">
               <div className="px-8 py-4 volcanic-gradient rounded-3xl border border-white/10 shadow-2xl">
@@ -207,7 +212,7 @@ export default function MyBookingsView() {
                   <UilCompass size="48" />
                 </div>
                 <h2 className="text-4xl font-black text-island-volcanic tracking-tighter mb-4">No bookings yet</h2>
-                <p className="text-slate-500 font-medium text-lg mb-12 max-w-sm mx-auto leading-relaxed">Time to plan your Catarman adventure! Book a stay or transport to get started.</p>
+                <p className="text-slate-500 font-medium text-lg mb-12 max-w-sm mx-auto leading-relaxed">Time to plan your adventure! Book a stay or transport to get started.</p>
                 <Link to="/stay" className="btn-primary px-12 py-6 rounded-full inline-flex">
                   Explore Stays <UilAngleRightB size="24" />
                 </Link>
@@ -282,8 +287,18 @@ export default function MyBookingsView() {
                         </div>
                       </div>
 
-                      {/* Right: Actions */}
+                        {/* Right: Actions */}
                       <div className="flex flex-col justify-center gap-4 min-w-[200px]">
+                        {(booking.status === 'confirmed' || booking.ticketCode) && (
+                          <div className="flex flex-col items-center gap-1 bg-white py-4 rounded-[2rem] border-2 border-emerald-100 shadow-sm">
+                            <QRCodeSVG
+                              value={`${window.location.origin}/my-bookings?booking=${booking.id}`}
+                              size={90}
+                              level="M"
+                            />
+                            <span className="text-[9px] text-slate-400 font-semibold mt-1">Booking QR</span>
+                          </div>
+                        )}
                         {booking.ticketCode ? (
                           <>
                             <div className="flex flex-col items-center gap-2 text-island-emerald bg-emerald-50 py-5 rounded-[2rem] border-2 border-emerald-100 shadow-sm">
@@ -337,13 +352,10 @@ export default function MyBookingsView() {
                               Pay Online
                             </button>
                             <button
-                              onClick={async () => {
-                                if (!window.confirm('Cancel this booking?')) return;
-                                try {
-                                  await requestCancellation(booking.id, 'User requested cancellation');
-                                } catch (error) {
-                                  handleFirestoreError(error, OperationType.UPDATE, `bookings/${booking.id}`);
-                                }
+                              onClick={() => {
+                                const eligibility = processRefundEligibility(booking);
+                                setCancellingBooking({ id: booking.id, eligibility });
+                                setCancelReason('');
                               }}
                               className="flex items-center justify-center gap-2 py-4 bg-white border-2 border-rose-200 text-island-coral rounded-[2rem] text-[10px] font-bold tracking-wider hover:bg-rose-50 transition-all"
                             >
@@ -410,6 +422,78 @@ export default function MyBookingsView() {
                   />
                 );
               })()}
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Cancellation Modal */}
+      <AnimatePresence>
+        {cancellingBooking && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+            <div className="absolute inset-0 bg-island-volcanic/60 backdrop-blur-sm" onClick={() => setCancellingBooking(null)} />
+            <div className="relative w-full max-w-md bg-white rounded-[2.5rem] p-8 shadow-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-island-volcanic">Cancel Booking</h3>
+                <button onClick={() => setCancellingBooking(null)} className="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:text-island-coral transition-all">
+                  <UilTimes size="16" />
+                </button>
+              </div>
+
+              {/* Refund Eligibility Info */}
+              {cancellingBooking.eligibility === 'eligible' && (
+                <div className="p-5 bg-emerald-50 rounded-2xl border-2 border-emerald-100 mb-6">
+                  <UilCheckCircle size="24" className="text-island-emerald mb-2" />
+                  <p className="text-sm font-bold text-island-emerald">Full Refund Available</p>
+                  <p className="text-xs text-emerald-700 mt-1">Cancelled more than 48 hours before check-in. You're eligible for a full refund.</p>
+                </div>
+              )}
+              {cancellingBooking.eligibility === 'pending' && (
+                <div className="p-5 bg-amber-50 rounded-2xl border-2 border-amber-100 mb-6">
+                  <UilExclamationCircle size="24" className="text-amber-600 mb-2" />
+                  <p className="text-sm font-bold text-amber-800">Partial/No Refund</p>
+                  <p className="text-xs text-amber-700 mt-1">Cancelled less than 48 hours before check-in. Refund will be reviewed by the business.</p>
+                </div>
+              )}
+              {cancellingBooking.eligibility === 'ineligible' && (
+                <div className="p-5 bg-rose-50 rounded-2xl border-2 border-rose-100 mb-6">
+                  <UilTimesCircle size="24" className="text-island-coral mb-2" />
+                  <p className="text-sm font-bold text-island-coral">No Refund</p>
+                  <p className="text-xs text-rose-700 mt-1">Unable to determine refund eligibility. The business will review your request.</p>
+                </div>
+              )}
+
+              <div className="mb-6">
+                <label className="text-xs font-bold text-slate-500 mb-1.5 block">Reason for Cancellation</label>
+                <textarea
+                  value={cancelReason}
+                  onChange={e => setCancelReason(e.target.value)}
+                  className="w-full px-4 py-3 bg-stone-50 rounded-xl border-2 border-stone-100 outline-none focus:ring-4 focus:ring-island-emerald/5 text-sm font-semibold text-slate-800 resize-none"
+                  rows={3}
+                  placeholder="Tell us why you're cancelling..."
+                />
+              </div>
+
+              <button
+                onClick={async () => {
+                  try {
+                    await requestCancellation(cancellingBooking.id, cancelReason || 'No reason provided');
+                    setCancellingBooking(null);
+                    toast.success('Booking cancelled');
+                  } catch (error) {
+                    handleFirestoreError(error, OperationType.UPDATE, `bookings/${cancellingBooking.id}`);
+                  }
+                }}
+                disabled={processingId === cancellingBooking.id}
+                className="w-full bg-island-coral text-white py-5 rounded-2xl font-bold text-sm hover:bg-rose-700 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+              >
+                {processingId === cancellingBooking.id ? (
+                  <UilRefresh size="20" className="animate-spin" />
+                ) : (
+                  <UilTimesCircle size="20" />
+                )}
+                Confirm Cancellation
+              </button>
             </div>
           </div>
         )}

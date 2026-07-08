@@ -100,7 +100,7 @@ export default function LandingView() {
               </h1>
 
               <p className="text-white/60 text-lg md:text-xl font-medium leading-relaxed max-w-xl mb-14">
-                Discover curated travel experiences across Catarman's most breathtaking destinations.
+                Discover curated travel experiences across the most breathtaking destinations.
               </p>
 
               <button 
@@ -269,7 +269,7 @@ export default function LandingView() {
           </div>
           <div className="space-y-12">
             <p className="text-xl text-slate-500 font-medium leading-relaxed max-w-md">
-              Catarman offers a profound journey through Camiguin's volcanic history and vibrant local culture. From spiritual landmarks to hidden waterfalls.
+              eSuroy offers a profound journey through Camiguin's volcanic history and vibrant local culture. From spiritual landmarks to hidden waterfalls.
             </p>
             <button onClick={() => navigate('/how-it-works')} className="bg-island-volcanic text-white px-10 py-5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-3 hover:scale-105 transition-all shadow-xl">
               Learn More <UilArrowRight size="18" />
@@ -306,14 +306,14 @@ export default function LandingView() {
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-10">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-slate-400 mb-6 block">/ Catarman Landmarks</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-slate-400 mb-6 block">/ Landmarks</span>
               <h2 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] uppercase">
                 Must Visit <br /> <span className="italic text-island-emerald font-normal">Destinations</span>
               </h2>
             </div>
             <div className="space-y-8 text-right">
               <p className="text-slate-400 text-sm font-medium leading-relaxed max-w-xs ml-auto">
-                Official municipal experiences verified by the Catarman Tourism Office.
+                Official municipal experiences verified by the eSuroy platform.
               </p>
               <button onClick={() => navigate('/locations')} className="bg-island-volcanic text-white px-10 py-5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-3 hover:scale-105 transition-all shadow-xl">
                 See All <UilArrowRight size="18" />
@@ -364,7 +364,7 @@ export default function LandingView() {
           <img src="/images/logo.png" alt="Avatar" className="w-24 h-24 rounded-full shadow-2xl border-4 border-white object-cover" />
           <div>
             <p className="font-black tracking-tight text-xl uppercase italic">Marco Salvatierra</p>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Catarman Explorer</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">eSuroy Explorer</p>
           </div>
         </div>
       </section>
@@ -409,7 +409,7 @@ export default function LandingView() {
                     </div>
 
                     <h4 className="text-3xl font-bold mb-6 tracking-tighter leading-tight uppercase italic">{selectedExp.title}</h4>
-                    <p className="text-slate-500 font-medium leading-relaxed mb-12">Experience the Catarman pilot platform. This landmark represents the profound heritage of our municipality.</p>
+                    <p className="text-slate-500 font-medium leading-relaxed mb-12">Experience the eSuroy platform. This landmark represents the profound heritage of our municipality.</p>
 
                     <div className="space-y-8">
                       <div className="flex flex-col">
@@ -454,12 +454,12 @@ export default function LandingView() {
             <div className="max-w-md">
               <div className="flex items-center gap-4 mb-10 group cursor-pointer" onClick={() => navigate('/')}>
                 <div className="w-12 h-12 bg-island-volcanic rounded-2xl flex items-center justify-center text-white">
-                  <img src="/images/logo.png" alt="Catarman eSuroy Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
-                </div>
-                <span className="text-3xl font-black tracking-tighter uppercase italic">Catarman <span className="text-island-emerald not-italic">eSuroy</span></span>
+<img src="/images/logo.png" alt="eSuroy Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+                  </div>
+                  <span className="text-3xl font-black tracking-tighter uppercase italic"><span className="text-island-emerald not-italic">eSuroy</span></span>
               </div>
               <p className="text-slate-400 text-xl font-medium leading-relaxed italic">
-                Preserving and digitizing the unique heritage of Catarman, Camiguin.
+                Smart tourism platform for MSMEs and travelers.
               </p>
             </div>
             
@@ -484,7 +484,7 @@ export default function LandingView() {
           </div>
           
           <div className="pt-20 border-t border-slate-50 flex justify-between items-center text-xs font-semibold tracking-tight text-slate-400">
-            <p>© 2026 Catarman eSuroy</p>
+            <p>© 2026 eSuroy</p>
             <div className="flex gap-10">
               <span className="text-slate-300 cursor-default">Instagram</span>
               <span className="text-slate-300 cursor-default">Facebook</span>

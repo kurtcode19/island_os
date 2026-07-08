@@ -96,6 +96,13 @@ export default function BusinessDashboard() {
 
   const [unreadCount, setUnreadCount] = useState(0);
   const [previousBookingIds, setPreviousBookingIds] = useState<Set<string>>(new Set());
+  const [dashboardStats, setDashboardStats] = useState({
+    totalBookings: 0,
+    pendingCount: 0,
+    todaysCheckIns: 0,
+    weeklyRevenue: 0,
+    activeBookings: 0,
+  });
 
   useEffect(() => {
     if (!effectiveBusinessId) return;
@@ -103,13 +110,19 @@ export default function BusinessDashboard() {
     const q = query(
       collection(db, 'bookings'),
       where('businessId', '==', effectiveBusinessId),
-      where('status', '==', 'pending'),
       orderBy('createdAt', 'desc')
     );
 
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    const todayStr = now.toLocaleDateString();
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const currentIds = new Set(snapshot.docs.map(d => d.id));
-      setUnreadCount(currentIds.size);
+      const allBookings = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      const pendingIds = new Set(allBookings.filter(b => b.status === 'pending').map(b => b.id));
+      setUnreadCount(pendingIds.size);
 
       snapshot.docChanges().forEach((change: any) => {
         if (change.type === 'added' && previousBookingIds.size > 0 && !previousBookingIds.has(change.doc.id)) {
@@ -120,7 +133,23 @@ export default function BusinessDashboard() {
           );
         }
       });
-      setPreviousBookingIds(currentIds);
+      setPreviousBookingIds(new Set(allBookings.map(b => b.id)));
+
+      const totalBookings = allBookings.length;
+      const pendingCount = allBookings.filter(b => b.status === 'pending').length;
+      const activeBookings = allBookings.filter(b => b.status === 'confirmed' || b.status === 'checked_in').length;
+      const todaysCheckIns = allBookings.filter(b => {
+        const ciDate = b.checkInDate || (b.checkInTimestamp?.toDate?.()?.toLocaleDateString());
+        return (b.status === 'confirmed' || b.status === 'checked_in') && ciDate === todayStr;
+      }).length;
+      const weekRevenue = allBookings
+        .filter(b => {
+          const createdAt = b.createdAt?.toDate?.();
+          return createdAt && createdAt >= startOfWeek && b.paymentStatus === 'PAID';
+        })
+        .reduce((sum, b) => sum + (b.amount || 0), 0);
+
+      setDashboardStats({ totalBookings, pendingCount, todaysCheckIns, weeklyRevenue: weekRevenue, activeBookings });
     });
 
     return () => unsubscribe();
@@ -192,10 +221,10 @@ export default function BusinessDashboard() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <StatCard label="Weekly Revenue" value="₱84,200" change="+12.5%" isPositive={true} icon={CreditCard} color="emerald" />
-        <StatCard label="Active Bookings" value="18" change="+4.3%" isPositive={true} icon={Calendar} color="ocean" />
-        <StatCard label="Guest Satisfaction" value="4.9/5" change="+0.2" isPositive={true} icon={Star} color="purple" />
-        <StatCard label="System Status" value="Active" change="Optimum" isPositive={true} icon={TrendingUp} color="coral" />
+        <StatCard label="Weekly Revenue" value={`₱${dashboardStats.weeklyRevenue.toLocaleString()}`} change="Updated daily" isPositive={true} icon={CreditCard} color="emerald" />
+        <StatCard label="Active Bookings" value={String(dashboardStats.activeBookings)} change={`${dashboardStats.pendingCount} pending`} isPositive={true} icon={Calendar} color="ocean" />
+        <StatCard label="Today's Check-ins" value={String(dashboardStats.todaysCheckIns)} change={`${dashboardStats.totalBookings} total bookings`} isPositive={true} icon={Star} color="purple" />
+        <StatCard label="Pending" value={String(dashboardStats.pendingCount)} change="Awaiting confirmation" isPositive={true} icon={TrendingUp} color="coral" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">

@@ -13,7 +13,11 @@ import {
   UilUser as User,
   UilEnvelopeAlt as Mail,
   UilArrowUpRight as ArrowUpRight,
-  UilAngleRightB as ChevronRight
+  UilAngleRightB as ChevronRight,
+  UilSignInAlt as LogIn,
+  UilSignOutAlt as LogOut,
+  UilInfoCircle as Eye,
+  UilTimes as X
 } from '@/icons';
 import { 
   collection, 
@@ -22,7 +26,8 @@ import {
   onSnapshot, 
   doc, 
   updateDoc,
-  orderBy
+  serverTimestamp,
+  Timestamp
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
@@ -37,6 +42,7 @@ export default function BookingsModule() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
   const [activeTab, setActiveTab] = useState<'bookings' | 'refunds' | 'events'>('bookings');
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
 
   useEffect(() => {
     getPilotConfig().then(setPilotConfig);
@@ -76,9 +82,14 @@ export default function BookingsModule() {
   const handleUpdateStatus = async (bookingId: string, newStatus: string) => {
     try {
       const bookingRef = doc(db, 'bookings', bookingId);
-      await updateDoc(bookingRef, { status: newStatus });
+      const updates: any = { status: newStatus };
+      if (newStatus === 'checked_in') updates.checkedInAt = serverTimestamp();
+      if (newStatus === 'departed') updates.departedAt = serverTimestamp();
+      await updateDoc(bookingRef, updates);
+      toast.success(`Booking ${newStatus}`);
     } catch (error) {
       console.error("Error updating booking status:", error);
+      toast.error('Failed to update status');
     }
   };
 
@@ -137,7 +148,28 @@ export default function BookingsModule() {
             </button>
           </div>
           <button
-            onClick={() => toast.success('Bookings CSV export ready for download')}
+            onClick={() => {
+              const headers = ['Guest Name', 'Email', 'Service', 'Type', 'Date', 'Amount', 'Status', 'Payment'];
+              const rows = filteredBookings.map(b => [
+                b.touristName || b.guestName || '',
+                b.touristEmail || b.guestEmail || '',
+                b.serviceName || '',
+                b.serviceType || '',
+                b.date || '',
+                b.amount || 0,
+                b.status || '',
+                b.paymentStatus || '',
+              ]);
+              const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `bookings_export_${new Date().toISOString().slice(0, 10)}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+              toast.success('Bookings CSV exported');
+            }}
             className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2"
           >
             <Download size="18" /> Export CSV
@@ -417,8 +449,32 @@ export default function BookingsModule() {
                               </button>
                             </>
                           )}
-                          <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-xl transition-all">
-                            <MoreVertical size="20" />
+                          {booking.status === 'confirmed' && (
+                            <>
+                              <button 
+                                onClick={() => handleUpdateStatus(booking.id, 'checked_in')}
+                                className="p-2 text-island-emerald hover:bg-island-emerald/10 rounded-xl transition-all"
+                                title="Check In"
+                              >
+                                <LogIn size="20" />
+                              </button>
+                            </>
+                          )}
+                          {booking.status === 'checked_in' && (
+                            <button 
+                              onClick={() => handleUpdateStatus(booking.id, 'departed')}
+                              className="p-2 text-island-ocean hover:bg-island-ocean/10 rounded-xl transition-all"
+                              title="Mark Departed"
+                            >
+                              <LogOut size="20" />
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => setSelectedBooking(booking)}
+                            className="p-2 text-slate-400 hover:bg-slate-100 rounded-xl transition-all"
+                            title="View Details"
+                          >
+                            <Eye size="20" />
                           </button>
                         </div>
                       </td>
@@ -428,6 +484,126 @@ export default function BookingsModule() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+      {/* Booking Detail Modal */}
+      {selectedBooking && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-island-volcanic/60 backdrop-blur-sm" onClick={() => setSelectedBooking(null)} />
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative w-full max-w-lg bg-white rounded-[2.5rem] p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-island-volcanic">Booking Details</h3>
+              <button onClick={() => setSelectedBooking(null)} className="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:text-island-coral transition-all">
+                <X size="16" />
+              </button>
+            </div>
+
+            <div className="space-y-5">
+              <div className="flex items-center gap-4 p-5 bg-stone-50 rounded-2xl">
+                <div className="w-12 h-12 rounded-full bg-island-emerald/10 flex items-center justify-center text-island-emerald font-bold text-lg">
+                  {(selectedBooking.touristName || selectedBooking.guestName)?.charAt(0)}
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-island-volcanic">{selectedBooking.touristName || selectedBooking.guestName}</p>
+                  <p className="text-xs text-slate-500">{selectedBooking.touristEmail || selectedBooking.guestEmail}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-island-emerald/5 rounded-2xl">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Service</p>
+                  <p className="text-sm font-bold text-island-volcanic">{selectedBooking.serviceName}</p>
+                  <p className="text-[10px] text-slate-400 capitalize">{selectedBooking.serviceType}</p>
+                </div>
+                <div className="p-4 bg-island-emerald/5 rounded-2xl">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Amount</p>
+                  <p className="text-sm font-bold text-island-volcanic">₱{selectedBooking.amount?.toLocaleString()}</p>
+                  <p className="text-[10px] text-slate-400">{selectedBooking.paymentStatus}</p>
+                </div>
+              </div>
+
+              {selectedBooking.date && (
+                <div className="p-4 bg-stone-50 rounded-2xl flex items-center gap-3">
+                  <Calendar size="18" className="text-island-emerald" />
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Booking Dates</p>
+                    <p className="text-sm font-bold text-island-volcanic">{selectedBooking.date}</p>
+                  </div>
+                </div>
+              )}
+
+              {selectedBooking.purposeOfVisit && (
+                <div className="p-4 bg-stone-50 rounded-2xl flex items-center gap-3">
+                  <User size="18" className="text-island-emerald" />
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Purpose of Visit</p>
+                    <p className="text-sm font-bold text-island-volcanic capitalize">{selectedBooking.purposeOfVisit}</p>
+                  </div>
+                </div>
+              )}
+
+              {selectedBooking.addons && selectedBooking.addons.length > 0 && (
+                <div className="p-4 bg-stone-50 rounded-2xl">
+                  <p className="text-xs font-bold text-slate-500 mb-2">Add-ons</p>
+                  <div className="space-y-1">
+                    {selectedBooking.addons.map((a: any, i: number) => (
+                      <div key={i} className="flex justify-between text-sm">
+                        <span className="text-slate-700">{a.name}</span>
+                        <span className="font-bold text-island-green">+₱{a.price?.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between p-4 bg-stone-50 rounded-2xl">
+                <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 ${
+                  selectedBooking.status === 'confirmed' ? 'bg-island-emerald/10 text-island-emerald' : 
+                  selectedBooking.status === 'cancelled' ? 'bg-island-coral/10 text-island-coral' : 
+                  'bg-island-ocean/10 text-island-ocean'
+                }`}>
+                  {selectedBooking.status === 'confirmed' ? <CheckCircle2 size="12" /> : 
+                   selectedBooking.status === 'cancelled' ? <XCircle size="12" /> : 
+                   <Clock size="12" />}
+                  {selectedBooking.status}
+                </span>
+                <span className="text-xs text-slate-400 font-semibold">
+                  ID: {selectedBooking.id?.slice(-8).toUpperCase()}
+                </span>
+              </div>
+
+              <div className="flex gap-3">
+                {selectedBooking.status === 'pending' && (
+                  <>
+                    <button onClick={() => { handleUpdateStatus(selectedBooking.id, 'confirmed'); setSelectedBooking(null); }}
+                      className="flex-1 bg-island-emerald text-white py-4 rounded-2xl font-bold text-xs tracking-wider hover:bg-island-green transition-all flex items-center justify-center gap-2">
+                      <CheckCircle2 size="18" /> Confirm
+                    </button>
+                    <button onClick={() => { handleUpdateStatus(selectedBooking.id, 'cancelled'); setSelectedBooking(null); }}
+                      className="flex-1 bg-island-coral text-white py-4 rounded-2xl font-bold text-xs tracking-wider hover:bg-rose-700 transition-all flex items-center justify-center gap-2">
+                      <XCircle size="18" /> Cancel
+                    </button>
+                  </>
+                )}
+                {selectedBooking.status === 'confirmed' && (
+                  <button onClick={() => { handleUpdateStatus(selectedBooking.id, 'checked_in'); setSelectedBooking(null); }}
+                    className="flex-1 bg-island-emerald text-white py-4 rounded-2xl font-bold text-xs tracking-wider hover:bg-island-green transition-all flex items-center justify-center gap-2">
+                    <LogIn size="18" /> Check In
+                  </button>
+                )}
+                {selectedBooking.status === 'checked_in' && (
+                  <button onClick={() => { handleUpdateStatus(selectedBooking.id, 'departed'); setSelectedBooking(null); }}
+                    className="flex-1 bg-island-ocean text-white py-4 rounded-2xl font-bold text-xs tracking-wider hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
+                    <LogOut size="18" /> Mark Departed
+                  </button>
+                )}
+              </div>
+            </div>
+          </motion.div>
         </div>
       )}
     </motion.div>

@@ -67,6 +67,8 @@ export interface Booking {
   serviceName: string;
   serviceType: ServiceType;
   businessId: string;
+  roomId?: string;
+  roomName?: string;
   date: string;
   checkInDate?: string;
   checkOutDate?: string;
@@ -92,6 +94,7 @@ export interface Booking {
   eventEndTimestamp?: any;
   refundStatus?: 'none' | 'pending' | 'approved' | 'rejected';
   cancellationRequestedAt?: any;
+  cancellationReason?: string;
 }
 
 export type PassStatus = 'active' | 'expired' | 'revoked';

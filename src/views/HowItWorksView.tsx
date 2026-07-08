@@ -37,7 +37,7 @@ export default function HowItWorksView() {
               <span className="text-island-emerald not-italic">starts here.</span>
             </h1>
             <p className="text-slate-500 text-xl font-medium leading-relaxed max-w-2xl">
-              Catarman eSuroy makes it easy to discover, book, and explore everything our municipality has to offer.
+              eSuroy makes it easy to discover, book, and explore everything our platform has to offer.
             </p>
           </motion.div>
         </div>
@@ -108,7 +108,7 @@ export default function HowItWorksView() {
               <span className="text-island-emerald not-italic">tourist app.</span>
             </h2>
             <p className="text-slate-300 text-lg font-medium leading-relaxed max-w-2xl mb-16">
-              Catarman eSuroy serves everyone — tourists exploring the island, businesses managing bookings,
+              eSuroy serves everyone — tourists exploring the island, businesses managing bookings,
               and the LGU monitoring municipal data.
             </p>
 
@@ -162,7 +162,7 @@ export default function HowItWorksView() {
             Start your <span className="text-island-emerald not-italic">adventure.</span>
           </h2>
           <p className="text-slate-500 text-lg font-medium max-w-xl mx-auto mb-12">
-            Browse destinations, plan with AI, or book your stay — Catarman is waiting.
+            Browse destinations, plan with AI, or book your stay — your adventure is waiting.
           </p>
           <div className="flex flex-wrap justify-center gap-6">
             <Link

@@ -14,7 +14,7 @@ export default defineConfig(({mode}) => {
         registerType: 'autoUpdate',
         includeAssets: ['**/*'],
         manifest: {
-          name: 'Catarman eSuroy - Smart Tourism OS',
+          name: 'eSuroy - Smart Tourism Platform',
           short_name: 'eSuroy',
           description: 'Smart tourism platform for Camiguin Island',
           theme_color: '#0a2e26',

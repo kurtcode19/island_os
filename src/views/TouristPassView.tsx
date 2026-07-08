@@ -51,7 +51,7 @@ export default function TouristPassView() {
               Digital <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-white">Pass.</span>
             </h1>
             <p className="text-xl text-white/60 font-medium max-w-2xl mx-auto leading-relaxed">
-              Your all-in-one digital pass for seamless access to Catarman's heritage sites and transport.
+              Your all-in-one digital pass for seamless access to heritage sites and transport.
             </p>
           </motion.div>
         </div>
@@ -75,7 +75,7 @@ export default function TouristPassView() {
                   <div className="w-24 h-24 bg-white/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 backdrop-blur-3xl border border-white/20 shadow-2xl">
                     <UilTicket size="48" />
                   </div>
-                  <h3 className="text-3xl font-black tracking-tighter">Catarman <br /> <span className="text-island-emerald">Pass.</span></h3>
+                  <h3 className="text-3xl font-black tracking-tighter"><span className="text-island-emerald">eSuroy</span> <br /> <span className="text-island-emerald">Pass.</span></h3>
                   <p className="text-white/40 text-[10px] font-bold tracking-wider mt-3">Verified Pass</p>
                 </div>
               </div>
@@ -170,7 +170,7 @@ export default function TouristPassView() {
               <span className="text-island-coral font-bold tracking-wider text-xs mb-4 block">Pass Benefits</span>
               <h2 className="text-5xl md:text-7xl font-black text-island-volcanic mb-10 tracking-tighter leading-[0.95]">Universal <br /><span className="text-island-emerald">Interface.</span></h2>
               <p className="text-2xl text-slate-500 font-medium leading-relaxed mb-16 max-w-2xl">
-                The Digital Pass is your secure key to exploring Catarman — one scan gets you into every attraction.
+                The Digital Pass is your secure key to exploring — one scan gets you into every attraction.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -226,7 +226,7 @@ export default function TouristPassView() {
               <div className="flex-1 text-center md:text-left relative z-10">
                 <h3 className="text-4xl font-black mb-3 tracking-tighter leading-none">Mobile First.</h3>
                 <p className="text-white/70 font-medium text-xl mb-10 leading-relaxed">
-                  Download the Catarman eSuroy app for offline access and real-time updates.
+                  Download the eSuroy app for offline access and real-time updates.
                 </p>
                 <div className="flex flex-wrap justify-center md:justify-start gap-5">
                   <button className="btn-volcanic px-8 py-4 rounded-2xl">App Store</button>

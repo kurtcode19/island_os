@@ -65,7 +65,7 @@ export default function OnboardingModal({ uid }: OnboardingModalProps) {
           </div>
 
           <h2 className="text-3xl font-black text-island-volcanic tracking-tighter text-center mb-2">
-            Welcome to <span className="text-island-emerald">Catarman</span>
+            Welcome to <span className="text-island-emerald">eSuroy</span>
           </h2>
           <p className="text-sm text-slate-500 font-medium text-center mb-8">
             Tell us where you're from so we can personalize your experience.

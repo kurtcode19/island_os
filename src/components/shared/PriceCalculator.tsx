@@ -8,7 +8,7 @@ interface PriceCalculatorProps {
   serviceFee?: number;
 }
 
-export default function PriceCalculator({ basePrice, nights, addons, taxRate = 12, serviceFee = 0 }: PriceCalculatorProps) {
+export default function PriceCalculator({ basePrice, nights, addons, taxRate = 12, serviceFee = 150 }: PriceCalculatorProps) {
   const breakdown = useMemo(() => {
     const roomTotal = basePrice * nights;
     const addonsTotal = addons.reduce((sum, a) => sum + a.price, 0);
@@ -48,6 +48,7 @@ export default function PriceCalculator({ basePrice, nights, addons, taxRate = 1
         <span className="text-base font-bold text-island-green">Total</span>
         <span className="text-xl font-black text-island-green">₱{breakdown.total.toLocaleString()}</span>
       </div>
+      <p className="text-[9px] text-slate-400 text-center italic pt-1">Free cancellation up to 48h before check-in</p>
     </div>
   );
 }

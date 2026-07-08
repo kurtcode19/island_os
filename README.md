@@ -1,6 +1,6 @@
-# Catarman eSuroy - Camiguin Island Smart Tourism Platform
+# eSuroy - Smart Tourism Platform
 
-Catarman eSuroy is a comprehensive smart tourism platform for Camiguin Island, designed to provide a seamless experience for tourists, business owners, and local government units (LGU).
+eSuroy is a comprehensive smart tourism platform designed to provide a seamless experience for tourists, business owners, and local government units (LGU).
 
 ## 🚀 Project Overview
 

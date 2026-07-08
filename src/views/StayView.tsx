@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { UilBuilding, UilStar, UilMapMarker, UilWifi, UilCoffee, UilWind, UilWater, UilArrowRight, UilSearch, UilFilter, UilCheckCircle, UilRefresh, UilCalendarAlt, UilPlus, UilMinus, UilSun, UilMoon, UilTimes, UilAngleLeftB, UilAngleRightB, UilUsersAlt, UilGift, UilUser, UilUtensils, UilAngleDown, UilGlobe } from '@/icons';
+import { UilBuilding, UilStar, UilMapMarker, UilWifi, UilCoffee, UilWind, UilWater, UilArrowRight, UilSearch, UilFilter, UilCheckCircle, UilRefresh, UilCalendarAlt, UilPlus, UilMinus, UilSun, UilMoon, UilTimes, UilAngleLeftB, UilAngleRightB, UilUsersAlt, UilGift, UilUser, UilUtensils, UilAngleDown, UilGlobe, UilTimesCircle } from '@/icons';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType, Timestamp } from '../firebase';
-import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDoc, query, where, getDocs } from 'firebase/firestore';
 
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 
 import { accommodations, type PromoPackage } from '../data/accommodations';
 import { getPilotConfig, type PilotConfig } from '../lib/pilotService';
 import PriceCalculator from '../components/shared/PriceCalculator';
+import { checkAvailability } from '../lib/capacityService';
 
 export default function StayView() {
   const { user, login } = useAuth();
@@ -20,6 +22,9 @@ export default function StayView() {
   const [selectedTab, setSelectedTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedHotel, setSelectedHotel] = useState<typeof accommodations[0] | null>(null);
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [roomsLoading, setRoomsLoading] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<any | null>(null);
   const [checkIn, setCheckIn] = useState(new Date(2026, 5, 15));
   const [checkOut, setCheckOut] = useState(new Date(2026, 5, 18));
   const [adults, setAdults] = useState(2);
@@ -36,6 +41,8 @@ export default function StayView() {
   const [showTime, setShowTime] = useState(false);
   const [checkInTime, setCheckInTime] = useState<Date | null>(null);
   const [checkOutTime, setCheckOutTime] = useState<Date | null>(null);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [bookingMode, setBookingMode] = useState<'stays' | 'events'>('stays');
   const [eventVenues, setEventVenues] = useState<{ id: string; name: string; capacitySeated: number; halfDayPrice: number; fullDayPrice: number; overtimeRate: number }[]>([]);
   const [selectedVenue, setSelectedVenue] = useState<typeof eventVenues[0] | null>(null);
@@ -61,6 +68,24 @@ export default function StayView() {
 
   useEffect(() => {
     if (!selectedHotel) return;
+    setRooms([]);
+    setSelectedRoom(null);
+    setRoomsLoading(true);
+    const fetchRooms = async () => {
+      try {
+        const q = query(
+          collection(db, 'inventory_items'),
+          where('businessId', '==', selectedHotel.businessId),
+          where('category', '==', 'Accommodation')
+        );
+        const snapshot = await getDocs(q);
+        const roomData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        setRooms(roomData);
+        if (roomData.length > 0) setSelectedRoom(roomData[0]);
+      } catch {}
+      setRoomsLoading(false);
+    };
+    fetchRooms();
     const fetchServices = async () => {
       try {
         const bizDoc = await getDoc(doc(db, 'businesses', selectedHotel.businessId));
@@ -95,13 +120,22 @@ export default function StayView() {
     fetchVenues();
   }, [bookingMode, pilotConfig, selectedHotel?.businessId]);
 
+  const getRoomPrice = () => {
+    if (selectedRoom) {
+      const guestPrice = selectedRoom.guests?.[0]?.price || 0;
+      return guestPrice;
+    }
+    return selectedHotel?.price || 0;
+  };
+
   const calculateTotal = (hotel: typeof accommodations[0]) => {
     const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
+    const basePrice = getRoomPrice();
     let total = 0;
     if (selectedPromo) {
       total = selectedPromo.price;
     } else {
-      total = hotel.price * nights;
+      total = basePrice * nights;
       total += children * (hotel.childPrice || 0) * nights;
       total += tweens * (hotel.tweenPrice || 0) * nights;
       total += addons.breakfast ? 250 * breakfastPeople : 0;
@@ -118,8 +152,30 @@ export default function StayView() {
 
     setBookingStatus(prev => ({ ...prev, [hotel.id]: 'loading' }));
     setTestError(null);
+    setAvailabilityError(null);
 
+    // Check availability before booking
     const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
+    const dateStr = checkIn.toLocaleDateString();
+
+    // Room-level availability: check if this specific room item has stock
+    if (selectedRoom) {
+      const roomStock = selectedRoom.stock ?? selectedRoom.total ?? 0;
+      if (roomStock <= 0) {
+        setBookingStatus(prev => ({ ...prev, [hotel.id]: 'idle' }));
+        setAvailabilityError(`Sorry, "${selectedRoom.name}" is fully booked for your selected dates. Please choose another room.`);
+        return;
+      }
+    }
+
+    // Property-level availability (general capacity check)
+    const availability = await checkAvailability(hotel.id, dateStr, adults + children + tweens);
+    if (!availability.available) {
+      setBookingStatus(prev => ({ ...prev, [hotel.id]: 'idle' }));
+      setAvailabilityError(`Sorry, this accommodation is not fully available for your selected dates. Only ${availability.remaining} guest slots remaining.`);
+      return;
+    }
+
     const total = calculateTotal(hotel);
     const selectedAddonDetails = businessServices.filter(s => selectedAddons.includes(s.id));
     const legacyAddons: { id: string; name: string; price: number }[] = [];
@@ -134,6 +190,8 @@ export default function StayView() {
         serviceName: hotel.name,
         serviceType: 'stay',
         businessId: hotel.businessId,
+        roomId: selectedRoom?.id || null,
+        roomName: selectedRoom?.name || null,
         date: `${checkIn.toLocaleDateString()} - ${checkOut.toLocaleDateString()}`,
         checkInTimestamp: Timestamp.fromDate(checkIn),
         checkOutTimestamp: Timestamp.fromDate(checkOut),
@@ -198,7 +256,7 @@ export default function StayView() {
               Island <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-white">Stays.</span>
             </h1>
             <p className="text-xl text-white/80 font-medium max-w-2xl drop-shadow-lg leading-relaxed">
-              From luxury beachfront villas to historic ancestral stays, discover the premier resting places in Catarman.
+              From luxury beachfront villas to historic ancestral stays, discover the premier resting places.
             </p>
           </motion.div>
         </div>
@@ -494,6 +552,70 @@ export default function StayView() {
               </div>
 
               <div className="px-8 pt-6 pb-8 space-y-6">
+                {/* Room Selection */}
+                {roomsLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <UilRefresh size="20" className="animate-spin text-island-emerald" />
+                  </div>
+                ) : rooms.length > 0 ? (
+                  <div>
+                    <h4 className="text-sm font-bold text-island-green mb-3 flex items-center gap-2">
+                      <UilBuilding size="16" className="text-island-emerald" /> Select Room Type
+                    </h4>
+                    <div className="space-y-2">
+                      {rooms.map((room) => {
+                        const roomPrice = room.guests?.[0]?.price || 0;
+                        const isSelected = selectedRoom?.id === room.id;
+                        const stock = room.stock ?? room.total ?? 0;
+                        const isOutOfStock = stock === 0;
+                        return (
+                          <button
+                            key={room.id}
+                            onClick={() => !isOutOfStock && setSelectedRoom(room)}
+                            disabled={isOutOfStock}
+                            className={`w-full text-left p-5 rounded-2xl border-2 transition-all ${
+                              isOutOfStock
+                                ? 'border-slate-100 bg-slate-50 opacity-50 cursor-not-allowed'
+                                : isSelected
+                                ? 'border-island-green bg-island-green/5 shadow-md'
+                                : 'border-slate-100 bg-white hover:border-island-emerald/30 hover:shadow-sm'
+                            }`}
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <p className="text-base font-bold text-island-volcanic">{room.name}</p>
+                                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                  {room.descriptionChecklist?.slice(0, 4).map((amenity: string, i: number) => (
+                                    <span key={i} className="px-2 py-0.5 bg-stone-50 rounded-full text-[8px] font-semibold text-slate-500 border border-stone-100">
+                                      {amenity}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-lg font-black text-island-volcanic">₱{roomPrice.toLocaleString()}</p>
+                                <p className="text-[9px] text-slate-400 font-medium">/ night</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
+                              <div className="flex items-center gap-3 text-[10px] text-slate-500">
+                                {room.guests?.map((g: any, i: number) => (
+                                  <span key={i} className="font-semibold">{g.name}: ₱{g.price}</span>
+                                ))}
+                              </div>
+                              <span className={`text-[9px] font-bold ${
+                                isOutOfStock ? 'text-island-coral' : stock < 3 ? 'text-island-sunset' : 'text-island-emerald'
+                              }`}>
+                                {stock} left
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
                 {/* Date/Time Pickers */}
                 <div>
                   <h4 className="text-sm font-bold text-island-green mb-3 flex items-center gap-2">
@@ -700,7 +822,7 @@ export default function StayView() {
 
                 {/* Total - Price Calculator */}
                 <PriceCalculator
-                  basePrice={selectedHotel.price}
+                  basePrice={getRoomPrice()}
                   nights={Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))}
                   addons={[
                     ...(businessServices.filter(s => selectedAddons.includes(s.id))),
@@ -710,6 +832,38 @@ export default function StayView() {
                   taxRate={12}
                 />
 
+                {/* Availability Warning */}
+                {availabilityError && (
+                  <div className="p-4 bg-rose-50 rounded-2xl border-2 border-rose-100 text-island-coral text-xs font-bold flex items-start gap-3">
+                    <UilTimesCircle size="18" className="shrink-0 mt-0.5" />
+                    <span>{availabilityError}</span>
+                  </div>
+                )}
+
+                {/* Success + QR */}
+                {bookingStatus[selectedHotel.id] === 'success' ? (
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-island-emerald/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <UilCheckCircle size="32" className="text-island-emerald" />
+                    </div>
+                    <p className="text-lg font-black text-island-volcanic tracking-tighter mb-2">Booking Confirmed!</p>
+                    <p className="text-xs text-slate-500 font-medium mb-6">
+                      Your booking request has been submitted. Check your email for the confirmation.
+                    </p>
+                    <div className="bg-white rounded-2xl p-4 border-2 border-slate-100 inline-block mx-auto mb-6 shadow-sm">
+                      <QRCodeSVG
+                        value={`${window.location.origin}/my-bookings`}
+                        size={140}
+                        level="M"
+                        includeMargin
+                      />
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-semibold">
+                      Show this QR code at check-in
+                    </p>
+                  </div>
+                ) : (
+                  <>
                 {/* Confirm */}
                 {adults + children + tweens > selectedHotel.maxAdults ? (
                   <div className="w-full bg-rose-50 text-island-coral py-5 rounded-2xl font-bold text-xs text-center border-2 border-rose-100">
@@ -717,17 +871,17 @@ export default function StayView() {
                   </div>
                 ) : (
                   <button onClick={() => handleBook(selectedHotel)}
-                    disabled={bookingStatus[selectedHotel.id] === 'loading' || bookingStatus[selectedHotel.id] === 'success'}
+                    disabled={bookingStatus[selectedHotel.id] === 'loading'}
                     className="w-full bg-island-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-island-green/20 hover:shadow-island-green/40 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                   >
-                    {bookingStatus[selectedHotel.id] === 'success' ? (
-                      <><UilCheckCircle size="22" /> Confirmed</>
-                    ) : bookingStatus[selectedHotel.id] === 'loading' ? (
+                    {bookingStatus[selectedHotel.id] === 'loading' ? (
                       <UilRefresh size="22" className="animate-spin" />
                     ) : (
                       <><UilCalendarAlt size="20" /> Book now</>
                     )}
                   </button>
+                )}
+                  </>
                 )}
               </div>
             </motion.div>

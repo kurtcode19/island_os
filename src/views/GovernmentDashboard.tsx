@@ -181,7 +181,7 @@ export default function GovernmentDashboard() {
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className="text-4xl font-black text-island-volcanic tracking-tighter">65%</span>
-              <span className="text-[9px] font-black text-island-emerald uppercase tracking-[0.3em]">Catarman</span>
+              <span className="text-[9px] font-black text-island-emerald uppercase tracking-[0.3em]">eSuroy</span>
             </div>
           </div>
           <div className="mt-10 space-y-5">
@@ -269,7 +269,7 @@ export default function GovernmentDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Municipal</label>
-            <input defaultValue="Catarman" className="w-full px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100 text-sm font-bold text-island-volcanic outline-none focus:ring-4 focus:ring-island-emerald/5" readOnly />
+            <input defaultValue="eSuroy" className="w-full px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100 text-sm font-bold text-island-volcanic outline-none focus:ring-4 focus:ring-island-emerald/5" readOnly />
           </div>
           <div>
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Province</label>
@@ -334,7 +334,7 @@ export default function GovernmentDashboard() {
               <ShieldCheck size="32" />
             </div>
             <div>
-              <h3 className="text-2xl font-black text-island-volcanic tracking-tighter leading-none mb-1">Catarman</h3>
+              <h3 className="text-2xl font-black text-island-volcanic tracking-tighter leading-none mb-1">eSuroy</h3>
               <span className="text-xs text-island-emerald font-bold tracking-wider">Municipal</span>
             </div>
           </div>
