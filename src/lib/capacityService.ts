@@ -44,6 +44,46 @@ export async function checkAvailability(
   }
 }
 
+export async function checkRoomAvailability(
+  roomId: string | undefined | null,
+  checkIn: Date,
+  checkOut: Date
+): Promise<{ available: boolean; message: string }> {
+  if (!roomId) return { available: true, message: '' };
+  try {
+    const checkInMillis = checkIn.getTime();
+    const checkOutMillis = checkOut.getTime();
+
+    const q = query(
+      collection(db, 'bookings'),
+      where('roomId', '==', roomId),
+      where('status', 'in', ['pending', 'confirmed', 'checked_in'])
+    );
+    const snapshot = await getDocs(q);
+
+    const conflict = snapshot.docs.find((doc) => {
+      const data = doc.data();
+      const existingCheckIn = data.checkInTimestamp?.toMillis?.();
+      const existingCheckOut = data.checkOutTimestamp?.toMillis?.();
+      if (!existingCheckIn || !existingCheckOut) return false;
+      return checkInMillis < existingCheckOut && checkOutMillis > existingCheckIn;
+    });
+
+    if (conflict) {
+      const data = conflict.data();
+      return {
+        available: false,
+        message: `"${data.roomName || 'This room'}" is already booked ${data.checkInDate ? `from ${new Date(data.checkInDate).toLocaleDateString()} to ${new Date(data.checkOutDate).toLocaleDateString()}` : 'for your selected dates'}. Please choose different dates or another room.`,
+      };
+    }
+
+    return { available: true, message: '' };
+  } catch (error) {
+    handleFirestoreError(error, OperationType.LIST, 'bookings');
+    return { available: true, message: '' };
+  }
+}
+
 export async function checkEventVenueAvailability(
   eventVenueId: string,
   startTimestamp: Timestamp,

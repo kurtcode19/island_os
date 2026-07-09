@@ -40,6 +40,7 @@ import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp, onSnapshot, query, where, orderBy, doc, updateDoc, getDocs, Timestamp } from 'firebase/firestore';
 import { accommodations, type PromoPackage } from '../data/accommodations';
 import { rentalVehicles, rentalMerchants, getMerchantByVehicle } from '../data/rentals';
+import { checkAvailability, checkRoomAvailability } from '../lib/capacityService';
 import { useNavigate } from 'react-router-dom';
 import IslandMap from '../components/IslandMap';
 import { OnboardingHero } from '../components/mobile/OnboardingHero';
@@ -227,6 +228,37 @@ export default function MobileAppView() {
     const itemId = item.id;
     setBookingStatus(prev => ({ ...prev, [itemId]: 'loading' }));
     setAvailabilityError(null);
+
+    // Room stock check (stays only)
+    if (type === 'stay' && selectedRoom) {
+      const roomStock = selectedRoom.stock ?? selectedRoom.total ?? 0;
+      if (roomStock <= 0) {
+        setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
+        setAvailabilityError(`Sorry, "${selectedRoom.name}" is fully booked. Please choose another room.`);
+        return;
+      }
+    }
+
+    // Per-room date overlap check (stays only)
+    if (type === 'stay' && selectedRoom?.id) {
+      const roomAvail = await checkRoomAvailability(selectedRoom.id, checkIn, checkOut);
+      if (!roomAvail.available) {
+        setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
+        setAvailabilityError(roomAvail.message);
+        return;
+      }
+    }
+
+    // Property-level availability (stays only)
+    if (type === 'stay') {
+      const dateStr = checkIn.toLocaleDateString();
+      const availability = await checkAvailability(item.id, dateStr, adults + children + tweens);
+      if (!availability.available) {
+        setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
+        setAvailabilityError(`Sorry, this accommodation is not fully available for your selected dates. Only ${availability.remaining} guest slots remaining.`);
+        return;
+      }
+    }
 
     const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
     const basePrice = type === 'stay'

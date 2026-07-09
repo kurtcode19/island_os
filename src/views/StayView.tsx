@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { accommodations, type PromoPackage } from '../data/accommodations';
 import { getPilotConfig, type PilotConfig } from '../lib/pilotService';
 import PriceCalculator from '../components/shared/PriceCalculator';
-import { checkAvailability } from '../lib/capacityService';
+import { checkAvailability, checkRoomAvailability } from '../lib/capacityService';
 
 export default function StayView() {
   const { user, login } = useAuth();
@@ -166,6 +166,14 @@ export default function StayView() {
         setAvailabilityError(`Sorry, "${selectedRoom.name}" is fully booked for your selected dates. Please choose another room.`);
         return;
       }
+    }
+
+    // Per-room date overlap check
+    const roomAvail = await checkRoomAvailability(selectedRoom?.id, checkIn, checkOut);
+    if (!roomAvail.available) {
+      setBookingStatus(prev => ({ ...prev, [hotel.id]: 'idle' }));
+      setAvailabilityError(roomAvail.message);
+      return;
     }
 
     // Property-level availability (general capacity check)
