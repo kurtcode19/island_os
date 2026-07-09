@@ -25,7 +25,11 @@ import {
   UilAngleLeftB,
   UilAngleRightB,
   UilSun,
-  UilMoon
+  UilMoon,
+  UilAngleDown,
+  UilGift,
+  UilUsersAlt,
+  UilInfoCircle
 } from '@/icons';
 import { QRCodeCanvas } from 'qrcode.react';
 import { locations } from '../data/locations';
@@ -33,8 +37,8 @@ import { businesses } from '../data/businesses';
 import { transportOptions, schedules } from '../data/transport';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
-import { collection, addDoc, serverTimestamp, onSnapshot, query, where, orderBy, doc, updateDoc } from 'firebase/firestore';
-import { accommodations } from '../data/accommodations';
+import { collection, addDoc, serverTimestamp, onSnapshot, query, where, orderBy, doc, updateDoc, getDocs, Timestamp } from 'firebase/firestore';
+import { accommodations, type PromoPackage } from '../data/accommodations';
 import { rentalVehicles, rentalMerchants, getMerchantByVehicle } from '../data/rentals';
 import { useNavigate } from 'react-router-dom';
 import IslandMap from '../components/IslandMap';
@@ -123,6 +127,19 @@ export default function MobileAppView() {
   const [transportGuests, setTransportGuests] = useState(1);
   const [transportBookingStatus, setTransportBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
 
+  // Stay booking state
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [roomsLoading, setRoomsLoading] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<any>(null);
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
+  const [tweens, setTweens] = useState(0);
+  const [breakfastPeople, setBreakfastPeople] = useState(2);
+  const [selectedPromo, setSelectedPromo] = useState<PromoPackage | null>(null);
+  const [expandedPromo, setExpandedPromo] = useState<string | null>(null);
+  const [purposeOfVisit, setPurposeOfVisit] = useState<'leisure' | 'business' | 'family' | 'transit' | 'other'>('leisure');
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
+
   const filteredSpots = spots.filter(s =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.category.toLowerCase().includes(searchQuery.toLowerCase())
@@ -176,6 +193,31 @@ export default function MobileAppView() {
     return () => unsubscribe();
   }, [user]);
 
+  // Fetch rooms when a stay is selected
+  useEffect(() => {
+    if (!selectedSpot || selectedSpot.type !== 'stay' || !selectedSpot.businessId) {
+      setRooms([]);
+      setSelectedRoom(null);
+      return;
+    }
+    setRoomsLoading(true);
+    const fetchRooms = async () => {
+      try {
+        const q = query(
+          collection(db, 'inventory_items'),
+          where('businessId', '==', selectedSpot.businessId),
+          where('category', '==', 'Accommodation')
+        );
+        const snapshot = await getDocs(q);
+        const roomData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        setRooms(roomData);
+        if (roomData.length > 0) setSelectedRoom(roomData[0]);
+      } catch {}
+      setRoomsLoading(false);
+    };
+    fetchRooms();
+  }, [selectedSpot?.businessId, selectedSpot?.type]);
+
   const handleBook = async (item: any, type: string) => {
     if (!user) {
       login();
@@ -184,13 +226,28 @@ export default function MobileAppView() {
 
     const itemId = item.id;
     setBookingStatus(prev => ({ ...prev, [itemId]: 'loading' }));
+    setAvailabilityError(null);
 
     const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
-    const baseAmount = type === 'rental' ? (item.rate || item.price || 150) : (item.price || 150);
-    const totalAmount = baseAmount * nights + (addons.breakfast ? 250 : 0) + (addons.lateCheckin ? 150 : 0);
+    const basePrice = type === 'stay'
+      ? (selectedRoom?.guests?.[0]?.price || item.price || 0)
+      : (type === 'rental' ? (item.rate || item.price || 150) : (item.price || 150));
+
+    let totalAmount: number;
+    if (type === 'stay' && selectedPromo) {
+      totalAmount = selectedPromo.price;
+    } else if (type === 'stay') {
+      totalAmount = basePrice * nights;
+      totalAmount += children * (item.childPrice || 0) * nights;
+      totalAmount += tweens * (item.tweenPrice || 0) * nights;
+      totalAmount += addons.breakfast ? 250 * breakfastPeople : 0;
+      totalAmount += addons.lateCheckin ? 150 : 0;
+    } else {
+      totalAmount = basePrice * nights + (addons.breakfast ? 250 : 0) + (addons.lateCheckin ? 150 : 0);
+    }
 
     try {
-      await addDoc(collection(db, 'bookings'), {
+      const bookingData: any = {
         touristUid: user.uid,
         touristName: user.displayName || 'Anonymous',
         touristEmail: user.email || '',
@@ -198,7 +255,7 @@ export default function MobileAppView() {
         serviceName: item.name || item.title,
         serviceType: type,
         businessId: item.businessId || 'catarman_lgu',
-        date: new Date().toLocaleDateString(),
+        date: `${checkIn.toLocaleDateString()} - ${checkOut.toLocaleDateString()}`,
         checkInDate: checkIn.toISOString(),
         checkOutDate: checkOut.toISOString(),
         guests: guests,
@@ -206,12 +263,37 @@ export default function MobileAppView() {
         paymentStatus: 'UNPAID',
         amount: totalAmount,
         createdAt: serverTimestamp()
-      });
+      };
+
+      if (type === 'stay') {
+        bookingData.roomId = selectedRoom?.id || null;
+        bookingData.roomName = selectedRoom?.name || null;
+        bookingData.checkInTimestamp = Timestamp.fromDate(checkIn);
+        bookingData.checkOutTimestamp = Timestamp.fromDate(checkOut);
+        bookingData.adults = adults;
+        bookingData.children = children;
+        bookingData.tweens = tweens;
+        bookingData.breakfastPeople = addons.breakfast ? breakfastPeople : 0;
+        bookingData.promoPackage = selectedPromo?.name || null;
+        bookingData.purposeOfVisit = purposeOfVisit;
+        bookingData.addons = [];
+        if (addons.breakfast) bookingData.addons.push({ id: 'breakfast', name: 'Breakfast Bundle', price: 250 * breakfastPeople });
+        if (addons.lateCheckin) bookingData.addons.push({ id: 'lateCheckin', name: 'Late Check-in', price: 150 });
+      }
+
+      await addDoc(collection(db, 'bookings'), bookingData);
       
       setBookingStatus(prev => ({ ...prev, [itemId]: 'success' }));
       setTimeout(() => {
         setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
         setSelectedSpot(null);
+        setShowBooking(false);
+        setSelectedPromo(null);
+        setSelectedRoom(null);
+        setChildren(0);
+        setTweens(0);
+        setBreakfastPeople(2);
+        setPurposeOfVisit('leisure');
         navigate('/mobile?tab=profile');
       }, 2000);
     } catch (error) {
@@ -912,6 +994,46 @@ export default function MobileAppView() {
             </div>
 
             <div className="px-6 pt-6 space-y-8 flex-1">
+              {/* Room Selector (stays only) */}
+              {selectedSpot.type === 'stay' && (
+                <div>
+                  <h4 className="text-sm font-bold text-tropic-green mb-4 flex items-center gap-2">
+                    <UilBuilding size="18" className="text-tropic-ocean" /> Room type
+                  </h4>
+                  {roomsLoading ? (
+                    <div className="py-8 text-center text-xs text-tropic-green/40">Loading rooms...</div>
+                  ) : rooms.length > 0 ? (
+                    <div className="space-y-2">
+                      {rooms.map((room) => (
+                        <button
+                          key={room.id}
+                          onClick={() => setSelectedRoom(room)}
+                          className={`w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all ${
+                            selectedRoom?.id === room.id
+                              ? 'border-tropic-green bg-tropic-green/5'
+                              : 'border-tropic-sand/30 bg-white hover:border-tropic-sage/50'
+                          }`}
+                        >
+                          <div className="text-left">
+                            <span className="block text-sm font-bold text-tropic-green">{room.name}</span>
+                            <span className="text-[10px] text-tropic-green/40 font-medium">
+                              ₱{room.guests?.[0]?.price?.toLocaleString() || room.basePrice?.toLocaleString() || selectedSpot.price?.toLocaleString()} / night
+                            </span>
+                          </div>
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                            selectedRoom?.id === room.id ? 'border-tropic-green bg-tropic-green' : 'border-tropic-sand'
+                          }`}>
+                            {selectedRoom?.id === room.id && <div className="w-2 h-2 rounded-full bg-white" />}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-4 text-center text-xs text-tropic-green/40">Standard room — ₱{selectedSpot.price?.toLocaleString()} / night</div>
+                  )}
+                </div>
+              )}
+
               {/* Calendar */}
               <div>
                 <h4 className="text-sm font-bold text-tropic-green mb-4 flex items-center gap-2">
@@ -926,30 +1048,139 @@ export default function MobileAppView() {
               {/* Guest Selector */}
               <div>
                 <h4 className="text-sm font-bold text-tropic-green mb-4">Guests</h4>
-                <div className="bg-white rounded-3xl p-5 border border-tropic-sand/30 tropic-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-sm font-semibold text-tropic-green">Adults</span>
-                      <p className="text-[10px] text-tropic-green/40 font-medium">Ages 13+</p>
+                {selectedSpot.type === 'stay' ? (
+                  <div className="space-y-3">
+                    <div className="bg-white rounded-3xl p-5 border border-tropic-sand/30 tropic-shadow">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-sm font-semibold text-tropic-green">Adults</span>
+                          <p className="text-[10px] text-tropic-green/40 font-medium">Ages 13+</p>
+                        </div>
+                        <div className="flex items-center gap-5">
+                          <button onClick={() => setAdults(Math.max(1, adults - 1))} className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all"><UilMinus size="16" /></button>
+                          <span className="w-8 text-center text-lg font-bold text-tropic-green">{adults}</span>
+                          <button onClick={() => setAdults(adults + 1)} className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all"><UilPlus size="16" /></button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-5">
-                      <button 
-                        onClick={() => setGuests(Math.max(1, guests - 1))}
-                        className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all"
-                      >
-                        <UilMinus size="16" />
-                      </button>
-                      <span className="w-8 text-center text-lg font-bold text-tropic-green">{guests}</span>
-                      <button 
-                        onClick={() => setGuests(Math.min(10, guests + 1))}
-                        className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all"
-                      >
-                        <UilPlus size="16" />
-                      </button>
+                    <div className="bg-white rounded-3xl p-5 border border-tropic-sand/30 tropic-shadow">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-sm font-semibold text-tropic-green">Children</span>
+                          <p className="text-[10px] text-tropic-green/40 font-medium">Ages 3-12</p>
+                        </div>
+                        <div className="flex items-center gap-5">
+                          <button onClick={() => setChildren(Math.max(0, children - 1))} className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all"><UilMinus size="16" /></button>
+                          <span className="w-8 text-center text-lg font-bold text-tropic-green">{children}</span>
+                          <button onClick={() => setChildren(children + 1)} className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all"><UilPlus size="16" /></button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-3xl p-5 border border-tropic-sand/30 tropic-shadow">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-sm font-semibold text-tropic-green">Teens</span>
+                          <p className="text-[10px] text-tropic-green/40 font-medium">Ages 13-17</p>
+                        </div>
+                        <div className="flex items-center gap-5">
+                          <button onClick={() => setTweens(Math.max(0, tweens - 1))} className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all"><UilMinus size="16" /></button>
+                          <span className="w-8 text-center text-lg font-bold text-tropic-green">{tweens}</span>
+                          <button onClick={() => setTweens(tweens + 1)} className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all"><UilPlus size="16" /></button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="bg-white rounded-3xl p-5 border border-tropic-sand/30 tropic-shadow">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm font-semibold text-tropic-green">Guests</span>
+                        <p className="text-[10px] text-tropic-green/40 font-medium">Number of persons</p>
+                      </div>
+                      <div className="flex items-center gap-5">
+                        <button onClick={() => setGuests(Math.max(1, guests - 1))} className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all"><UilMinus size="16" /></button>
+                        <span className="w-8 text-center text-lg font-bold text-tropic-green">{guests}</span>
+                        <button onClick={() => setGuests(Math.min(10, guests + 1))} className="w-9 h-9 rounded-full bg-tropic-sand/30 flex items-center justify-center text-tropic-green border border-tropic-sand/30 hover:bg-tropic-green hover:text-white transition-all"><UilPlus size="16" /></button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Promo Packages (stays only) */}
+              {selectedSpot.type === 'stay' && selectedSpot.promoPackages && selectedSpot.promoPackages.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-bold text-tropic-green mb-4 flex items-center gap-2">
+                    <UilGift size="18" className="text-tropic-ocean" /> Promo Packages
+                  </h4>
+                  <div className="space-y-2">
+                    {selectedSpot.promoPackages.map((pkg: PromoPackage) => (
+                      <div key={pkg.id} className="bg-white rounded-2xl border border-tropic-sand/30 overflow-hidden">
+                        <button
+                          onClick={() => {
+                            setSelectedPromo(selectedPromo?.id === pkg.id ? null : pkg);
+                            setExpandedPromo(expandedPromo === pkg.id ? null : pkg.id);
+                          }}
+                          className={`w-full flex items-center justify-between p-4 transition-all ${
+                            selectedPromo?.id === pkg.id ? 'bg-tropic-green/5' : ''
+                          }`}
+                        >
+                          <div className="text-left">
+                            <span className="block text-sm font-bold text-tropic-green">{pkg.name}</span>
+                            <span className="text-[10px] text-tropic-green/40 font-medium">{pkg.persons} pax · {pkg.nights} nights</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-black text-tropic-emerald">₱{pkg.price.toLocaleString()}</span>
+                            <UilAngleDown size="16" className={`text-tropic-green/40 transition-transform ${expandedPromo === pkg.id ? 'rotate-180' : ''}`} />
+                          </div>
+                        </button>
+                        {expandedPromo === pkg.id && (
+                          <div className="px-4 pb-4 pt-0">
+                            <p className="text-[10px] text-tropic-green/60 font-medium mb-3">{pkg.description}</p>
+                            <div className="flex flex-wrap gap-1.5 mb-3">
+                              {pkg.inclusions.map((inc, i) => (
+                                <span key={i} className="px-2.5 py-1 bg-tropic-sand/20 rounded-full text-[9px] font-semibold text-tropic-green/60">{inc}</span>
+                              ))}
+                            </div>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setSelectedPromo(selectedPromo?.id === pkg.id ? null : pkg); }}
+                              className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all ${
+                                selectedPromo?.id === pkg.id
+                                  ? 'bg-tropic-green text-white'
+                                  : 'bg-tropic-green/10 text-tropic-green hover:bg-tropic-green/20'
+                              }`}
+                            >
+                              {selectedPromo?.id === pkg.id ? 'Selected' : 'Select Package'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {selectedPromo && (
+                    <p className="text-[10px] text-tropic-emerald font-semibold mt-2">Package price overrides nightly rate</p>
+                  )}
+                </div>
+              )}
+
+              {/* Purpose of Visit (stays only) */}
+              {selectedSpot.type === 'stay' && (
+                <div>
+                  <h4 className="text-sm font-bold text-tropic-green mb-4 flex items-center gap-2">
+                    <UilInfoCircle size="18" className="text-tropic-ocean" /> Purpose of visit
+                  </h4>
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                    {(['leisure', 'business', 'family', 'transit', 'other'] as const).map(p => (
+                      <button key={p} onClick={() => setPurposeOfVisit(p)}
+                        className={`px-4 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all capitalize ${
+                          purposeOfVisit === p ? 'bg-tropic-green text-white shadow-lg' : 'bg-tropic-sand/30 text-tropic-green/60 hover:text-tropic-green'
+                        }`}>
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Add-ons */}
               <div>
@@ -976,7 +1207,7 @@ export default function MobileAppView() {
                         </div>
                         <div className="text-left">
                           <span className="block text-sm font-bold text-tropic-green">{item.label}</span>
-                          <span className="text-[10px] text-tropic-green/40 font-medium">+ ₱{item.price}</span>
+                          <span className="text-[10px] text-tropic-green/40 font-medium">+ ₱{item.price}{(item.id === 'breakfast' && selectedSpot.type === 'stay') ? ' / person' : ''}</span>
                         </div>
                       </div>
                       <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
@@ -986,44 +1217,108 @@ export default function MobileAppView() {
                       </div>
                     </button>
                   ))}
+                  {addons.breakfast && selectedSpot.type === 'stay' && (
+                    <div className="flex items-center justify-between px-5 py-3 bg-tropic-sand/20 rounded-2xl">
+                      <span className="text-xs font-semibold text-tropic-green">Number of persons for breakfast</span>
+                      <div className="flex items-center gap-4">
+                        <button onClick={() => setBreakfastPeople(Math.max(1, breakfastPeople - 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-tropic-green border border-tropic-sand/30"><UilMinus size="14" /></button>
+                        <span className="w-6 text-center text-sm font-bold text-tropic-green">{breakfastPeople}</span>
+                        <button onClick={() => setBreakfastPeople(Math.min(10, breakfastPeople + 1))} className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-tropic-green border border-tropic-sand/30"><UilPlus size="14" /></button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
+              {/* Availability Error */}
+              {availabilityError && (
+                <div className="p-4 bg-rose-50 rounded-2xl border border-rose-200">
+                  <p className="text-xs font-semibold text-rose-600 flex items-center gap-2">
+                    <UilInfoCircle size="16" /> {availabilityError}
+                  </p>
+                </div>
+              )}
+
               {/* Price Summary */}
               <div className="bg-white rounded-3xl p-6 space-y-4 border border-tropic-sand/30 tropic-shadow">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-tropic-green/60">₱{selectedSpot.price?.toLocaleString()} x {Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))} nights</span>
-                  <span className="text-sm font-semibold text-tropic-green">₱{(selectedSpot.price || 0) * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)))}</span>
-                </div>
-                {addons.breakfast && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-tropic-green/60">Breakfast Bundle</span>
-                    <span className="text-tropic-green">+ ₱250</span>
-                  </div>
-                )}
-                {addons.lateCheckin && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-tropic-green/60">Late Check-in</span>
-                    <span className="text-tropic-green">+ ₱150</span>
-                  </div>
-                )}
-                <div className="border-t border-tropic-sand/50 pt-4 flex justify-between items-center">
-                  <span className="text-base font-bold text-tropic-green">Total</span>
-                  <span className="text-xl font-black text-tropic-green">
-                    ₱{(
-                      (selectedSpot.price || 0) * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24))) +
-                      (addons.breakfast ? 250 : 0) +
-                      (addons.lateCheckin ? 150 : 0)
-                    ).toLocaleString()}
-                  </span>
-                </div>
+                {(() => {
+                  const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
+                  const baseRoomPrice = selectedSpot.type === 'stay'
+                    ? (selectedRoom?.guests?.[0]?.price || selectedSpot.price || 0)
+                    : (selectedSpot.price || 0);
+                  
+                  if (selectedSpot.type === 'stay' && selectedPromo) {
+                    return (
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-tropic-green/60">Package: {selectedPromo.name}</span>
+                          <span className="text-sm font-semibold text-tropic-green">₱{selectedPromo.price.toLocaleString()}</span>
+                        </div>
+                        <div className="border-t border-tropic-sand/50 pt-4 flex justify-between items-center">
+                          <span className="text-base font-bold text-tropic-green">Total</span>
+                          <span className="text-xl font-black text-tropic-green">₱{selectedPromo.price.toLocaleString()}</span>
+                        </div>
+                      </>
+                    );
+                  }
+
+                  const roomTotal = baseRoomPrice * nights;
+                  const childrenTotal = selectedSpot.type === 'stay' ? children * (selectedSpot.childPrice || 0) * nights : 0;
+                  const tweensTotal = selectedSpot.type === 'stay' ? tweens * (selectedSpot.tweenPrice || 0) * nights : 0;
+                  const breakfastTotal = addons.breakfast ? (selectedSpot.type === 'stay' ? 250 * breakfastPeople : 250) : 0;
+                  const lateCheckinTotal = addons.lateCheckin ? 150 : 0;
+                  const total = roomTotal + childrenTotal + tweensTotal + breakfastTotal + lateCheckinTotal;
+
+                  return (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-tropic-green/60">₱{baseRoomPrice.toLocaleString()} x {nights} night{nights > 1 ? 's' : ''}</span>
+                        <span className="text-sm font-semibold text-tropic-green">₱{roomTotal.toLocaleString()}</span>
+                      </div>
+                      {childrenTotal > 0 && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-tropic-green/60">Children ({children} × ₱{(selectedSpot.childPrice || 0).toLocaleString()})</span>
+                          <span className="text-tropic-green">+ ₱{childrenTotal.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {tweensTotal > 0 && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-tropic-green/60">Teens ({tweens} × ₱{(selectedSpot.tweenPrice || 0).toLocaleString()})</span>
+                          <span className="text-tropic-green">+ ₱{tweensTotal.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {breakfastTotal > 0 && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-tropic-green/60">Breakfast Bundle {selectedSpot.type === 'stay' ? `(${breakfastPeople} pax)` : ''}</span>
+                          <span className="text-tropic-green">+ ₱{breakfastTotal.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {lateCheckinTotal > 0 && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-tropic-green/60">Late Check-in</span>
+                          <span className="text-tropic-green">+ ₱{lateCheckinTotal.toLocaleString()}</span>
+                        </div>
+                      )}
+                      <div className="border-t border-tropic-sand/50 pt-4 flex justify-between items-center">
+                        <span className="text-base font-bold text-tropic-green">Total</span>
+                        <span className="text-xl font-black text-tropic-green">₱{total.toLocaleString()}</span>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
 
               {/* Confirm Button */}
               <div className="pt-4 pb-8">
                 <motion.button 
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => handleBook(selectedSpot, selectedSpot.serviceType || selectedSpot.type || 'spot')}
+                  onClick={() => {
+                    if (selectedSpot.type === 'stay' && !selectedRoom && rooms.length > 0) {
+                      setAvailabilityError('Please select a room type');
+                      return;
+                    }
+                    handleBook(selectedSpot, selectedSpot.serviceType || selectedSpot.type || 'spot');
+                  }}
                   disabled={bookingStatus[selectedSpot.id] === 'loading' || bookingStatus[selectedSpot.id] === 'success'}
                   className="w-full bg-gradient-to-r from-tropic-green to-tropic-deep text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-tropic-green/20 hover:shadow-tropic-green/40 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                 >
@@ -1032,11 +1327,21 @@ export default function MobileAppView() {
                   ) : bookingStatus[selectedSpot.id] === 'loading' ? (
                     <UilSync size="22" className="animate-spin" />
                   ) : (
-                    <>Book now — ₱{(
-                      (selectedSpot.price || 0) * Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24))) +
-                      (addons.breakfast ? 250 : 0) +
-                      (addons.lateCheckin ? 150 : 0)
-                    ).toLocaleString()}</>
+                    <>Book now — ₱{(() => {
+                      const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
+                      const baseRoomPrice = selectedSpot.type === 'stay'
+                        ? (selectedRoom?.guests?.[0]?.price || selectedSpot.price || 0)
+                        : (selectedSpot.price || 0);
+                      if (selectedSpot.type === 'stay' && selectedPromo) return selectedPromo.price.toLocaleString();
+                      let t = baseRoomPrice * nights;
+                      if (selectedSpot.type === 'stay') {
+                        t += children * (selectedSpot.childPrice || 0) * nights;
+                        t += tweens * (selectedSpot.tweenPrice || 0) * nights;
+                      }
+                      t += addons.breakfast ? (selectedSpot.type === 'stay' ? 250 * breakfastPeople : 250) : 0;
+                      t += addons.lateCheckin ? 150 : 0;
+                      return t.toLocaleString();
+                    })()}</>
                   )}
                 </motion.button>
               </div>
