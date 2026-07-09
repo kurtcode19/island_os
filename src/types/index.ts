@@ -95,6 +95,21 @@ export interface Booking {
   refundStatus?: 'none' | 'pending' | 'approved' | 'rejected';
   cancellationRequestedAt?: any;
   cancellationReason?: string;
+  paymentIntentId?: string;
+  stripePaymentIntentId?: string;
+  paymongoSessionId?: string;
+  paymongoPaymentId?: string;
+  paymentMethod?: 'stripe' | 'paymongo' | 'gcash' | 'card' | 'bank_transfer';
+  commissionAmount?: number;
+  platformFee?: number;
+  refundTransactionId?: string;
+  payoutStatus?: 'pending' | 'processed';
+  payoutId?: string;
+  autoCancelAt?: any;
+  confirmedAt?: any;
+  refundedAt?: any;
+  autoApproved?: boolean;
+  disputeResolution?: string;
 }
 
 export type PassStatus = 'active' | 'expired' | 'revoked';
@@ -147,6 +162,66 @@ export interface Business {
   acceptsEvents?: boolean;
   eventVenues?: { id: string; name: string; capacitySeated: number; halfDayPrice: number; fullDayPrice: number; overtimeRate: number }[];
   location?: { lat: number; lng: number };
+  commissionRate?: number;
+  stripeAccountId?: string;
+  paymongoAccountId?: string;
+  subscription?: BusinessSubscription;
+}
+
+export interface BusinessSubscription {
+  tier: 'free' | 'premium';
+  stripeSubscriptionId?: string;
+  status: 'active' | 'inactive' | 'cancelled' | 'past_due';
+  currentPeriodEnd?: any;
+  currentPeriodStart?: any;
+}
+
+export interface Payout {
+  id: string;
+  businessId: string;
+  businessName: string;
+  periodStart: any;
+  periodEnd: any;
+  grossAmount: number;
+  commission: number;
+  commissionRate: number;
+  netAmount: number;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  bookingCount: number;
+  bookingIds: string[];
+  createdAt: any;
+  stripeAccountId?: string | null;
+  triggeredBy?: string;
+}
+
+export interface Dispute {
+  id: string;
+  bookingId: string;
+  touristUid: string;
+  touristName?: string;
+  businessId: string;
+  businessName?: string;
+  reason: string;
+  touristEvidence?: string;
+  businessResponse?: string;
+  businessEvidence?: string;
+  status: 'open' | 'business_favored' | 'tourist_favored' | 'resolved';
+  lguReviewerId?: string;
+  resolution?: string;
+  resolvedBy?: string;
+  resolvedAt?: any;
+  createdAt: any;
+}
+
+export interface PlatformRevenue {
+  id: string;
+  bookingIds: string[];
+  businessId: string;
+  commission: number;
+  platformFee: number;
+  total: number;
+  period: string;
+  createdAt: any;
 }
 
 export interface AuditLog {

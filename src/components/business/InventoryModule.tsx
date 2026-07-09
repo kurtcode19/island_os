@@ -19,8 +19,8 @@ export default function InventoryModule() {
     name: '',
     category: 'Accommodation',
     price: '',
-    total: 10,
-    stock: 10,
+    total: 1,
+    stock: 1,
     guests: [] as { name: string; price: number }[],
     inclusions: [] as { name: string; price: number; forPeople: number }[],
     descriptionChecklist: [] as string[],
@@ -60,8 +60,8 @@ export default function InventoryModule() {
       name: '',
       category: 'Accommodation',
       price: '',
-      total: 10,
-      stock: 10,
+      total: 1,
+      stock: 1,
       guests: [],
       inclusions: [],
       descriptionChecklist: [],
@@ -75,8 +75,8 @@ export default function InventoryModule() {
       name: item.name || '',
       category: item.category || 'Accommodation',
       price: item.price?.toString().replace(/[₱,]/g, '') || '',
-      total: item.total || 10,
-      stock: item.stock ?? item.total ?? 10,
+      total: item.category === 'Accommodation' ? 1 : (item.total || 10),
+      stock: item.category === 'Accommodation' ? 1 : (item.stock ?? item.total ?? 10),
       guests: item.guests || [],
       inclusions: item.inclusions || [],
       descriptionChecklist: item.descriptionChecklist || [],
@@ -101,8 +101,8 @@ export default function InventoryModule() {
       name: formData.name,
       category: formData.category,
       price: formData.price ? `₱${Number(formData.price).toLocaleString()}` : '₱0',
-      total: Number(formData.total) || 10,
-      stock: Number(formData.stock) ?? Number(formData.total) ?? 10,
+      total: formData.category === 'Accommodation' ? 1 : (Number(formData.total) || 10),
+      stock: formData.category === 'Accommodation' ? 1 : (Number(formData.stock) ?? Number(formData.total) ?? 10),
       guests: formData.guests,
       inclusions: formData.inclusions,
       descriptionChecklist: formData.descriptionChecklist,
@@ -342,7 +342,14 @@ export default function InventoryModule() {
                   </div>
                   <div>
                     <label className="text-xs font-bold text-slate-500 mb-1.5 block">Category</label>
-                    <select value={formData.category} onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                    <select value={formData.category} onChange={e => {
+                      const newCat = e.target.value;
+                      setFormData(prev => ({
+                        ...prev,
+                        category: newCat,
+                        ...(newCat === 'Accommodation' ? { total: 1, stock: 1 } : {}),
+                      }));
+                    }}
                       className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all text-sm font-semibold text-slate-800">
                       <option>Accommodation</option>
                       <option>Equipment</option>
@@ -350,21 +357,29 @@ export default function InventoryModule() {
                       <option>Food & Beverage</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 mb-1.5 block">Price (₱)</label>
-                    <input type="number" value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                      className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all text-sm font-semibold text-slate-800"
-                      placeholder="0" />
-                  </div>
+                  {formData.category !== 'Accommodation' && (
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 mb-1.5 block">Price (₱)</label>
+                      <input type="number" value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                        className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all text-sm font-semibold text-slate-800"
+                        placeholder="0" />
+                    </div>
+                  )}
                   <div>
                     <label className="text-xs font-bold text-slate-500 mb-1.5 block">Total Units</label>
-                    <input type="number" value={formData.total} onChange={e => setFormData(prev => ({ ...prev, total: Number(e.target.value) }))}
-                      className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all text-sm font-semibold text-slate-800" />
+                    <input type="number" value={formData.total}
+                      disabled={formData.category === 'Accommodation'}
+                      onChange={e => setFormData(prev => ({ ...prev, total: Number(e.target.value) }))}
+                      className={`w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all text-sm font-semibold text-slate-800 ${formData.category === 'Accommodation' ? 'opacity-50 cursor-not-allowed' : ''}`} />
+                    {formData.category === 'Accommodation' && <p className="text-[10px] text-island-emerald mt-1 font-medium">Locked to 1 for accommodations</p>}
                   </div>
                   <div>
                     <label className="text-xs font-bold text-slate-500 mb-1.5 block">In Stock</label>
-                    <input type="number" value={formData.stock} onChange={e => setFormData(prev => ({ ...prev, stock: Number(e.target.value) }))}
-                      className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all text-sm font-semibold text-slate-800" />
+                    <input type="number" value={formData.stock}
+                      disabled={formData.category === 'Accommodation'}
+                      onChange={e => setFormData(prev => ({ ...prev, stock: Number(e.target.value) }))}
+                      className={`w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all text-sm font-semibold text-slate-800 ${formData.category === 'Accommodation' ? 'opacity-50 cursor-not-allowed' : ''}`} />
+                    {formData.category === 'Accommodation' && <p className="text-[10px] text-island-emerald mt-1 font-medium">Locked to 1 for accommodations</p>}
                   </div>
                 </div>
 

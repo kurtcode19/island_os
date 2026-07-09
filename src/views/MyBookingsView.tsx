@@ -29,6 +29,8 @@ import { toast } from 'sonner';
 import ReviewForm from '../components/shared/ReviewForm';
 import { requestCancellation, processRefundEligibility } from '../lib/refundService';
 import { QRCodeSVG } from 'qrcode.react';
+import StripePaymentModal from '../components/shared/StripePaymentModal';
+import { isStripeConfigured } from '../lib/paymentUtils';
 
 export default function MyBookingsView() {
   const { user } = useAuth();
@@ -39,6 +41,7 @@ export default function MyBookingsView() {
   const [testError, setTestError] = useState<string | null>(null);
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
   const [cancellingBooking, setCancellingBooking] = useState<{ id: string; eligibility: string } | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [reviewFilter, setReviewFilter] = useState<'all' | 'reviewable'>('all');
@@ -349,8 +352,17 @@ export default function MyBookingsView() {
                               ) : (
                                 <UilCreditCard size="20" />
                               )}
-                              Pay Online
+                              Pay Online (LGU)
                             </button>
+                            {isStripeConfigured() && (
+                              <button
+                                onClick={() => setShowPaymentModal(booking.id)}
+                                className="w-full py-4 bg-white border-2 border-island-emerald/20 text-island-emerald rounded-[2rem] text-[10px] font-bold tracking-wider hover:bg-island-emerald/5 transition-all flex items-center justify-center gap-2"
+                              >
+                                <UilCreditCard size="16" />
+                                Pay with Card / GCash
+                              </button>
+                            )}
                             <button
                               onClick={() => {
                                 const eligibility = processRefundEligibility(booking);
@@ -362,7 +374,7 @@ export default function MyBookingsView() {
                               <UilTimesCircle size="16" />
                               Cancel Booking
                             </button>
-                            <p className="text-[10px] text-center text-slate-400 font-semibold tracking-tight opacity-60">Payment processed by LGU</p>
+                            <p className="text-[10px] text-center text-slate-400 font-semibold tracking-tight opacity-60">Payment processed by LGU or online</p>
                           </>
                         )}
                       </div>
@@ -424,6 +436,23 @@ export default function MyBookingsView() {
               })()}
             </div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Payment Modal */}
+      <AnimatePresence>
+        {showPaymentModal && (
+          <StripePaymentModal
+            key="payment-modal"
+            bookingId={showPaymentModal}
+            bookingName={bookings.find(b => b.id === showPaymentModal)?.serviceName || 'Booking'}
+            amount={bookings.find(b => b.id === showPaymentModal)?.amount || 0}
+            onClose={() => setShowPaymentModal(null)}
+            onSuccess={(id) => {
+              setShowPaymentModal(null);
+              toast.success('Payment successful!');
+            }}
+          />
         )}
       </AnimatePresence>
 

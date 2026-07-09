@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
-import { UilExchange as Exchange, UilCheckCircle as CheckCircle, UilBuilding as Building, UilClock as Clock } from '@/icons';
+import { UilExchange as Exchange, UilCheckCircle as CheckCircle, UilBuilding as Building, UilClock as Clock, UilRefresh as RefreshCw } from '@/icons';
 import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
+import { manualPayout as triggerPayout } from '../../lib/paymentUtils';
 
 export default function SettlementModule() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [settlingBusiness, setSettlingBusiness] = useState<string | null>(null);
+  const [processingPayout, setProcessingPayout] = useState(false);
 
   useEffect(() => {
     const q = query(
@@ -75,9 +77,29 @@ export default function SettlementModule() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
-      <div>
-        <h2 className="text-3xl font-serif font-bold text-island-green mb-2 italic">Settlement <span className="not-italic text-island-emerald">Ledger</span></h2>
-        <p className="text-slate-500 font-light">Track and settle payments owed to service providers.</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-3xl font-serif font-bold text-island-green mb-2 italic">Settlement <span className="not-italic text-island-emerald">Ledger</span></h2>
+          <p className="text-slate-500 font-light">Track and settle payments owed to service providers.</p>
+        </div>
+        <button
+          onClick={async () => {
+            setProcessingPayout(true);
+            try {
+              const result = await triggerPayout();
+              toast.success(`Payouts created: ${result.businessCount} business(es), ${result.bookingCount} booking(s)`);
+            } catch (err: any) {
+              toast.error(err.message || 'Payout processing failed');
+            } finally {
+              setProcessingPayout(false);
+            }
+          }}
+          disabled={processingPayout}
+          className="px-8 py-4 bg-island-emerald text-white rounded-2xl text-xs font-bold tracking-wider hover:bg-island-green transition-all disabled:opacity-50 flex items-center gap-3 shadow-lg"
+        >
+          {processingPayout ? <RefreshCw size="16" className="animate-spin" /> : <Exchange size="16" />}
+          {processingPayout ? 'Processing...' : 'Process Payouts'}
+        </button>
       </div>
 
       {/* Unsettled */}

@@ -91,6 +91,20 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
 
+    match /payouts/{payoutId} {
+      allow read: if hasRole('LGU') || hasRole('BUSINESS');
+      allow write: if hasRole('LGU');
+    }
+
+    match /disputes/{disputeId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /platform_revenue/{revenueId} {
+      allow read: if hasRole('LGU');
+      allow write: if hasRole('LGU');
+    }
+
     match /test/connection {
       allow read: if true;
     }

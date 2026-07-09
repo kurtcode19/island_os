@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { UilUser as User, UilBell as Bell, UilShield as Shield, UilCreditCard as CreditCard, UilGlobe as Globe, UilSave as Save, UilCamera as Camera, UilAngleRightB as ChevronRight, UilBuilding as Building2, UilMapMarker as MapPin, UilPhone as Phone, UilEnvelopeAlt as Mail, UilTag as Tag, UilCheckCircle as CheckCircle2, UilTimes as X } from '@/icons';
+import { UilUser as User, UilBell as Bell, UilShield as Shield, UilCreditCard as CreditCard, UilGlobe as Globe, UilSave as Save, UilCamera as Camera, UilAngleRightB as ChevronRight, UilBuilding as Building2, UilMapMarker as MapPin, UilPhone as Phone, UilEnvelopeAlt as Mail, UilTag as Tag, UilCheckCircle as CheckCircle2, UilTimes as X, UilExternalLinkAlt as ExternalLink, UilStar as Star, UilRefresh as RefreshCw } from '@/icons';
 import { useAuth } from '../../context/AuthContext';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { businesses as staticBusinesses } from '../../data/businesses';
 import { BusinessType, BUSINESS_TYPE_CONFIGS } from '../../types';
 import { toast } from 'sonner';
+import { createStripeConnectAccountLink, createStripeLoginLink, createSubscriptionCheckout } from '../../lib/paymentUtils';
 
 export default function SettingsModule() {
   const { profile } = useAuth();
@@ -23,6 +24,11 @@ export default function SettingsModule() {
     weeklyDigest: false,
   });
   const [activeTab, setActiveTab] = useState('profile');
+  const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
+  const [subscriptionTier, setSubscriptionTier] = useState<'free' | 'premium'>('free');
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>('active');
+  const [commissionRate, setCommissionRate] = useState<number>(10);
+  const [billingLoading, setBillingLoading] = useState<string | null>(null);
 
   useEffect(() => {
     if (!profile?.businessId) return;
@@ -30,14 +36,20 @@ export default function SettingsModule() {
       try {
         const bizDoc = await getDoc(doc(db, 'businesses', profile.businessId!));
         if (bizDoc.exists()) {
-          const data = bizDoc.data();
-          setBusinessType(data.businessType as BusinessType);
-          setBusinessName(data.name || '');
-          setBusinessLocation(data.address || '');
-          setBusinessContact(data.contact || '');
-          setBusinessEmail(data.email || profile?.email || '');
-          if (data.notifications) setNotifications(data.notifications);
-          return;
+      const data = bizDoc.data();
+      setBusinessType(data.businessType as BusinessType);
+      setBusinessName(data.name || '');
+      setBusinessLocation(data.address || '');
+      setBusinessContact(data.contact || '');
+      setBusinessEmail(data.email || profile?.email || '');
+      if (data.notifications) setNotifications(data.notifications);
+      setStripeAccountId(data.stripeAccountId || null);
+      setCommissionRate(data.commissionRate ?? 10);
+      if (data.subscription) {
+        setSubscriptionTier(data.subscription.tier || 'free');
+        setSubscriptionStatus(data.subscription.status || 'active');
+      }
+      return;
         }
       } catch {}
       const staticBiz = staticBusinesses.find(b => b.id === profile.businessId);
@@ -254,14 +266,195 @@ export default function SettingsModule() {
             </div>
           )}
 
-          {(activeTab === 'security' || activeTab === 'billing' || activeTab === 'integrations') && (
+          {activeTab === 'billing' && (
+            <div className="space-y-10">
+              {/* Subscription Tier */}
+              <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
+                <h3 className="text-xl font-black text-island-volcanic tracking-tighter mb-6">Subscription Plan</h3>
+                <div className={`p-8 rounded-3xl border-2 ${
+                  subscriptionTier === 'premium'
+                    ? 'bg-amber-50 border-amber-200'
+                    : 'bg-stone-50 border-stone-200'
+                }`}>
+                  <div className="flex items-start justify-between mb-6">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        {subscriptionTier === 'premium' ? (
+                          <Star size="24" className="text-amber-500" />
+                        ) : (
+                          <CreditCard size="24" className="text-slate-400" />
+                        )}
+                        <h4 className="text-2xl font-black text-island-volcanic tracking-tighter capitalize">
+                          {subscriptionTier} Plan
+                        </h4>
+                      </div>
+                      <p className="text-slate-500 text-sm font-medium">
+                        {subscriptionTier === 'premium'
+                          ? 'Lower commission rate, featured placement, and advanced analytics.'
+                          : 'Standard commission rate with basic features.'}
+                      </p>
+                    </div>
+                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                      subscriptionStatus === 'active'
+                        ? 'bg-emerald-100 text-island-emerald'
+                        : subscriptionStatus === 'past_due'
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'bg-slate-100 text-slate-500'
+                    }`}>
+                      {subscriptionStatus}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div className="p-5 bg-white rounded-2xl border border-slate-100">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Commission Rate</p>
+                      <p className="text-2xl font-black text-island-volcanic">{commissionRate}%</p>
+                    </div>
+                    <div className="p-5 bg-white rounded-2xl border border-slate-100">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Payouts</p>
+                      <p className="text-2xl font-black text-island-volcanic">{stripeAccountId ? 'Connected' : 'Not Setup'}</p>
+                    </div>
+                  </div>
+
+                  {subscriptionTier === 'free' && (
+                    <button
+                      onClick={async () => {
+                        if (!profile?.businessId) return;
+                        setBillingLoading('subscription');
+                        try {
+                          const { url } = await createSubscriptionCheckout('price_premium_monthly', profile.businessId);
+                          window.open(url, '_blank');
+                        } catch (err: any) {
+                          toast.error(err.message || 'Failed to create checkout');
+                        } finally {
+                          setBillingLoading(null);
+                        }
+                      }}
+                      disabled={billingLoading === 'subscription'}
+                      className="w-full bg-amber-500 text-white py-5 rounded-2xl font-bold text-sm hover:bg-amber-600 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                    >
+                      {billingLoading === 'subscription' ? <RefreshCw size="20" className="animate-spin" /> : <Star size="20" />}
+                      Upgrade to Premium
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Stripe Connect */}
+              <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
+                <h3 className="text-xl font-black text-island-volcanic tracking-tighter mb-6">Payout Settings</h3>
+                <p className="text-slate-500 text-sm font-medium mb-8">
+                  Connect your Stripe account to receive automated payouts from bookings.
+                </p>
+
+                <div className="p-8 rounded-3xl border-2 border-slate-100 bg-stone-50">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h4 className="text-lg font-bold text-island-volcanic mb-1">Stripe Connect</h4>
+                      <p className="text-sm text-slate-500">
+                        {stripeAccountId
+                          ? 'Your Stripe account is connected. You can manage your payout details from the Stripe dashboard.'
+                          : 'Link your bank account or GCash via Stripe to receive payouts.'}
+                      </p>
+                    </div>
+                    {stripeAccountId && (
+                      <span className="px-4 py-1.5 bg-emerald-100 text-island-emerald rounded-full text-[10px] font-bold uppercase tracking-wider">
+                        Connected
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex gap-4">
+                    {!stripeAccountId ? (
+                      <button
+                        onClick={async () => {
+                          if (!profile?.businessId) return;
+                          setBillingLoading('connect');
+                          try {
+                            const { url } = await createStripeConnectAccountLink(profile.businessId);
+                            window.open(url, '_blank');
+                          } catch (err: any) {
+                            toast.error(err.message || 'Failed to create Stripe account link');
+                          } finally {
+                            setBillingLoading(null);
+                          }
+                        }}
+                        disabled={billingLoading === 'connect'}
+                        className="flex-1 bg-island-emerald text-white py-5 rounded-2xl font-bold text-sm hover:bg-island-green active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                      >
+                        {billingLoading === 'connect' ? <RefreshCw size="20" className="animate-spin" /> : <ExternalLink size="20" />}
+                        Connect Stripe Account
+                      </button>
+                    ) : (
+                      <button
+                        onClick={async () => {
+                          if (!profile?.businessId) return;
+                          setBillingLoading('login');
+                          try {
+                            const { url } = await createStripeLoginLink(profile.businessId);
+                            window.open(url, '_blank');
+                          } catch (err: any) {
+                            toast.error(err.message || 'Failed to open Stripe dashboard');
+                          } finally {
+                            setBillingLoading(null);
+                          }
+                        }}
+                        disabled={billingLoading === 'login'}
+                        className="flex-1 bg-island-emerald text-white py-5 rounded-2xl font-bold text-sm hover:bg-island-green active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                      >
+                        {billingLoading === 'login' ? <RefreshCw size="20" className="animate-spin" /> : <ExternalLink size="20" />}
+                        Open Stripe Dashboard
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="mt-6 p-5 bg-white rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Commission Rate</p>
+                    <p className="text-sm text-slate-600">
+                      Your current commission rate is <strong className="text-island-volcanic">{commissionRate}%</strong>.
+                      {subscriptionTier === 'premium'
+                        ? ' Premium members enjoy a reduced rate.'
+                        : ' Upgrade to Premium for a reduced rate.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payout History */}
+              <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
+                <h3 className="text-xl font-black text-island-volcanic tracking-tighter mb-6">Payout History</h3>
+                <p className="text-slate-500 text-sm font-medium mb-8">
+                  Weekly payouts are processed every Monday. View your payout history below.
+                </p>
+                <div className="p-12 text-center bg-stone-50 rounded-3xl border border-slate-100">
+                  <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                    <CreditCard size="24" className="text-slate-400" />
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-400 mb-2">No Payouts Yet</h4>
+                  <p className="text-sm text-slate-300">
+                    Payouts will appear here once you have confirmed bookings with settled payments.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'security' && (
             <div className="bg-white p-16 rounded-[3rem] border border-slate-100 shadow-sm text-center">
               <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-6">
-                {activeTab === 'security' ? <Shield size="24" className="text-slate-300" /> :
-                 activeTab === 'billing' ? <CreditCard size="24" className="text-slate-300" /> :
-                 <Globe size="24" className="text-slate-300" />}
+                <Shield size="24" className="text-slate-300" />
               </div>
-              <h3 className="text-xl font-bold text-slate-400 mb-2 capitalize">{activeTab} Settings</h3>
+              <h3 className="text-xl font-bold text-slate-400 mb-2 capitalize">Security Settings</h3>
+              <p className="text-slate-300 text-sm">Coming soon in the next update.</p>
+            </div>
+          )}
+
+          {activeTab === 'integrations' && (
+            <div className="bg-white p-16 rounded-[3rem] border border-slate-100 shadow-sm text-center">
+              <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-6">
+                <Globe size="24" className="text-slate-300" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-400 mb-2 capitalize">Integrations</h3>
               <p className="text-slate-300 text-sm">Coming soon in the next update.</p>
             </div>
           )}
