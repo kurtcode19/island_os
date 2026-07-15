@@ -65,7 +65,13 @@ export const UilMinus = (props) => (
     <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 );
-export const UilRefresh = (props) => <Missing {...props} />;
+export const UilRefresh = (props) => (
+  <svg viewBox="0 0 24 24" width={props.size||24} height={props.size||24} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={props.className}>
+    <polyline points="23 4 23 10 17 10" />
+    <polyline points="1 20 1 14 7 14" />
+    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+  </svg>
+);
 export const UilShip = (props) => <Missing {...props} />;
 export const UilCar = (props) => <Duo.Car {...props} />;
 export const UilTruck = (props) => <Duo.Bus {...props} />;

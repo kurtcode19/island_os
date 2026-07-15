@@ -9,8 +9,8 @@ import { UilMapMarker as MapPin, UilNavigator as Navigation, UilBookOpen as Book
 import { motion, AnimatePresence } from 'motion/react';
 
 const DefaultIcon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+  shadowUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -20,7 +20,14 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 const ShopIcon = L.divIcon({
   className: 'custom-shop-icon',
-  html: '<div style="background:#10b981;width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 2px 12px rgba(16,185,129,0.4);color:white;font-size:16px;font-weight:bold">₱</div>',
+  html: '<div style="background:#10b981;width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 2px 12px rgba(16,185,129,0.4);color:white"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>',
+  iconSize: [36, 36],
+  iconAnchor: [18, 18],
+});
+
+const RestaurantIcon = L.divIcon({
+  className: 'custom-restaurant-icon',
+  html: '<div style="background:#f59e0b;width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 2px 12px rgba(245,158,11,0.4);color:white"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c6 0 1.1.9 2 2 2h3Zm0 0v7"/></svg></div>',
   iconSize: [36, 36],
   iconAnchor: [18, 18],
 });
@@ -126,6 +133,31 @@ const shopLocations: MapShop[] = [
   },
 ];
 
+const restaurantLocations: MapShop[] = [
+  {
+    id: 5,
+    name: "Luna Restaurant",
+    category: "Filipino",
+    rating: 4.6,
+    image: "/images/hero-sunken.png",
+    description: "Authentic Camiguin cuisine with ocean view dining.",
+    coords: [9.1980, 124.6690],
+    availTime: "10:00 AM - 10:00 PM daily",
+    contact: "0920-111-2233",
+  },
+  {
+    id: 6,
+    name: "Bayview Grill",
+    category: "Seafood",
+    rating: 4.4,
+    image: "/images/explore-bg.jpg",
+    description: "Fresh seafood grilled to perfection by the shore.",
+    coords: [9.2030, 124.6630],
+    availTime: "11:00 AM - 9:00 PM daily",
+    contact: "0920-444-5566",
+  },
+];
+
 function LocationMarker({ userPos }: { userPos: [number, number] | null }) {
   const map = useMap();
 
@@ -145,9 +177,10 @@ function LocationMarker({ userPos }: { userPos: [number, number] | null }) {
 const IslandMap: React.FC = () => {
   const [selectedLocation, setSelectedLocation] = useState<typeof locations[0] | null>(null);
   const [selectedShop, setSelectedShop] = useState<MapShop | null>(null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<MapShop | null>(null);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [isLocating, setIsLocating] = useState(false);
-  const [mapFilter, setMapFilter] = useState<'attractions' | 'shops'>('attractions');
+  const [mapFilter, setMapFilter] = useState<'attractions' | 'shops' | 'restaurants'>('attractions');
   const [showList, setShowList] = useState(false);
 
   const catarmanCenter: [number, number] = [9.2014, 124.6675];
@@ -239,9 +272,10 @@ const IslandMap: React.FC = () => {
   const closeDetail = () => {
     setSelectedLocation(null);
     setSelectedShop(null);
+    setSelectedRestaurant(null);
   };
 
-  const filteredLocations = mapFilter === 'attractions' ? locations : shopLocations;
+  const filteredLocations = mapFilter === 'attractions' ? locations : mapFilter === 'shops' ? shopLocations : restaurantLocations;
 
   return (
     <div className="flex flex-col lg:flex-row h-full w-full overflow-hidden bg-white selection:bg-island-emerald/20">
@@ -285,7 +319,7 @@ const IslandMap: React.FC = () => {
               position={shop.coords}
               icon={ShopIcon}
               eventHandlers={{
-                click: () => { setSelectedShop(shop); setSelectedLocation(null); },
+                click: () => { setSelectedShop(shop); setSelectedLocation(null); setSelectedRestaurant(null); },
               }}
             >
               <Popup className="custom-popup">
@@ -300,6 +334,33 @@ const IslandMap: React.FC = () => {
                     className="text-island-emerald text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 mt-2"
                   >
                     View Shop <ExternalLink size="10" />
+                  </button>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+
+          {restaurantLocations.map((r) => (
+            <Marker
+              key={`rest-${r.id}`}
+              position={r.coords}
+              icon={RestaurantIcon}
+              eventHandlers={{
+                click: () => { setSelectedRestaurant(r); setSelectedLocation(null); setSelectedShop(null); },
+              }}
+            >
+              <Popup className="custom-popup">
+                <div className="p-3 min-w-[150px]">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Store size="12" className="text-island-emerald" />
+                    <h3 className="font-black text-island-volcanic text-sm tracking-tight">{r.name}</h3>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-semibold">{r.category} · ★ {r.rating}</p>
+                  <button
+                    onClick={() => setSelectedRestaurant(r)}
+                    className="text-island-emerald text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 mt-2"
+                  >
+                    View Restaurant <ExternalLink size="10" />
                   </button>
                 </div>
               </Popup>
@@ -333,24 +394,30 @@ const IslandMap: React.FC = () => {
         )}
 
         <div className="lg:hidden absolute top-8 left-8 z-[1000] flex gap-2">
-          <button onClick={() => { setMapFilter('attractions'); setSelectedLocation(null); setSelectedShop(null); }}
+          <button onClick={() => { setMapFilter('attractions'); setSelectedLocation(null); setSelectedShop(null); setSelectedRestaurant(null); }}
             className={`px-5 py-2.5 rounded-full text-xs font-bold tracking-tight backdrop-blur-xl shadow-2xl border transition-all ${
               mapFilter === 'attractions' ? 'bg-island-volcanic text-white border-island-volcanic' : 'bg-white/90 text-slate-500 border-white/20'
             }`}>
             Attractions
           </button>
-          <button onClick={() => { setMapFilter('shops'); setSelectedLocation(null); setSelectedShop(null); }}
+          <button onClick={() => { setMapFilter('shops'); setSelectedLocation(null); setSelectedShop(null); setSelectedRestaurant(null); }}
             className={`px-5 py-2.5 rounded-full text-xs font-bold tracking-tight backdrop-blur-xl shadow-2xl border transition-all ${
               mapFilter === 'shops' ? 'bg-island-volcanic text-white border-island-volcanic' : 'bg-white/90 text-slate-500 border-white/20'
             }`}>
             Shops
+          </button>
+          <button onClick={() => { setMapFilter('restaurants'); setSelectedLocation(null); setSelectedShop(null); setSelectedRestaurant(null); }}
+            className={`px-5 py-2.5 rounded-full text-xs font-bold tracking-tight backdrop-blur-xl shadow-2xl border transition-all ${
+              mapFilter === 'restaurants' ? 'bg-island-volcanic text-white border-island-volcanic' : 'bg-white/90 text-slate-500 border-white/20'
+            }`}>
+            Restaurants
           </button>
         </div>
 
         <button onClick={() => setShowList(!showList)}
           className="lg:hidden absolute bottom-8 left-8 z-[1000] px-5 py-3 bg-white/90 backdrop-blur-xl rounded-full text-xs font-bold tracking-tight text-island-volcanic shadow-2xl border border-white/20 flex items-center gap-2">
           <MapPin size="16" />
-          {filteredLocations.length} {mapFilter === 'attractions' ? 'Sites' : 'Shops'}
+          {filteredLocations.length} {mapFilter === 'attractions' ? 'Sites' : mapFilter === 'shops' ? 'Shops' : 'Eateries'}
         </button>
 
         <AnimatePresence>
@@ -457,6 +524,48 @@ const IslandMap: React.FC = () => {
             </motion.div>
           )}
 
+          {selectedRestaurant && (
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="absolute bottom-0 left-0 right-0 z-[1001] p-6 lg:p-10"
+            >
+              <div className="bg-white rounded-[3.5rem] p-6 lg:p-10 max-w-2xl mx-auto shadow-[0_50px_100px_-20px_rgba(2,44,34,0.4)] border-2 border-emerald-50 overflow-hidden relative">
+                <button
+                  onClick={closeDetail}
+                  className="absolute top-8 right-8 p-3 bg-emerald-50 rounded-full text-island-green hover:text-island-coral active:scale-90 transition-all z-10 shadow-sm"
+                >
+                  <X size="24" />
+                </button>
+
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="text-amber-600"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-island-emerald">Restaurant</span>
+                </div>
+                <h2 className="text-3xl font-black text-island-volcanic tracking-tighter mb-2 leading-none">{selectedRestaurant.name}</h2>
+                <div className="flex items-center gap-4 text-xs text-slate-400 font-semibold mb-4">
+                  <span className="flex items-center gap-1"><Star size="12" className="text-amber-500" /> {selectedRestaurant.rating}</span>
+                  {selectedRestaurant.availTime && <span className="flex items-center gap-1"><Clock size="12" /> {selectedRestaurant.availTime}</span>}
+                  {selectedRestaurant.contact && <span className="flex items-center gap-1"><Phone size="12" /> {selectedRestaurant.contact}</span>}
+                </div>
+                <p className="text-island-green/60 text-sm font-medium leading-relaxed mb-6">{selectedRestaurant.description}</p>
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(selectedRestaurant.name)}+Catarman`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary w-full h-14 rounded-2xl"
+                >
+                  <Navigation size="20" />
+                  Get Directions
+                </a>
+              </div>
+            </motion.div>
+          )}
+
           {nearMeInfo && (
             <motion.div
               initial={{ y: '100%' }}
@@ -507,7 +616,7 @@ const IslandMap: React.FC = () => {
 
         <div className="flex gap-2 mb-8 bg-slate-50 p-1 rounded-2xl border border-slate-100">
           <button
-            onClick={() => { setMapFilter('attractions'); setSelectedLocation(null); setSelectedShop(null); }}
+            onClick={() => { setMapFilter('attractions'); setSelectedLocation(null); setSelectedShop(null); setSelectedRestaurant(null); }}
             className={`flex-1 py-3 rounded-xl text-xs font-bold tracking-tight transition-all ${
               mapFilter === 'attractions' ? 'bg-white text-island-volcanic shadow-sm' : 'text-slate-400 hover:text-slate-600'
             }`}
@@ -515,23 +624,31 @@ const IslandMap: React.FC = () => {
             Attractions
           </button>
           <button
-            onClick={() => { setMapFilter('shops'); setSelectedLocation(null); setSelectedShop(null); }}
+            onClick={() => { setMapFilter('shops'); setSelectedLocation(null); setSelectedShop(null); setSelectedRestaurant(null); }}
             className={`flex-1 py-3 rounded-xl text-xs font-bold tracking-tight transition-all ${
               mapFilter === 'shops' ? 'bg-white text-island-volcanic shadow-sm' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
             Shops
           </button>
+          <button
+            onClick={() => { setMapFilter('restaurants'); setSelectedLocation(null); setSelectedShop(null); setSelectedRestaurant(null); }}
+            className={`flex-1 py-3 rounded-xl text-xs font-bold tracking-tight transition-all ${
+              mapFilter === 'restaurants' ? 'bg-white text-island-volcanic shadow-sm' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            Restaurants
+          </button>
         </div>
 
         <div className="space-y-4">
-          {filteredLocations === locations ? (
+          {mapFilter === 'attractions' ? (
             locations.map((loc) => (
               <motion.div
                 key={loc.id}
                 whileHover={{ scale: 1.02, x: 5 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => { setSelectedLocation(loc); setSelectedShop(null); }}
+                onClick={() => { setSelectedLocation(loc); setSelectedShop(null); setSelectedRestaurant(null); }}
                 className={`p-6 rounded-[2.5rem] cursor-pointer transition-all border-2 ${
                   selectedLocation?.id === loc.id
                     ? 'emerald-gradient text-white border-transparent shadow-2xl shadow-island-emerald/30'
@@ -555,13 +672,13 @@ const IslandMap: React.FC = () => {
                 </div>
               </motion.div>
             ))
-          ) : (
+          ) : mapFilter === 'shops' ? (
             shopLocations.map((shop) => (
               <motion.div
                 key={`shop-${shop.id}`}
                 whileHover={{ scale: 1.02, x: 5 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => { setSelectedShop(shop); setSelectedLocation(null); }}
+                onClick={() => { setSelectedShop(shop); setSelectedLocation(null); setSelectedRestaurant(null); }}
                 className={`p-6 rounded-[2.5rem] cursor-pointer transition-all border-2 ${
                   selectedShop?.id === shop.id
                     ? 'emerald-gradient text-white border-transparent shadow-2xl shadow-island-emerald/30'
@@ -586,6 +703,43 @@ const IslandMap: React.FC = () => {
                         selectedShop?.id === shop.id ? 'text-white/50' : 'text-slate-300'
                       }`}>
                         ★ {shop.rating}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            restaurantLocations.map((r) => (
+              <motion.div
+                key={`rest-${r.id}`}
+                whileHover={{ scale: 1.02, x: 5 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => { setSelectedRestaurant(r); setSelectedLocation(null); setSelectedShop(null); }}
+                className={`p-6 rounded-[2.5rem] cursor-pointer transition-all border-2 ${
+                  selectedRestaurant?.id === r.id
+                    ? 'emerald-gradient text-white border-transparent shadow-2xl shadow-island-emerald/30'
+                    : 'bg-white border-slate-100 hover:border-emerald-200 text-island-volcanic shadow-sm hover:shadow-xl'
+                }`}
+              >
+                <div className="flex items-center gap-5">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
+                    selectedRestaurant?.id === r.id ? 'bg-white/20' : 'bg-amber-50'
+                  }`}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedRestaurant?.id === r.id ? 'text-white' : 'text-amber-500'}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-black text-lg tracking-tight leading-none mb-1">{r.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${
+                        selectedRestaurant?.id === r.id ? 'text-white/70' : 'text-slate-400'
+                      }`}>
+                        {r.category}
+                      </span>
+                      <span className={`text-[10px] font-semibold ${
+                        selectedRestaurant?.id === r.id ? 'text-white/50' : 'text-slate-300'
+                      }`}>
+                        ★ {r.rating}
                       </span>
                     </div>
                   </div>
@@ -621,16 +775,16 @@ const IslandMap: React.FC = () => {
             <div className="bg-white/95 backdrop-blur-2xl rounded-[2.5rem] p-5 max-h-[50vh] overflow-y-auto no-scrollbar shadow-2xl border border-white/20">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-xs font-black text-island-volcanic uppercase tracking-widest">
-                  {mapFilter === 'attractions' ? 'Attractions' : 'Shops'} ({filteredLocations.length})
+                  {mapFilter === 'attractions' ? 'Attractions' : mapFilter === 'shops' ? 'Shops' : 'Restaurants'} ({filteredLocations.length})
                 </span>
                 <button onClick={() => setShowList(false)} className="p-2 bg-slate-100 rounded-full">
                   <X size="16" />
                 </button>
               </div>
               <div className="space-y-2">
-                {filteredLocations === locations ? (
+                {mapFilter === 'attractions' ? (
                   locations.map((loc) => (
-                    <button key={loc.id} onClick={() => { setSelectedLocation(loc); setSelectedShop(null); setShowList(false); }}
+                    <button key={loc.id} onClick={() => { setSelectedLocation(loc); setSelectedShop(null); setSelectedRestaurant(null); setShowList(false); }}
                       className={`w-full text-left p-4 rounded-2xl transition-all flex items-center gap-4 ${
                         selectedLocation?.id === loc.id ? 'emerald-gradient text-white' : 'bg-slate-50 text-island-volcanic'
                       }`}>
@@ -641,9 +795,9 @@ const IslandMap: React.FC = () => {
                       </div>
                     </button>
                   ))
-                ) : (
+                ) : mapFilter === 'shops' ? (
                   shopLocations.map((shop) => (
-                    <button key={shop.id} onClick={() => { setSelectedShop(shop); setSelectedLocation(null); setShowList(false); }}
+                    <button key={shop.id} onClick={() => { setSelectedShop(shop); setSelectedLocation(null); setSelectedRestaurant(null); setShowList(false); }}
                       className={`w-full text-left p-4 rounded-2xl transition-all flex items-center gap-4 ${
                         selectedShop?.id === shop.id ? 'emerald-gradient text-white' : 'bg-slate-50 text-island-volcanic'
                       }`}>
@@ -651,6 +805,19 @@ const IslandMap: React.FC = () => {
                       <div>
                         <p className="font-bold text-sm tracking-tight">{shop.name}</p>
                         <p className="text-[10px] font-semibold opacity-60">{shop.category} · ★ {shop.rating}</p>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  restaurantLocations.map((r) => (
+                    <button key={r.id} onClick={() => { setSelectedRestaurant(r); setSelectedLocation(null); setSelectedShop(null); setShowList(false); }}
+                      className={`w-full text-left p-4 rounded-2xl transition-all flex items-center gap-4 ${
+                        selectedRestaurant?.id === r.id ? 'emerald-gradient text-white' : 'bg-slate-50 text-island-volcanic'
+                      }`}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500 shrink-0"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                      <div>
+                        <p className="font-bold text-sm tracking-tight">{r.name}</p>
+                        <p className="text-[10px] font-semibold opacity-60">{r.category} · ★ {r.rating}</p>
                       </div>
                     </button>
                   ))

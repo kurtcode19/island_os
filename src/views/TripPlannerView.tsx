@@ -38,7 +38,8 @@ import {
   UilCreditCard,
   UilArrowUpRight,
   UilBoltSlash,
-  UilDna
+  UilDna,
+  UilSave
 } from '@/icons';
 import { GoogleGenAI, Type } from "@google/genai";
 import { db, handleFirestoreError, OperationType } from '../firebase';
@@ -62,7 +63,7 @@ interface DayPlan {
   }[];
 }
 
-type Step = 'duration' | 'group' | 'transport' | 'pace' | 'interests' | 'style' | 'budget' | 'result';
+type Step = 'welcome' | 'duration' | 'group' | 'transport' | 'pace' | 'interests' | 'style' | 'budget' | 'result';
 
 const LOADING_QUOTES = [
   "Consulting the eSuroy digital concierge...",
@@ -86,7 +87,7 @@ export default function TripPlannerView() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   
   // Form State
-  const [step, setStep] = useState<Step>('duration');
+  const [step, setStep] = useState<Step>('welcome');
   const [days, setDays] = useState(3);
   const [groupType, setGroupType] = useState('Solo');
   const [transport, setTransport] = useState('No Vehicle');
@@ -102,6 +103,94 @@ export default function TripPlannerView() {
   const [bookingStatus, setBookingStatus] = useState<{[key: string]: 'idle' | 'loading' | 'success'}>({});
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const SAVED_KEY = 'esuroy_saved_itineraries';
+  const [savedItineraries, setSavedItineraries] = useState<any[]>(() => {
+    try { return JSON.parse(localStorage.getItem(SAVED_KEY) || '[]'); } catch { return []; }
+  });
+  const [showSavedPanel, setShowSavedPanel] = useState(false);
+  const [saveName, setSaveName] = useState('');
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showBudgetCalc, setShowBudgetCalc] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<any>(null);
+  const [swipedOut, setSwipedOut] = useState<Set<string>>(new Set());
+  const [rejectedActivities, setRejectedActivities] = useState<any[]>([]);
+
+  useEffect(() => {
+    localStorage.setItem(SAVED_KEY, JSON.stringify(savedItineraries));
+  }, [savedItineraries]);
+
+  const removeFromDay = (dayNum: number, activityIdx: number) => {
+    if (!itinerary) return;
+    setItinerary(prev => prev ? prev.map(d =>
+      d.day === dayNum
+        ? { ...d, activities: d.activities.filter((_, i) => i !== activityIdx) }
+        : d
+    ) : null);
+  };
+
+  const replaceInDay = (dayNum: number, activityIdx: number) => {
+    if (!itinerary) return;
+    const day = itinerary.find(d => d.day === dayNum);
+    if (!day) return;
+    const allActivities = [
+      { timeSlot: "7:00 AM", activity: "Sto. Niño Cold Spring Dip", location: "Catarman", description: "Start your day with an invigorating swim in the cold spring.", whyGo: "Perfect morning ritual to wake up surrounded by lush greenery.", price: 50, category: 'Nature' },
+      { timeSlot: "9:00 AM", activity: "Sunken Cemetery Expedition", location: "Catarman Coast", description: "Snorkel over the historic Sunken Cemetery and witness the iconic giant cross.", whyGo: "It's the most iconic landmark in Camiguin with hauntingly beautiful underwater views.", price: 500, category: 'Heritage' },
+      { timeSlot: "11:30 AM", activity: "Tuasan Falls Refresh", location: "Mainit, Catarman", description: "Swim in the crystal clear, cold waters of one of the island's most pristine falls.", whyGo: "Less crowded than other falls, offering a serene jungle atmosphere.", price: 50, category: 'Nature' },
+      { timeSlot: "12:00 PM", activity: "Lunch at a Local Eatery", location: "Poblacion, Catarman", description: "Enjoy a traditional Camiguin lunch with fresh seafood and local specialties.", whyGo: "Refuel with authentic flavors that reflect the island's culinary heritage.", price: 200, category: 'Relax' },
+      { timeSlot: "2:00 PM", activity: "Old Church Ruins Walk", location: "Bonbon, Catarman", description: "Explore the coral stone walls of the 16th-century Gui-ob Church.", whyGo: "Feel the weight of history in these beautifully preserved Spanish-era ruins.", price: 0, category: 'Heritage' },
+      { timeSlot: "3:30 PM", activity: "Catarman Public Market Tour", location: "Poblacion, Catarman", description: "Wander through the bustling market and sample fresh local produce.", whyGo: "The best place to experience daily island life and find unique souvenirs.", price: 200, category: 'Heritage' },
+      { timeSlot: "5:00 PM", activity: "Sunset at Bura Soda Water", location: "Catarman", description: "Relax in the only soda water pool in the Philippines as the sun dips low.", whyGo: "The unique effervescent water is incredibly refreshing after a day of exploring.", price: 100, category: 'Relax' },
+      { timeSlot: "7:00 PM", activity: "Night Swim at Soda Water Park", location: "Catarman", description: "Experience the unique sensation of swimming in naturally carbonated water under the stars.", whyGo: "The bubbles make you feel weightless — a truly one-of-a-kind experience.", price: 100, category: 'Relax' },
+      { timeSlot: "8:00 AM", activity: "Coffee at a Local Cafe", location: "Poblacion, Catarman", description: "Enjoy freshly brewed Camiguin arabica coffee at a neighborhood cafe.", whyGo: "Camiguin's volcanic soil produces some of the best coffee in the country.", price: 120, category: 'Relax' },
+      { timeSlot: "10:00 AM", activity: "Lanzones Plantation Visit", location: "Catarman Highlands", description: "Tour a local lanzones farm and learn about the island's famous fruit.", whyGo: "Taste the sweetest lanzones straight from the tree during harvest season.", price: 250, category: 'Heritage' },
+      { timeSlot: "1:30 PM", activity: "Catarman Food Trip", location: "Poblacion, Catarman", description: "Sample local delicacies including pastel, dried squid, and fresh seafood.", whyGo: "Catarman's food scene is an underrated gem with bold local flavors.", price: 350, category: 'Relax' },
+      { timeSlot: "4:00 PM", activity: "Bura Soda Water Park Swim", location: "Catarman", description: "Enjoy a refreshing afternoon at the unique soda water pool.", whyGo: "The naturally carbonated water is a one-of-a-kind swimming experience.", price: 100, category: 'Nature' },
+    ];
+    const usedNames = new Set(itinerary.flatMap(d => d.activities.map(a => a.activity)));
+    const available = allActivities.filter(a => !usedNames.has(a.activity));
+    if (available.length === 0) return;
+    const replacement = available[Math.floor(Math.random() * available.length)];
+    setItinerary(prev => prev ? prev.map(d =>
+      d.day === dayNum
+        ? { ...d, activities: d.activities.map((a, i) => i === activityIdx ? replacement : a) }
+        : d
+    ) : null);
+  };
+
+  const saveCurrentItinerary = () => {
+    if (!itinerary || !saveName.trim()) return;
+    const entry = {
+      id: Date.now().toString(),
+      name: saveName.trim(),
+      itinerary,
+      preferences: { days, groupType, transport, pace, interests, style, budget },
+      savedAt: new Date().toISOString()
+    };
+    setSavedItineraries(prev => [entry, ...prev]);
+    setSaveName('');
+    setShowSaveModal(false);
+  };
+
+  const loadItinerary = (entry: any) => {
+    setItinerary(entry.itinerary);
+    setDays(entry.preferences?.days || days);
+    setGroupType(entry.preferences?.groupType || groupType);
+    setTransport(entry.preferences?.transport || transport);
+    setPace(entry.preferences?.pace || pace);
+    setInterests(entry.preferences?.interests || interests);
+    setStyle(entry.preferences?.style || style);
+    setBudget(entry.preferences?.budget || budget);
+    setSwipedOut(new Set());
+    setRejectedActivities([]);
+    setSelectedActivity(null);
+    setStep('result');
+    setShowSavedPanel(false);
+  };
+
+  const deleteSavedItinerary = (id: string) => {
+    setSavedItineraries(prev => prev.filter(e => e.id !== id));
+  };
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -700,7 +789,7 @@ export default function TripPlannerView() {
     return steps_rendered;
   };
 
-  const steps: Step[] = ['duration', 'group', 'transport', 'pace', 'interests', 'style', 'budget', 'result'];
+  const steps: Step[] = ['welcome', 'duration', 'group', 'transport', 'pace', 'interests', 'style', 'budget', 'result'];
 
   return (
     <div className="flex h-screen bg-white overflow-hidden selection:bg-island-emerald/20 selection:text-island-emerald font-sans">
@@ -728,7 +817,64 @@ export default function TripPlannerView() {
 
         {/* Scrollable Area */}
         <div className="flex-1 overflow-y-auto p-8 lg:p-14 space-y-16 no-scrollbar bg-[#FAFAFA]">
-          {step !== 'result' ? (
+          {step === 'welcome' ? (
+            <div className="h-full flex flex-col items-center justify-center text-center px-6">
+              <div className="max-w-md mx-auto space-y-10">
+                <div className="space-y-4">
+                  <div className="w-24 h-24 mx-auto rounded-[2rem] bg-white flex items-center justify-center shadow-2xl border border-slate-100">
+                    <UilCompass size="48" className="text-island-volcanic" />
+                  </div>
+                  <h1 className="text-5xl font-black text-island-volcanic tracking-tighter uppercase leading-none">AI Planner</h1>
+                  <p className="text-sm font-medium text-slate-400 leading-relaxed max-w-xs mx-auto">
+                    Your personal AI concierge for Catarman, Camiguin. Answer a few questions and get a custom itinerary.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setStep('duration')}
+                  className="w-full bg-island-emerald text-white py-6 rounded-[2rem] font-bold text-sm tracking-wider shadow-2xl flex items-center justify-center gap-3 hover:bg-island-emerald/90 transition-all active:scale-[0.98]"
+                >
+                  <UilCompass size="20" /> Start Planning
+                </button>
+
+                {savedItineraries.length > 0 && (
+                  <button
+                    onClick={() => setShowSavedPanel(true)}
+                    className="w-full bg-white text-slate-500 py-5 rounded-[2rem] font-bold text-xs tracking-wider border-2 border-slate-100 flex items-center justify-center gap-3 hover:bg-slate-50 hover:border-slate-200 transition-all active:scale-[0.98]"
+                  >
+                    <UilClock size="16" /> View Saved Itineraries ({savedItineraries.length})
+                  </button>
+                )}
+
+                {savedItineraries.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">Saved Itineraries</p>
+                    <div className="space-y-2 max-h-48 overflow-y-auto no-scrollbar">
+                      {savedItineraries.map(entry => (
+                        <button
+                          key={entry.id}
+                          onClick={() => loadItinerary(entry)}
+                          className="w-full flex items-center justify-between p-4 rounded-xl bg-white border border-slate-100 hover:border-slate-200 transition-all text-left group"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-island-volcanic truncate">{entry.name}</p>
+                            <p className="text-[10px] text-slate-400">
+                              {entry.itinerary?.length || 0} days · {entry.itinerary?.reduce((s: number, d: any) => s + d.activities.length, 0) || 0} activities
+                            </p>
+                          </div>
+                          <span className="text-slate-300 group-hover:text-island-volcanic text-xs shrink-0 ml-3">&rarr;</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {savedItineraries.length === 0 && (
+                  <p className="text-[10px] text-slate-400 font-medium">No saved itineraries yet. Plan your trip to get started.</p>
+                )}
+              </div>
+            </div>
+          ) : step !== 'result' ? (
             <div className="space-y-16">
               {renderChatFlow()}
               <div ref={chatEndRef} />
@@ -775,9 +921,20 @@ export default function TripPlannerView() {
                     </span>
                   </div>
                 </div>
-                <button onClick={() => setStep('duration')} className="w-14 h-14 rounded-2xl bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-island-volcanic hover:bg-island-volcanic hover:text-white transition-all shadow-lg active:scale-90 shrink-0">
-                  <UilRefresh size="22" />
-                </button>
+                <div className="flex gap-2">
+                  <button onClick={() => setShowSavedPanel(true)} className="w-14 h-14 rounded-2xl bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-island-volcanic hover:bg-island-volcanic hover:text-white transition-all shadow-lg active:scale-90 shrink-0" title="Saved Itineraries">
+                    <UilClock size="22" />
+                  </button>
+                  <button onClick={() => setShowBudgetCalc(true)} className="w-14 h-14 rounded-2xl bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-island-volcanic hover:bg-island-volcanic hover:text-white transition-all shadow-lg active:scale-90 shrink-0" title="Budget Calculator">
+                    <UilWallet size="22" />
+                  </button>
+                  <button onClick={() => { setSaveName(''); setShowSaveModal(true); }} className="w-14 h-14 rounded-2xl bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-island-volcanic hover:bg-island-volcanic hover:text-white transition-all shadow-lg active:scale-90 shrink-0" title="Save Itinerary">
+                    <UilSave size="22" />
+                  </button>
+                  <button onClick={() => setStep('duration')} className="w-14 h-14 rounded-2xl bg-slate-50 border-2 border-slate-100 flex items-center justify-center text-island-volcanic hover:bg-island-volcanic hover:text-white transition-all shadow-lg active:scale-90 shrink-0">
+                    <UilRefresh size="22" />
+                  </button>
+                </div>
               </div>
 
               {/* Trip Summary Bar */}
@@ -992,6 +1149,152 @@ export default function TripPlannerView() {
           ))}
         </div>
       </div>
+      {/* ── Save Modal ── */}
+      {showSaveModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-island-volcanic/60 backdrop-blur-sm" onClick={() => { setShowSaveModal(false); setSaveName(''); }} />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl"
+          >
+            <h3 className="text-xl font-black text-island-volcanic tracking-tighter mb-2">Save Itinerary</h3>
+            <p className="text-xs text-slate-400 font-medium mb-6">Name this itinerary to find it later.</p>
+            <input
+              type="text"
+              value={saveName}
+              onChange={e => setSaveName(e.target.value)}
+              placeholder="e.g., Weekend Getaway"
+              className="w-full px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/10 text-sm font-bold text-island-volcanic mb-4"
+              onKeyDown={e => e.key === 'Enter' && saveCurrentItinerary()}
+              autoFocus
+            />
+            <div className="flex gap-3">
+              <button onClick={() => { setShowSaveModal(false); setSaveName(''); }} className="flex-1 py-4 bg-slate-50 rounded-2xl text-xs font-bold text-slate-400 hover:bg-slate-100 transition-all">
+                Cancel
+              </button>
+              <button onClick={saveCurrentItinerary} disabled={!saveName.trim()} className="flex-1 py-4 bg-island-volcanic text-white rounded-2xl text-xs font-bold hover:bg-island-emerald transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                Save
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* ── Saved Itineraries Panel ── */}
+      {showSavedPanel && (
+        <div className="fixed inset-0 z-[300] flex justify-end">
+          <div className="absolute inset-0 bg-island-volcanic/40 backdrop-blur-sm" onClick={() => setShowSavedPanel(false)} />
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 200, damping: 30 }}
+            className="relative w-full max-w-md bg-white shadow-2xl overflow-y-auto"
+          >
+            <div className="sticky top-0 bg-white/90 backdrop-blur-lg border-b border-slate-100 p-8 flex items-center justify-between z-10">
+              <h3 className="text-xl font-black text-island-volcanic tracking-tighter">Saved Itineraries</h3>
+              <button onClick={() => setShowSavedPanel(false)} className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-all">
+                <UilTimes size="18" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              {savedItineraries.length === 0 ? (
+                <div className="text-center py-16">
+                  <UilClock size="48" className="mx-auto text-slate-200 mb-4" />
+                  <p className="text-sm font-bold text-slate-400">No saved itineraries yet</p>
+                  <p className="text-xs text-slate-300 mt-1">Generate a trip and save it to see it here.</p>
+                </div>
+              ) : (
+                savedItineraries.map(entry => (
+                  <div key={entry.id} className="p-5 rounded-2xl border border-slate-100 bg-white hover:border-slate-200 transition-all shadow-sm group">
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div>
+                        <h4 className="text-sm font-black text-island-volcanic tracking-tight">{entry.name}</h4>
+                        <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                          {entry.itinerary?.length || 0} days · {entry.itinerary?.reduce((s: number, d: any) => s + d.activities.length, 0) || 0} activities
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => deleteSavedItinerary(entry.id)}
+                        className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-300 hover:bg-red-50 hover:text-red-400 transition-all opacity-0 group-hover:opacity-100 text-xs font-bold"
+                      >×</button>
+                    </div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">{entry.preferences?.pace || 'Moderate'} pace</span>
+                      <span className="text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">{entry.preferences?.groupType || 'Solo'}</span>
+                    </div>
+                    <button
+                      onClick={() => loadItinerary(entry)}
+                      className="w-full py-3 bg-island-volcanic text-white rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-island-emerald transition-all"
+                    >
+                      Load Itinerary
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* ── Budget Calculator ── */}
+      {showBudgetCalc && itinerary && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
+          <div className="absolute inset-0 bg-island-volcanic/60 backdrop-blur-sm" onClick={() => setShowBudgetCalc(false)} />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black text-island-volcanic tracking-tighter">Budget Calculator</h3>
+              <button onClick={() => setShowBudgetCalc(false)} className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-all">
+                <UilTimes size="14" />
+              </button>
+            </div>
+            {(() => {
+              const allActs = itinerary.flatMap(d => d.activities.map((a: any) => ({ ...a, day: d.day })));
+              const totalCost = allActs.reduce((s: number, a: any) => s + (a.price || 0), 0);
+              const byDay = new Map<number, any[]>();
+              allActs.forEach((a: any) => { const d = byDay.get(a.day) || []; d.push(a); byDay.set(a.day, d); });
+              const tierColors: Record<string, string> = { Budget: 'text-amber-600', Moderate: 'text-slate-600', Luxury: 'text-yellow-600' };
+              return (
+                <div className="space-y-6">
+                  <div className="text-center py-6 bg-gradient-to-b from-slate-50 rounded-2xl">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total Estimated Cost</p>
+                    <p className="text-4xl font-black text-island-volcanic mt-2">₱{totalCost.toLocaleString()}</p>
+                    <p className="text-[10px] text-slate-400 mt-1">{allActs.length} activities · {byDay.size} day{byDay.size > 1 ? 's' : ''}</p>
+                    <div className="mt-3">
+                      <span className={`inline-block text-[10px] font-bold px-3 py-1 rounded-full bg-slate-100 ${tierColors[budget] || 'text-slate-500'}`}>
+                        {budget} Tier
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Per-Day Breakdown</p>
+                    {[...byDay.entries()].map(([day, acts]) => {
+                      const dayCost = (acts as any[]).reduce((s: number, a: any) => s + (a.price || 0), 0);
+                      return (
+                        <div key={day} className="flex items-center justify-between p-3 rounded-xl bg-slate-50">
+                          <div className="flex items-center gap-3">
+                            <div className="w-7 h-7 rounded-lg bg-island-volcanic text-white flex items-center justify-center text-[9px] font-bold">D{day}</div>
+                            <div>
+                              <p className="text-xs font-bold text-island-volcanic">Day {day}</p>
+                              <p className="text-[9px] text-slate-400">{(acts as any[]).length} activities</p>
+                            </div>
+                          </div>
+                          <span className="text-sm font-bold text-island-volcanic">₱{dayCost.toLocaleString()}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+          </motion.div>
+        </div>
+      )}
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

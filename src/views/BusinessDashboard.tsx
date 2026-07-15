@@ -45,6 +45,7 @@ import ToursModule from '../components/business/ToursModule';
 import ReviewsModule from '../components/business/ReviewsModule';
 import SettingsModule from '../components/business/SettingsModule';
 import CheckInView from './CheckInView';
+import RentalModule from '../components/business/RentalModule';
 
 import { businesses as staticBusinesses } from '../data/businesses';
 import { BusinessType, BUSINESS_TYPE_CONFIGS } from '../types';
@@ -162,6 +163,7 @@ export default function BusinessDashboard() {
     { icon: BarChart3, label: 'Dashboard', to: '/business', show: true },
     { icon: Calendar, label: 'Bookings', to: '/business/bookings', show: modules.includes('bookings') },
     { icon: Package, label: 'Inventory', to: '/business/inventory', show: modules.includes('inventory') },
+    { icon: Car, label: 'Fleet', to: '/business/fleet', show: modules.includes('fleet') },
     { icon: Compass, label: 'Tours', to: '/business/tours', show: modules.includes('tours') },
     { icon: Star, label: 'Reviews', to: '/business/reviews', show: modules.includes('reviews') },
     { icon: Scan, label: 'Check-In Scanner', to: '/business/checkin', show: modules.includes('checkin') },
@@ -201,71 +203,61 @@ export default function BusinessDashboard() {
 
   const AnalyticsHome = () => (
     <div className="space-y-12">
-      {/* Inventory Update Notification */}
       {businessType === 'shop' && (
-        <div className="bg-amber-50 border-2 border-amber-200 rounded-[2.5rem] p-8 flex items-start gap-6">
-          <div className="w-14 h-14 rounded-2xl bg-amber-200 flex items-center justify-center text-amber-700 shrink-0">
-            <AlertTriangle size="28" />
-          </div>
-          <div className="flex-1">
-            <h4 className="text-lg font-black text-amber-900 tracking-tighter mb-2">Update Your Product Availability</h4>
-            <p className="text-amber-800 font-medium text-sm leading-relaxed mb-4">
-              For accurate inventory tracking, please update your product availability every 3 days. 
-              Walk-in purchases may affect stock levels not recorded in the system.
-            </p>
-            <Link to="/business/inventory" className="inline-flex items-center gap-2 px-6 py-3 bg-amber-800 text-white rounded-2xl text-xs font-bold hover:bg-amber-900 transition-all">
-              <RefreshCw size="16" /> Update Now
-            </Link>
+        <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
+              <AlertTriangle size="18" />
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-black mb-1">Update Your Product Availability</h4>
+              <p className="text-gray-400 text-sm mb-3">
+                For accurate inventory tracking, please update your product availability every 3 days.
+              </p>
+              <Link to="/business/inventory" className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg text-xs font-medium hover:bg-gray-800 transition-all">
+                <RefreshCw size="14" /> Update Now
+              </Link>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="Weekly Revenue" value={`₱${dashboardStats.weeklyRevenue.toLocaleString()}`} change="Updated daily" isPositive={true} icon={CreditCard} color="emerald" />
         <StatCard label="Active Bookings" value={String(dashboardStats.activeBookings)} change={`${dashboardStats.pendingCount} pending`} isPositive={true} icon={Calendar} color="ocean" />
         <StatCard label="Today's Check-ins" value={String(dashboardStats.todaysCheckIns)} change={`${dashboardStats.totalBookings} total bookings`} isPositive={true} icon={Star} color="purple" />
         <StatCard label="Pending" value={String(dashboardStats.pendingCount)} change="Awaiting confirmation" isPositive={true} icon={TrendingUp} color="coral" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {modules.includes('inventory') && (
-          <div className="bg-white p-12 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl relative overflow-hidden group">
+          <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
             <div className="relative z-10">
-              <h3 className="text-3xl font-black text-island-volcanic tracking-tighter mb-4">Inventory</h3>
-              <p className="text-slate-500 font-medium mb-10">You have 4 items running low on stock.</p>
-              <Link to="/business/inventory" className="btn-primary inline-flex items-center gap-3 px-8 py-4 rounded-2xl">
-                Manage Inventory <ArrowUpRight size="20" />
+              <h3 className="text-xl font-semibold text-black tracking-tight mb-2">Inventory</h3>
+              <p className="text-gray-400 text-sm mb-6">You have 4 items running low on stock.</p>
+              <Link to="/business/inventory" className="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-all">
+                Manage Inventory <ArrowUpRight size="16" />
               </Link>
-            </div>
-            <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity rotate-12 group-hover:rotate-0 duration-700">
-              <Package size="240" />
             </div>
           </div>
         )}
-        <div className="emerald-gradient p-12 rounded-[3.5rem] shadow-xl relative overflow-hidden group">
+        <div className="bg-black p-8 rounded-2xl shadow-sm relative overflow-hidden group">
           <div className="relative z-10">
-            <h3 className="text-3xl font-black text-white tracking-tighter mb-4">Reviews</h3>
-            <p className="text-emerald-50/70 font-medium mb-10">3 new reviews pending your response.</p>
-            <Link to="/business/reviews" className="bg-white text-island-emerald px-8 py-4 rounded-2xl font-semibold text-xs tracking-wider hover:bg-emerald-50 transition-all inline-block">
+            <h3 className="text-xl font-semibold text-white tracking-tight mb-2">Reviews</h3>
+            <p className="text-gray-400 text-sm mb-6">3 new reviews pending your response.</p>
+            <Link to="/business/reviews" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-black rounded-lg text-sm font-medium hover:bg-gray-100 transition-all">
               View Reviews
             </Link>
           </div>
-          <div className="absolute -right-10 -bottom-10 opacity-10 group-hover:opacity-20 transition-opacity -rotate-12 group-hover:rotate-0 duration-700">
-            <Star size="240" />
-          </div>
         </div>
-        {/* Manual Earnings / Product Sold Card */}
-        <div className="bg-white p-12 rounded-[3.5rem] border-2 border-slate-100 shadow-xl relative overflow-hidden group">
+        <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
           <div className="relative z-10">
-            <h3 className="text-3xl font-black text-island-volcanic tracking-tighter mb-4">Manual Update</h3>
-            <p className="text-slate-500 font-medium mb-10">Record offline sales that were not captured by the system.</p>
-            <button onClick={() => setShowManualEarnings(true)} className="btn-primary inline-flex items-center gap-3 px-8 py-4 rounded-2xl">
-              <DollarSign size="20" />
+            <h3 className="text-xl font-semibold text-black tracking-tight mb-2">Manual Update</h3>
+            <p className="text-gray-400 text-sm mb-6">Record offline sales that were not captured by the system.</p>
+            <button onClick={() => setShowManualEarnings(true)} className="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-all">
+              <DollarSign size="16" />
               Add Manual Entry
             </button>
-          </div>
-          <div className="absolute -right-10 -bottom-10 opacity-5 group-hover:opacity-10 transition-opacity rotate-12 group-hover:rotate-0 duration-700">
-            <ShoppingBag size="240" />
           </div>
         </div>
       </div>
@@ -273,58 +265,58 @@ export default function BusinessDashboard() {
       {/* Manual Earnings Modal */}
       {showManualEarnings && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-island-volcanic/60 backdrop-blur-sm" onClick={() => setShowManualEarnings(false)} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowManualEarnings(false)} />
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative w-full max-w-md bg-white rounded-[2.5rem] p-8 shadow-2xl"
+            className="relative w-full max-w-md bg-white rounded-2xl p-8 shadow-2xl"
           >
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-island-green">Record Offline Sale</h3>
-              <button onClick={() => setShowManualEarnings(false)} className="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:text-island-coral transition-all">
+              <h3 className="text-lg font-semibold text-black">Record Offline Sale</h3>
+              <button onClick={() => setShowManualEarnings(false)} className="w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-black transition-all">
                 <X size="16" />
               </button>
             </div>
             <div className="space-y-4 mb-8">
               <div>
-                <label className="text-xs font-bold text-slate-500 mb-1.5 block">Product/Service Name</label>
+                <label className="text-xs font-medium text-gray-500 mb-1.5 block">Product/Service Name</label>
                 <input type="text" value={manualProduct} onChange={e => setManualProduct(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 text-sm font-semibold text-slate-800"
+                  className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 outline-none focus:ring-2 focus:ring-gray-200 text-sm text-gray-800"
                   placeholder="e.g., Fresh Lanzones" />
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-500 mb-1.5 block">Amount Earned (₱)</label>
+                <label className="text-xs font-medium text-gray-500 mb-1.5 block">Amount Earned (₱)</label>
                 <input type="number" value={manualAmount} onChange={e => setManualAmount(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 text-sm font-semibold text-slate-800"
+                  className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 outline-none focus:ring-2 focus:ring-gray-200 text-sm text-gray-800"
                   placeholder="0" />
               </div>
             </div>
             <button onClick={handleManualEarningsSubmit}
-              className="w-full bg-island-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-island-green/20 hover:shadow-island-green/40 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
-              <CheckCircle2 size="20" /> Record Sale
+              className="w-full bg-black text-white py-4 rounded-xl font-medium text-sm hover:bg-gray-800 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+              <CheckCircle2 size="18" /> Record Sale
             </button>
           </motion.div>
         </div>
       )}
 
-      <div className="bg-white p-12 rounded-[3.5rem] border-2 border-emerald-50 shadow-xl">
-        <div className="flex justify-between items-center mb-10">
-          <h3 className="text-3xl font-black text-island-volcanic tracking-tighter">Recent Activity</h3>
-          <span className="text-[10px] font-bold text-island-emerald bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">Live Activity</span>
+      <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex justify-between items-center mb-8">
+          <h3 className="text-xl font-semibold text-black tracking-tight">Recent Activity</h3>
+          <span className="text-[10px] font-medium text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">Live</span>
         </div>
-        <div className="space-y-8">
+        <div className="space-y-4">
           {[
             { user: 'Juan Dela Cruz', action: `Confirmed booking for ${businessName}`, time: '2 mins ago', icon: Calendar },
             { user: 'Sarah Wilson', action: 'Added a 5-star review', time: '1 hour ago', icon: Star },
             { user: 'System', action: 'Dashboard synced', time: '3 hours ago', icon: Package },
           ].map((item, idx) => (
-            <div key={idx} className="flex items-center gap-6 p-6 rounded-3xl hover:bg-stone-50 transition-all border border-transparent hover:border-stone-100">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-island-emerald border border-emerald-100">
-                <item.icon size="24" />
+            <div key={idx} className="flex items-center gap-4 p-4 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-100">
+              <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100">
+                <item.icon size="18" />
               </div>
               <div className="flex-1">
-                <p className="text-island-volcanic font-bold"><span className="text-island-emerald">{item.user}</span> {item.action}</p>
-                <p className="text-[10px] text-slate-400 font-semibold tracking-tight mt-1">{item.time}</p>
+                <p className="text-sm text-gray-600"><span className="text-black font-medium">{item.user}</span> {item.action}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">{item.time}</p>
               </div>
             </div>
           ))}
@@ -334,64 +326,59 @@ export default function BusinessDashboard() {
   );
 
   return (
-    <div className="flex h-screen bg-white selection:bg-island-emerald/20 overflow-hidden">
-      <aside className="w-[320px] bg-white border-r border-emerald-50 hidden lg:flex flex-col shadow-2xl shrink-0">
-        <div className="p-10 flex-1 overflow-y-auto no-scrollbar">
-          <div className="flex items-center gap-5 mb-16 px-4">
-            <div className="w-14 h-14 rounded-2xl forest-gradient flex items-center justify-center text-white shadow-2xl border border-white/10">
-              <TypeIcon size="32" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-black text-island-volcanic tracking-tighter leading-none mb-1">{typeLabel}</h3>
-              <span className="text-xs text-island-emerald font-bold tracking-wider">{businessName}</span>
-            </div>
+    <div className="flex h-screen bg-white overflow-hidden">
+      <aside className="w-[280px] bg-white border-r border-gray-100 hidden lg:flex flex-col shrink-0">
+        <div className="p-8 flex-1 overflow-y-auto no-scrollbar">
+          <div className="mb-12 px-4">
+            <h3 className="text-xl font-semibold text-black tracking-tight">{typeLabel}</h3>
+            <span className="text-xs text-gray-400 font-medium">{businessName}</span>
           </div>
 
-          <nav className="space-y-4">
+          <nav className="space-y-1">
             {sidebarItems.map(item => (
-              <SidebarItem key={item.to} icon={item.icon} label={item.label} to={item.to}
+              <SidebarItem key={item.to} label={item.label} to={item.to}
                 active={item.to === '/business' ? location.pathname === '/business' : location.pathname.startsWith(item.to)} />
             ))}
           </nav>
         </div>
         
-        <div className="p-10 border-t-2 border-stone-50 space-y-4">
-          <SidebarItem icon={Settings} label="Settings" to="/business/settings" active={location.pathname.startsWith('/business/settings')} />
+        <div className="p-8 border-t border-gray-100 space-y-1">
+          <SidebarItem label="Settings" to="/business/settings" active={location.pathname.startsWith('/business/settings')} />
           <Link
             to="/"
-            className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.75rem] text-xs font-semibold tracking-tight text-slate-400 bg-stone-50 hover:bg-emerald-50 hover:text-island-emerald transition-all duration-300 border border-transparent hover:border-emerald-100"
+            className="w-full flex items-center gap-3 px-6 py-3.5 rounded-xl text-sm font-medium text-gray-400 hover:text-black hover:bg-gray-50 transition-all duration-200"
           >
-            <ArrowUpRight size="22" />
+            <ArrowUpRight size="16" className="shrink-0" />
             Back to Site
           </Link>
           <button 
             onClick={() => logout()}
-            className="w-full flex items-center gap-5 px-8 py-5 rounded-[1.75rem] text-xs font-semibold tracking-tight text-slate-400 bg-stone-50 hover:bg-rose-50 hover:text-island-coral transition-all duration-300 border border-transparent hover:border-rose-100"
+            className="w-full flex items-center gap-3 px-6 py-3.5 rounded-xl text-sm font-medium text-gray-400 hover:text-black hover:bg-gray-50 transition-all duration-200"
           >
-            <LogOut size="22" />
+            <LogOut size="16" className="shrink-0" />
             Logout
           </button>
         </div>
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="bg-white/80 backdrop-blur-md border-b border-emerald-50 p-8 lg:px-12 z-30 shrink-0">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
+        <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 p-6 lg:px-10 z-30 shrink-0">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
-              <span className="text-island-emerald font-bold tracking-wider text-xs mb-2 block">{typeLabel} Dashboard</span>
-              <h1 className="text-4xl lg:text-5xl font-black text-island-volcanic tracking-tighter leading-none">{typeLabel} <span className="text-transparent bg-clip-text bg-gradient-to-r from-island-emerald to-island-green">Dashboard.</span></h1>
-              <p className="text-slate-500 font-medium text-base mt-2">Welcome back, {profile?.name || 'Business'}</p>
+              <span className="text-gray-400 font-medium text-xs tracking-wide uppercase mb-1 block">{typeLabel} Dashboard</span>
+              <h1 className="text-3xl lg:text-4xl font-semibold text-black tracking-tight leading-none">Dashboard</h1>
+              <p className="text-gray-400 text-sm mt-1">Welcome back, {profile?.name || 'Business'}</p>
             </div>
             
-            <div className="flex items-center gap-6 w-full md:w-auto">
+            <div className="flex items-center gap-4 w-full md:w-auto">
               <div className="relative flex-1 md:flex-none group">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-300 group-focus-within:text-island-emerald transition-colors" size="20" />
-                <input type="text" placeholder="Search..." className="pl-14 pr-6 py-4 bg-white border-2 border-emerald-50 rounded-2xl outline-none focus:ring-8 focus:ring-island-emerald/5 focus:border-island-emerald/20 transition-all w-full md:w-80 shadow-2xl" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-gray-500 transition-colors" size="16" />
+                <input type="text" placeholder="Search..." className="pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-200 transition-all w-full md:w-64 text-sm" />
               </div>
-              <button className="w-14 h-14 bg-white border-2 border-emerald-50 rounded-2xl text-island-volcanic flex items-center justify-center relative shadow-2xl hover:bg-emerald-50 active:scale-90 transition-all group shrink-0">
-                <Bell size="24" className="group-hover:text-island-emerald transition-colors" />
+              <button className="w-10 h-10 bg-white border border-gray-100 rounded-xl text-gray-500 flex items-center justify-center relative hover:bg-gray-50 active:scale-90 transition-all group shrink-0">
+                <Bell size="18" className="group-hover:text-black transition-colors" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[22px] h-[22px] bg-island-coral text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1.5 border-2 border-white shadow-lg">
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-black text-white text-[9px] font-semibold rounded-full flex items-center justify-center px-1 border-2 border-white">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -400,13 +387,14 @@ export default function BusinessDashboard() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-8 lg:p-12 no-scrollbar scroll-smooth">
-          <div className="max-w-[1600px] mx-auto">
+        <main className="flex-1 overflow-y-auto p-6 lg:p-10 no-scrollbar scroll-smooth">
+          <div className="max-w-[1400px] mx-auto space-y-6">
             <Routes>
               <Route path="/" element={<AnalyticsHome />} />
               {modules.includes('analytics') && <Route path="/analytics" element={<AnalyticsModule />} />}
               {modules.includes('bookings') && <Route path="/bookings" element={<BookingsModule />} />}
               {modules.includes('inventory') && <Route path="/inventory" element={<InventoryModule />} />}
+              {modules.includes('fleet') && <Route path="/fleet" element={<RentalModule />} />}
               {modules.includes('tours') && <Route path="/tours" element={<ToursModule />} />}
               {modules.includes('reviews') && <Route path="/reviews" element={<ReviewsModule />} />}
               {modules.includes('checkin') && <Route path="/checkin" element={<CheckInView />} />}

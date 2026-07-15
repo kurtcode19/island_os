@@ -175,7 +175,7 @@ export function DestinationDetail({ spot, images, onBack, onStartTrip }: Destina
               <div className="flex -space-x-2">
                 {[1, 2, 3].map(i => (
                   <div key={i} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden shadow-md">
-                    <img src="/images/logo.png" alt="" className="w-full h-full object-cover" />
+                    <img src="/images/weblogo.png" alt="" className="w-full h-full object-cover" />
                   </div>
                 ))}
                 <div className="w-8 h-8 rounded-full bg-[var(--text)] border-2 border-white flex items-center justify-center text-[9px] font-bold text-white shadow-md">2K+</div>

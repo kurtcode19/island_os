@@ -105,7 +105,7 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
           <div className="flex flex-initial w-[250px] justify-start">
             <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
               <div className="w-10 h-10 bg-island-volcanic/5 rounded-xl flex items-center justify-center border border-island-volcanic/10 transition-transform group-hover:scale-110">
-                <img src="/images/logo.png" alt="eSuroy Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+                <img src="/images/weblogo.png" alt="eSuroy Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
               </div>
               <span className={`text-xl font-bold tracking-tighter whitespace-nowrap ${location.pathname === '/' ? 'text-white' : 'text-slate-800'}`}>
                 <span className="text-island-emerald">eSuroy</span>

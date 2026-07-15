@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { UilPackage as Package, UilPlus as Plus, UilSearch as Search, UilFilter as Filter, UilAngleRightB as ChevronRight, UilGrid as LayoutGrid, UilListUl as List, UilCheckCircle as CheckCircle2, UilTimesCircle as XCircle, UilClock as Clock, UilTimes as X, UilUsersAlt as Users, UilUtensils as Utensils, UilWifi as Wifi, UilWind as Wind, UilWater as ShowerHead, UilSnowflake as Snowflake, UilBox as Refrigerator, UilTvRetro as Tv } from '@/icons';
-import { useState, useEffect } from 'react';
+import { UilPackage as Package, UilPlus as Plus, UilSearch as Search, UilFilter as Filter, UilAngleRightB as ChevronRight, UilGrid as LayoutGrid, UilListUl as List, UilCheckCircle as CheckCircle2, UilTimesCircle as XCircle, UilClock as Clock, UilTimes as X, UilUsersAlt as Users, UilUtensils as Utensils, UilWifi as Wifi, UilWind as Wind, UilWater as ShowerHead, UilSnowflake as Snowflake, UilBox as Refrigerator, UilTvRetro as Tv, UilCamera as Camera } from '@/icons';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
@@ -18,9 +18,9 @@ export default function InventoryModule() {
   const [formData, setFormData] = useState({
     name: '',
     category: 'Accommodation',
-    price: '',
     total: 1,
     stock: 1,
+    image: '',
     guests: [] as { name: string; price: number }[],
     inclusions: [] as { name: string; price: number; forPeople: number }[],
     descriptionChecklist: [] as string[],
@@ -31,6 +31,28 @@ export default function InventoryModule() {
   const [newInclusionName, setNewInclusionName] = useState('');
   const [newInclusionPrice, setNewInclusionPrice] = useState('');
   const [newInclusionPeople, setNewInclusionPeople] = useState(1);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleImageFile = useCallback((file: File) => {
+    if (!file.type.startsWith('image/')) return;
+    const img = new Image();
+    img.onload = () => {
+      const max = 800;
+      let { width, height } = img;
+      if (width > max || height > max) {
+        const ratio = Math.min(max / width, max / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const c = document.createElement('canvas');
+      c.width = width; c.height = height;
+      const ctx = c.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, width, height);
+      setFormData(prev => ({ ...prev, image: c.toDataURL('image/jpeg', 0.7) }));
+    };
+    img.src = URL.createObjectURL(file);
+  }, []);
 
   useEffect(() => {
     if (!profile?.businessId) {
@@ -59,9 +81,9 @@ export default function InventoryModule() {
     setFormData({
       name: '',
       category: 'Accommodation',
-      price: '',
       total: 1,
       stock: 1,
+      image: '',
       guests: [],
       inclusions: [],
       descriptionChecklist: [],
@@ -74,9 +96,9 @@ export default function InventoryModule() {
     setFormData({
       name: item.name || '',
       category: item.category || 'Accommodation',
-      price: item.price?.toString().replace(/[₱,]/g, '') || '',
       total: item.category === 'Accommodation' ? 1 : (item.total || 10),
       stock: item.category === 'Accommodation' ? 1 : (item.stock ?? item.total ?? 10),
+      image: item.image || '',
       guests: item.guests || [],
       inclusions: item.inclusions || [],
       descriptionChecklist: item.descriptionChecklist || [],
@@ -100,9 +122,10 @@ export default function InventoryModule() {
       businessId: profile.businessId,
       name: formData.name,
       category: formData.category,
-      price: formData.price ? `₱${Number(formData.price).toLocaleString()}` : '₱0',
+      price: formData.guests.length > 0 ? Math.min(...formData.guests.map(g => g.price)) : 0,
       total: formData.category === 'Accommodation' ? 1 : (Number(formData.total) || 10),
       stock: formData.category === 'Accommodation' ? 1 : (Number(formData.stock) ?? Number(formData.total) ?? 10),
+      image: formData.image,
       guests: formData.guests,
       inclusions: formData.inclusions,
       descriptionChecklist: formData.descriptionChecklist,
@@ -116,15 +139,17 @@ export default function InventoryModule() {
         await updateDoc(doc(db, 'inventory_items', editingItem.id), payload);
         toast.success('Inventory item updated');
       } else {
-        await addDoc(collection(db, 'inventory_items'), {
+        const docRef = await addDoc(collection(db, 'inventory_items'), {
           ...payload,
           createdAt: serverTimestamp(),
         });
+        setItems(prev => [...prev, { id: docRef.id, ...payload, updatedAt: null, createdAt: null }]);
         toast.success('Inventory item added');
       }
       setShowForm(false);
       resetForm();
     } catch (error) {
+      toast.error('Failed to save item. The image may be too large.');
       handleFirestoreError(error, OperationType.CREATE, 'inventory_items');
     }
   };
@@ -232,6 +257,11 @@ export default function InventoryModule() {
                     {status.label}
                   </span>
                 </div>
+                {item.image && (
+                  <div className="mb-4 -mx-8 -mt-2">
+                    <img src={item.image} alt={item.name} className="w-full h-48 object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
+                  </div>
+                )}
                 <h4 className="text-xl font-serif font-bold text-island-green mb-2 group-hover:text-island-emerald transition-colors">{item.name}</h4>
                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-6">{item.category}</p>
 
@@ -297,7 +327,7 @@ export default function InventoryModule() {
                 </div>
 
                 <div className="flex justify-between items-center pt-6 border-t border-slate-50">
-                  <span className="text-lg font-bold text-island-green">{item.price || '₱0'}</span>
+                  <span className="text-lg font-bold text-island-green">₱{(item.guests?.length > 0 ? Math.min(...item.guests.map((g: any) => g.price)) : item.price || 0).toLocaleString()}</span>
                   <div className="flex gap-2">
                     <button onClick={() => openEdit(item)} className="text-island-emerald text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all">
                       Edit <ChevronRight size="16" />
@@ -340,7 +370,39 @@ export default function InventoryModule() {
                       className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all text-sm font-semibold text-slate-800"
                       placeholder="e.g. Deluxe Ocean Suite" />
                   </div>
-                  <div>
+                  <div className="col-span-2">
+                    <label className="text-xs font-bold text-slate-500 mb-1.5 block">Photo</label>
+                    <div
+                      onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                      onDragLeave={() => setDragOver(false)}
+                      onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleImageFile(f); }}
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`relative flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed cursor-pointer transition-all ${
+                        dragOver ? 'border-island-emerald bg-island-emerald/5' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                      }`}
+                    >
+                      <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+                        onChange={e => { const f = e.target.files?.[0]; if (f) handleImageFile(f); e.target.value = ''; }} />
+                      {formData.image ? (
+                        <div className="w-full">
+                          <img src={formData.image} alt="" className="w-full h-48 object-cover rounded-xl" />
+                          <button onClick={e => { e.stopPropagation(); setFormData(prev => ({ ...prev, image: '' })); }}
+                            className="mt-2 text-[10px] font-bold text-island-coral hover:text-red-600 transition-colors">Remove photo</button>
+                        </div>
+                      ) : (
+                        <><Camera size="28" className="text-slate-300 mb-2" />
+                          <p className="text-xs font-semibold text-slate-400">Drop an image here or click to browse</p>
+                          <p className="text-[10px] text-slate-300 mt-1">or paste a URL below</p>
+                        </>
+                      )}
+                    </div>
+                    <div className="mt-2">
+                      <input type="text" value={formData.image} onChange={e => setFormData(prev => ({ ...prev, image: e.target.value }))}
+                        className="w-full px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all text-xs font-semibold text-slate-800"
+                        placeholder="Or paste image URL (e.g. https://example.com/room.jpg)" />
+                    </div>
+                  </div>
+                  <div className="col-span-2">
                     <label className="text-xs font-bold text-slate-500 mb-1.5 block">Category</label>
                     <select value={formData.category} onChange={e => {
                       const newCat = e.target.value;
@@ -357,14 +419,6 @@ export default function InventoryModule() {
                       <option>Food & Beverage</option>
                     </select>
                   </div>
-                  {formData.category !== 'Accommodation' && (
-                    <div>
-                      <label className="text-xs font-bold text-slate-500 mb-1.5 block">Price (₱)</label>
-                      <input type="number" value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                        className="w-full px-4 py-3 bg-slate-50 rounded-xl border border-slate-100 outline-none focus:ring-4 focus:ring-island-emerald/5 transition-all text-sm font-semibold text-slate-800"
-                        placeholder="0" />
-                    </div>
-                  )}
                   <div>
                     <label className="text-xs font-bold text-slate-500 mb-1.5 block">Total Units</label>
                     <input type="number" value={formData.total}

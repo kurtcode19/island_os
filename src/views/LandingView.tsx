@@ -358,10 +358,10 @@ export default function LandingView() {
       <section className="py-60 px-6 max-w-5xl mx-auto text-center">
         <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-slate-400 mb-12 block">/ Testimonial</span>
         <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-tight italic font-serif">
-          "The Sunken Cemetery was a spiritual experience unlike any other. Catarman's history is written in the landscape, and every guide we met treated us like family."
+          "The Sunken Cemetery was a spiritual experi ence unlike any other. Catarman's history is written in the landscape, and every guide we met treated us like family."
         </h2>
         <div className="mt-20 flex flex-col items-center gap-6">
-          <img src="/images/logo.png" alt="Avatar" className="w-24 h-24 rounded-full shadow-2xl border-4 border-white object-cover" />
+          <img src="/images/weblogo.png" alt="Avatar" className="w-24 h-24 rounded-full shadow-2xl border-4 border-white object-cover" />
           <div>
             <p className="font-black tracking-tight text-xl uppercase italic">Marco Salvatierra</p>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">eSuroy Explorer</p>
@@ -454,7 +454,7 @@ export default function LandingView() {
             <div className="max-w-md">
               <div className="flex items-center gap-4 mb-10 group cursor-pointer" onClick={() => navigate('/')}>
                 <div className="w-12 h-12 bg-island-volcanic rounded-2xl flex items-center justify-center text-white">
-<img src="/images/logo.png" alt="eSuroy Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+<img src="/images/weblogo.png" alt="eSuroy Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
                   </div>
                   <span className="text-3xl font-black tracking-tighter uppercase italic"><span className="text-island-emerald not-italic">eSuroy</span></span>
               </div>

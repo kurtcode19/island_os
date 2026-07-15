@@ -1,30 +1,22 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { UilShip, UilCar, UilMapMarker, UilClock, UilCalendar, UilArrowRight, UilInfoCircle, UilShieldCheck, UilWater, UilNavigator, UilTimes, UilCheckCircle, UilRefresh, UilStar, UilExclamationTriangle, UilPlane, UilPlus, UilMinus, UilUsersAlt, UilTruck, UilExchange, UilUser } from '@/icons';
+import { UilArrowLeft, UilMapMarker, UilClock, UilCheckCircle, UilSync, UilCalendarAlt, UilMinus, UilPlus, UilShieldCheck } from '@/icons';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { transportOptions, schedules, type TransportOption } from '../data/transport';
-import DateGuestPicker from '../components/shared/DateGuestPicker';
-import { checkAvailability } from '../lib/capacityService';
-import { logEvent } from '../lib/auditService';
+import { rentalVehicles, getMerchantByVehicle } from '../data/rentals';
+import { transportOptions } from '../data/transport';
 import { getPilotConfig, type PilotConfig } from '../lib/pilotService';
 
 export default function TransportView() {
   const { user, login } = useAuth();
-  const navigate = useNavigate();
+  const [mobilityFilter, setMobilityFilter] = useState<'Rentals' | 'Transports'>('Rentals');
   const [selectedTransport, setSelectedTransport] = useState<any>(null);
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
-  const [selectedDate, setSelectedDate] = useState('');
-  const [selectedGuests, setSelectedGuests] = useState(1);
-  const [transportTab, setTransportTab] = useState<'to' | 'from' | 'within'>('to');
-  const [adultCount, setAdultCount] = useState(1);
-  const [childrenCount, setChildrenCount] = useState(0);
-  const [bringVehicle, setBringVehicle] = useState(false);
-  const [roundtrip, setRoundtrip] = useState(false);
+  const [transportDate, setTransportDate] = useState('');
+  const [transportGuests, setTransportGuests] = useState(1);
   const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
 
   useEffect(() => {
@@ -36,58 +28,35 @@ export default function TransportView() {
     : transportOptions;
 
   const handleBookTransport = async (transport: any) => {
-    if (!user) {
-      login();
-      return;
-    }
-
-    if (!selectedDate) {
+    if (!user) { login(); return; }
+    if (!transportDate) {
       toast.error('Please select a travel date');
       return;
     }
-
     setBookingStatus('loading');
-
-    // Check capacity
-    const availability = await checkAvailability(transport.id, selectedDate, selectedGuests);
-    if (!availability.available) {
-      toast.error(`Only ${availability.remaining} seats remaining on this date`);
-      setBookingStatus('idle');
-      return;
-    }
-
     try {
-      const guestTotal = adultCount + childrenCount;
-      const finalAmount = transport.price * (roundtrip ? 2 : 1) * guestTotal + (bringVehicle ? 500 : 0);
-
-      const bookingData = {
+      await addDoc(collection(db, 'bookings'), {
         touristUid: user.uid,
         touristName: user.displayName || 'Anonymous',
         touristEmail: user.email || '',
         serviceId: transport.id,
         serviceName: transport.title,
         serviceType: 'transport',
-        businessId: transport.businessId,
-        date: selectedDate,
-        guests: guestTotal,
-        adults: adultCount,
-        children: childrenCount,
-        roundtrip,
-        bringVehicle,
-        amount: finalAmount,
+        businessId: transport.businessId || 'catarman_lgu',
+        date: transportDate,
+        guests: transportGuests,
+        route: transport.route,
+        duration: transport.duration,
+        amount: transport.price * transportGuests,
         status: 'pending',
         paymentStatus: 'UNPAID',
         createdAt: serverTimestamp(),
-      };
-
-      await addDoc(collection(db, 'bookings'), bookingData);
-      logEvent('created', 'bookings', undefined, `Transport booking for ${transport.title} on ${selectedDate}`);
+      });
       setBookingStatus('success');
       toast.success('Booking request submitted!');
       setTimeout(() => {
         setBookingStatus('idle');
         setSelectedTransport(null);
-        navigate('/my-bookings');
       }, 2000);
     } catch (error) {
       setBookingStatus('idle');
@@ -96,336 +65,213 @@ export default function TransportView() {
   };
 
   return (
-    <div className="bg-white min-h-screen pb-40 selection:bg-island-emerald/20">
-      {/* Header */}
-      <section className="relative h-[calc(45vh+5rem)] flex items-center overflow-hidden">
-        <motion.img 
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.5 }}
-          src="/images/hero-sunken.png" 
-          alt="Catarman Transport" 
-          className="absolute inset-0 w-full h-full object-cover brightness-50"
-          referrerPolicy="no-referrer"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-island-volcanic/60 via-transparent to-white"></div>
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <span className="text-island-emerald font-bold tracking-wider text-xs mb-4 block">Transport</span>
-            <h1 className="text-5xl md:text-8xl font-black text-white mb-6 tracking-tighter leading-none drop-shadow-2xl">
-              Island <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-white">Flow.</span>
-            </h1>
-            <p className="text-base md:text-xl text-white/80 font-medium max-w-2xl drop-shadow-lg leading-relaxed">
-              Seamless ferry bookings, local transport loops, and real-time tracking for the Catarman pilot adventure.
-            </p>
-          </motion.div>
-        </div>
-      </section>
+    <div className="min-h-screen bg-gradient-to-b from-stone-50 to-white selection:bg-emerald-500/20">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-16">
 
-      <div className="max-w-7xl mx-auto px-6 mt-20">
-        {/* Transport Tabs */}
-        <div className="flex gap-3 bg-stone-100 p-2 rounded-[2rem] border border-slate-200 shadow-inner w-fit mb-12">
-          {[
-            { id: 'to' as const, label: 'To Camiguin', icon: UilExchange },
-            { id: 'from' as const, label: 'From Camiguin', icon: UilExchange },
-            { id: 'within' as const, label: 'Within Camiguin', icon: UilMapMarker },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setTransportTab(tab.id)}
-              className={`flex items-center gap-2 px-8 py-3 rounded-full text-xs font-bold tracking-wider transition-all ${
-                transportTab === tab.id
-                  ? 'sunset-gradient text-white shadow-xl shadow-island-sunset/20'
-                  : 'text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              <tab.icon size={16} />
-              {tab.label}
+        {/* header */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+          <span className="text-[10px] font-black text-emerald-700 uppercase tracking-[0.4em]">Island Mobility</span>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-emerald-950 tracking-tighter mt-1">
+            Getting Around
+          </h1>
+        </motion.div>
+
+        {/* search */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3 bg-white rounded-2xl px-5 py-3.5 border border-stone-200 shadow-sm">
+            <svg className="w-5 h-5 text-stone-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <input type="text" placeholder="Search vehicles..." readOnly
+              className="text-sm font-semibold text-stone-500 bg-transparent outline-none w-full placeholder:text-stone-400/60" />
+          </div>
+        </div>
+
+        {/* filter pills */}
+        <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar">
+          {['Rentals', 'Transports'].map(s => (
+            <button key={s} onClick={() => setMobilityFilter(s as 'Rentals' | 'Transports')}
+              className={`px-5 py-2.5 rounded-full text-xs font-black tracking-wider whitespace-nowrap transition-all ${
+                mobilityFilter === s ? 'bg-emerald-700 text-white shadow-lg' : 'bg-amber-50 text-emerald-700/60 hover:text-emerald-700'
+              }`}>
+              {s}
             </button>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* Booking Options */}
-          <div className="lg:col-span-2 space-y-12">
-            <div>
-              <span className="text-island-coral font-bold tracking-wider text-xs mb-4 block">Available Services</span>
-              <h2 className="text-5xl md:text-6xl font-black text-island-volcanic tracking-tighter mb-12">Transit Options.</h2>
-              
-              <div className="grid grid-cols-1 gap-8">
-                {visibleTransportOptions.filter(o => o.tab === transportTab).map((opt, idx) => (
-                  <motion.div
-                    key={opt.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="group bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[3.5rem] border-2 border-slate-100 shadow-xl hover:shadow-2xl transition-all duration-500 flex flex-col md:flex-row items-center gap-6 md:gap-10"
-                  >
-                    <div className={`w-16 h-16 md:w-24 md:h-24 rounded-[1rem] md:rounded-[2rem] emerald-gradient text-white flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform`}>
-                      <opt.icon size="28" />
+        {/* rentals */}
+        {mobilityFilter === 'Rentals' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+            {rentalVehicles.map((vehicle, idx) => {
+              const merchant = getMerchantByVehicle(vehicle);
+              return (
+                <motion.div
+                  key={vehicle.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-white rounded-[24px] border border-stone-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <img src={vehicle.image} alt={vehicle.name} className="w-full h-full object-cover" />
+                    <div className={`absolute top-2 left-2 ${vehicle.color} text-white px-2 py-0.5 rounded-xl text-[9px] font-bold shadow-lg`}>
+                      {vehicle.available} left
                     </div>
-                    <div className="flex-1 text-center md:text-left">
-                      <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3">
-                        <h3 className="text-3xl font-black text-island-volcanic tracking-tighter">{opt.title}</h3>
-                        <span className="px-4 py-1.5 bg-stone-50 text-slate-500 text-[10px] font-bold tracking-wider rounded-full border border-slate-100">
-                          {opt.provider}
-                        </span>
-                      </div>
-                      <p className="text-slate-500 font-medium mb-6 leading-relaxed">{opt.route}</p>
-                      <div className="flex flex-wrap justify-center md:justify-start gap-8">
-                        <div className="flex items-center gap-3 text-xs font-semibold text-slate-400 tracking-tight">
-                          <UilClock size="16" className="text-island-emerald" /> {opt.duration}
-                        </div>
-                        <div className="flex items-center gap-3 text-xs font-semibold text-slate-400 tracking-tight">
-                          <UilShieldCheck size="16" className="text-island-emerald" /> Verified Route
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex md:flex-col items-center md:items-end gap-4 md:gap-0">
-                      <div className="text-center md:text-right">
-                        <span className="text-xs text-slate-400 font-semibold tracking-tight mb-1 block">Starts at</span>
-                        <p className="text-3xl md:text-4xl font-black text-island-volcanic tracking-tighter">₱{opt.price.toLocaleString()}</p>
-                      </div>
-                      <button 
-                        onClick={() => setSelectedTransport(opt)}
-                        className="btn-primary px-8 md:px-10 py-4 md:py-5 rounded-2xl text-xs md:text-sm"
-                      >
-                        Reserve <UilArrowRight size="18" />
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Tracking Teaser */}
-            <div className="volcanic-gradient p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] text-white relative overflow-hidden shadow-3xl border border-white/10">
-              <div className="relative z-10">
-                <span className="text-island-emerald font-bold tracking-wider text-xs mb-4 md:mb-6 block">Live Tracking</span>
-                <h3 className="text-3xl md:text-5xl font-black mb-4 md:mb-6 tracking-tighter">Live <span className="text-island-emerald">Ferry Tracker.</span></h3>
-                <p className="text-sm md:text-xl text-slate-300 font-medium mb-6 md:mb-10 max-w-md leading-relaxed">
-                  Advanced GPS tracking for all municipal ferry terminals in the Catarman channel.
-                </p>
-                <div className="flex flex-wrap items-center gap-6 md:gap-10">
-                  <button className="btn-primary px-8 md:px-10 py-4 md:py-6 rounded-2xl text-xs md:text-sm">
-                    Open Ferry Tracker
-                  </button>
-                  <div className="flex items-center gap-3 text-island-emerald font-semibold tracking-tight text-xs md:text-sm">
-                    <span className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-island-emerald animate-pulse shadow-[0_0_10px_rgba(16,185,129,1)]"></span>
-                    4 Active Vessels
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Schedule Sidebar */}
-          <div className="space-y-10">
-            <div className="bg-white p-8 md:p-12 rounded-[2rem] md:rounded-[4rem] border-2 border-slate-100 shadow-xl">
-              <div className="flex items-center gap-4 mb-8 md:mb-10 pb-6 border-b-2 border-stone-50">
-                <div className="w-12 h-12 md:w-14 md:h-14 emerald-gradient text-white rounded-2xl flex items-center justify-center shadow-lg">
-                  <UilWater size="24" />
-                </div>
-                <h3 className="text-2xl md:text-3xl font-black text-island-volcanic tracking-tighter">Schedules.</h3>
-              </div>
-              
-              <div className="space-y-6 md:space-y-8">
-                {schedules.map((s, idx) => (
-                  <div key={idx} className="flex items-center justify-between py-4 md:py-5 border-b border-slate-50 last:border-0">
-                    <div>
-                      <p className="text-lg md:text-xl font-black text-island-volcanic tracking-tighter">{s.time}</p>
-                      <p className="text-[10px] md:text-xs text-slate-400 font-semibold tracking-tight mt-1">{s.from} → {s.to}</p>
-                    </div>
-                    <div className={`px-3 md:px-4 py-1.5 rounded-full text-[9px] md:text-[10px] font-bold tracking-wider shadow-sm ${s.type === 'warning' ? 'bg-rose-50 text-island-coral border border-rose-100' : 'bg-emerald-50 text-island-emerald border border-emerald-100'}`}>
-                      {s.status}
+                    <div className={`absolute top-2 right-2 w-7 h-7 ${vehicle.color} rounded-full flex items-center justify-center text-white shadow-lg`}>
+                      <vehicle.icon size="12" />
                     </div>
                   </div>
-                ))}
-              </div>
-              
-              <div className="mt-8 md:mt-12 p-6 md:p-8 bg-stone-50 rounded-2xl md:rounded-3xl flex items-start gap-4 md:gap-5 border border-slate-100">
-                <UilInfoCircle size="20" className="text-blue-500 shrink-0 mt-1" />
-                <p className="text-[10px] md:text-xs text-slate-500 font-medium leading-relaxed tracking-tight">
-                  Schedules may change depending on weather conditions. Please arrive at the terminal at least 45 minutes early.
-                </p>
-              </div>
-            </div>
-
-            <div className="volcanic-gradient p-8 md:p-12 rounded-[2rem] md:rounded-[4rem] text-white shadow-2xl border border-white/10">
-              <h3 className="text-xl md:text-2xl font-black mb-4 md:mb-6 tracking-tighter">Local Guides.</h3>
-              <p className="text-sm md:text-base text-slate-400 font-medium mb-6 md:mb-10 leading-relaxed">
-                Book a verified local guide with transport for a deeper experience.
-              </p>
-              <button className="btn-primary w-full py-5 md:py-6 rounded-2xl text-[10px] md:text-xs">
-                Find a Guide
-              </button>
-            </div>
+                  <div className="px-4 py-3 space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-sm font-black text-stone-800 tracking-tighter leading-tight">{vehicle.name}</h3>
+                      <div className="text-right shrink-0">
+                        <span className="text-sm font-black text-stone-800">₱{vehicle.rate.toLocaleString()}</span>
+                        <span className="text-[8px] text-stone-500 font-semibold ml-0.5">/{vehicle.rateUnit}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">{vehicle.type} • {vehicle.transmission}</span>
+                      <span className="text-[9px] font-semibold text-stone-400">{vehicle.capacity} seats</span>
+                    </div>
+                    {merchant && (
+                      <span className="text-[7px] font-bold text-stone-400 tracking-wide block">by {merchant.name} • {merchant.location}</span>
+                    )}
+                    <div className="flex flex-wrap gap-1 pt-0.5">
+                      {vehicle.features.slice(0, 2).map((f, i) => (
+                        <span key={i} className="px-2 py-0.5 bg-stone-100 rounded-full text-[8px] font-semibold text-stone-500">{f}</span>
+                      ))}
+                      {vehicle.features.length > 2 && (
+                        <span className="px-2 py-0.5 bg-stone-100 rounded-full text-[8px] font-semibold text-stone-500">+{vehicle.features.length - 2}</span>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
-        </div>
+        )}
+
+        {/* transports */}
+        {mobilityFilter === 'Transports' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+            {visibleTransportOptions.map((option, idx) => (
+              <motion.div
+                key={option.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                whileTap={{ scale: 0.98 }}
+                className="bg-white rounded-[24px] border border-stone-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setSelectedTransport(option)}
+              >
+                <div className="p-4">
+                  <h3 className="text-base font-black text-emerald-700 tracking-tighter mb-1">{option.title}</h3>
+                  <p className="text-[10px] text-emerald-700/50 font-medium mb-1">{option.provider} • {option.route}</p>
+                  <span className="text-sm font-black text-emerald-600">₱{option.price.toLocaleString()}</span>
+                  <span className="text-[10px] text-emerald-700/40 font-medium ml-1">/ {option.duration}</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Booking Modal */}
+      {/* Transport Booking Modal */}
       <AnimatePresence>
         {selectedTransport && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedTransport(null)}
-              className="absolute inset-0 bg-island-volcanic/80 backdrop-blur-md"
-            ></motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              className="relative w-full max-w-xl bg-white rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-3xl border-2 border-slate-100 mx-4 md:mx-0 max-h-[90vh] overflow-y-auto"
-            >
-              <button 
-                onClick={() => setSelectedTransport(null)}
-                className="absolute top-4 md:top-8 right-4 md:right-8 p-3 md:p-4 bg-slate-100 rounded-full text-slate-600 hover:text-island-coral active:scale-90 transition-all shadow-sm z-10"
-              >
-                <UilTimes size="20" />
-              </button>
-
-              <div className="p-6 md:p-12">
-                <div className="flex items-center gap-4 md:gap-6 mb-8 md:mb-10 pb-8 md:pb-10 border-b-2 border-stone-50">
-                  <div className={`w-14 h-14 md:w-20 md:h-20 rounded-[1rem] md:rounded-[1.75rem] emerald-gradient text-white flex items-center justify-center shadow-2xl border border-white/10`}>
-                    <selectedTransport.icon size="32" />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl md:text-3xl font-black text-island-volcanic tracking-tighter">{selectedTransport.title}</h3>
-                    <p className="text-[10px] md:text-xs font-semibold text-slate-400 tracking-tight mt-1">{selectedTransport.provider}</p>
-                  </div>
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="fixed inset-0 bg-white z-[60] flex flex-col overflow-y-auto no-scrollbar"
+          >
+            {/* sticky header */}
+            <div className="sticky top-0 bg-white/95 backdrop-blur-3xl z-10 px-5 md:px-6 pt-5 md:pt-6 pb-4 border-b border-stone-100">
+              <div className="flex items-center gap-4">
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setSelectedTransport(null)}
+                  className="w-10 h-10 md:w-11 md:h-11 bg-stone-100 rounded-full flex items-center justify-center text-emerald-700 hover:bg-stone-200 transition-colors shrink-0"
+                >
+                  <UilArrowLeft size="20" />
+                </motion.button>
+                <div className="min-w-0">
+                  <h3 className="text-lg font-bold text-emerald-700 tracking-tight leading-tight truncate">{selectedTransport.title}</h3>
+                  <p className="text-[10px] text-emerald-700/40 font-medium">{selectedTransport.provider}</p>
                 </div>
-
-                <div className="space-y-4 md:space-y-6 mb-8 md:mb-12">
-                  <div className="flex items-center gap-4 text-slate-600 font-bold">
-                    <UilMapMarker size="20" className="text-island-emerald shrink-0" />
-                    <span className="text-sm md:text-lg tracking-tight">{selectedTransport.route}</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-slate-600 font-bold">
-                    <UilClock size="20" className="text-island-emerald shrink-0" />
-                    <span className="text-sm md:text-lg tracking-tight">{selectedTransport.duration}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-6 md:p-10 bg-stone-50 rounded-[2rem] md:rounded-[3rem] mb-8 md:mb-12 border border-slate-100">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] md:text-xs font-semibold text-slate-400 tracking-tight mb-1">Confirmed Fare</span>
-                    <span className="text-3xl md:text-4xl font-black text-island-volcanic tracking-tighter">₱{selectedTransport.price.toLocaleString()}</span>
-                  </div>
-                  <UilShieldCheck size="36" className="text-island-emerald opacity-20" />
-                </div>
-
-                {/* Travel Date & Guest Details */}
-                <div className="space-y-4 md:space-y-6 mb-6 md:mb-8">
-                  <DateGuestPicker
-                    onDateChange={setSelectedDate}
-                    onGuestsChange={setSelectedGuests}
-                  />
-
-                  {/* Adult / Children Count */}
-                  <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100 space-y-4">
-                    <h5 className="text-[10px] md:text-xs font-bold text-island-green flex items-center gap-2">
-                      <UilUsersAlt size="14" /> Passenger Details
-                    </h5>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs md:text-sm font-semibold text-slate-700">Adults</span>
-                      <div className="flex items-center gap-3 md:gap-4">
-                        <button onClick={() => setAdultCount(Math.max(1, adultCount - 1))} className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                          <UilMinus size="12" />
-                        </button>
-                        <span className="w-6 text-center text-sm md:text-base font-bold text-island-green">{adultCount}</span>
-                        <button onClick={() => setAdultCount(Math.min(10, adultCount + 1))} className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                          <UilPlus size="12" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-200/50">
-                      <div className="flex items-center gap-2">
-                        <UilUser size="14" className="text-island-sunset" />
-                        <span className="text-xs md:text-sm font-semibold text-slate-700">Children</span>
-                      </div>
-                      <div className="flex items-center gap-3 md:gap-4">
-                        <button onClick={() => setChildrenCount(Math.max(0, childrenCount - 1))} className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                          <UilMinus size="12" />
-                        </button>
-                        <span className="w-6 text-center text-sm md:text-base font-bold text-island-green">{childrenCount}</span>
-                        <button onClick={() => setChildrenCount(Math.min(6, childrenCount + 1))} className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-white flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-island-green hover:text-white transition-all shadow-sm">
-                          <UilPlus size="12" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Bring Vehicle & Roundtrip Options */}
-                  <div className="space-y-2 md:space-y-3">
-                    {transportTab !== 'within' && (
-                      <label className="flex items-center justify-between p-4 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer hover:border-island-green/30 transition-all">
-                        <div className="flex items-center gap-3">
-                          <UilTruck size="16" className="text-island-emerald shrink-0" />
-                          <span className="text-xs md:text-sm font-semibold text-slate-700">Bring a vehicle?</span>
-                        </div>
-                        <div
-                          onClick={() => setBringVehicle(!bringVehicle)}
-                          className={`w-9 md:w-10 h-5 md:h-6 rounded-full transition-all relative shrink-0 ${bringVehicle ? 'bg-island-emerald' : 'bg-slate-200'}`}
-                        >
-                          <div className={`w-3.5 md:w-4 h-3.5 md:h-4 bg-white rounded-full absolute top-0.5 md:top-1 transition-all shadow-sm ${bringVehicle ? 'left-4 md:left-5' : 'left-1'}`} />
-                        </div>
-                      </label>
-                    )}
-                    {selectedTransport && selectedTransport.hasRoundtrip && (
-                      <label className="flex items-center justify-between p-4 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer hover:border-island-green/30 transition-all">
-                        <div className="flex items-center gap-3">
-                          <UilExchange size="16" className="text-island-emerald shrink-0" />
-                          <span className="text-xs md:text-sm font-semibold text-slate-700">Roundtrip booking?</span>
-                        </div>
-                        <div
-                          onClick={() => setRoundtrip(!roundtrip)}
-                          className={`w-9 md:w-10 h-5 md:h-6 rounded-full transition-all relative shrink-0 ${roundtrip ? 'bg-island-emerald' : 'bg-slate-200'}`}
-                        >
-                          <div className={`w-3.5 md:w-4 h-3.5 md:h-4 bg-white rounded-full absolute top-0.5 md:top-1 transition-all shadow-sm ${roundtrip ? 'left-4 md:left-5' : 'left-1'}`} />
-                        </div>
-                      </label>
-                    )}
-                  </div>
-                </div>
-
-                {bookingStatus === 'success' ? (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex flex-col items-center gap-5 py-6 bg-emerald-50 rounded-[2rem] md:rounded-[3rem] border-2 border-emerald-100"
-                  >
-                    <div className="w-14 h-14 md:w-16 md:h-16 btn-primary rounded-full shadow-2xl">
-                      <UilCheckCircle size="28" />
-                    </div>
-                    <p className="text-[10px] md:text-xs text-island-emerald font-bold tracking-wider">Booking Confirmed</p>
-                  </motion.div>
-                ) : (
-                  <button 
-                    onClick={() => handleBookTransport(selectedTransport)}
-                    disabled={bookingStatus === 'loading'}
-                    className="btn-primary w-full py-6 md:py-8 rounded-[2rem] md:rounded-[2.5rem] text-xs md:text-sm disabled:opacity-50"
-                  >
-                    {bookingStatus === 'loading' ? (
-                      <UilRefresh size="20" className="animate-spin" />
-                    ) : (
-                      <UilStar size="20" />
-                    )}
-                    {roundtrip ? 'Book Roundtrip' : 'Confirm Booking'}
-                  </button>
-                )}
               </div>
-            </motion.div>
-          </div>
+            </div>
+
+            {/* content */}
+            <div className="px-5 md:px-6 pt-5 md:pt-6 space-y-5 md:space-y-6 pb-8 max-w-lg mx-auto w-full">
+              <div className="flex items-center gap-4 text-emerald-700 font-bold">
+                <UilMapMarker size="20" className="text-emerald-500 shrink-0" />
+                <span className="text-sm">{selectedTransport.route}</span>
+              </div>
+              <div className="flex items-center gap-4 text-emerald-700 font-bold">
+                <UilClock size="20" className="text-emerald-500 shrink-0" />
+                <span className="text-sm">{selectedTransport.duration}</span>
+              </div>
+
+              <div className="flex items-center justify-between p-5 md:p-6 bg-stone-50 rounded-3xl border border-stone-200">
+                <div>
+                  <span className="text-[10px] font-semibold text-stone-400 tracking-tight mb-1 block">Fare</span>
+                  <span className="text-2xl md:text-3xl font-black text-emerald-700 tracking-tighter">₱{selectedTransport.price.toLocaleString()}</span>
+                </div>
+                <UilShieldCheck size="36" className="text-emerald-500 opacity-20" />
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-sm font-bold text-emerald-700 flex items-center gap-2">
+                  <UilCalendarAlt size="18" className="text-emerald-500" /> Select date
+                </h4>
+                <input type="date"
+                  value={transportDate}
+                  onChange={e => setTransportDate(e.target.value)}
+                  className="w-full bg-white rounded-2xl p-4 text-sm font-semibold text-emerald-700 border-2 border-stone-200 focus:border-emerald-500 outline-none transition-colors"
+                />
+              </div>
+
+              <div>
+                <h4 className="text-sm font-bold text-emerald-700 mb-4">Passengers</h4>
+                <div className="bg-white rounded-3xl p-5 border border-stone-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-emerald-700">Guests</span>
+                    <div className="flex items-center gap-4">
+                      <button onClick={() => setTransportGuests(Math.max(1, transportGuests - 1))}
+                        className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-emerald-700 border border-stone-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all">
+                        <UilMinus size="14" />
+                      </button>
+                      <span className="w-8 text-center text-base font-bold text-emerald-700">{transportGuests}</span>
+                      <button onClick={() => setTransportGuests(Math.min(selectedTransport.maxPassengers || 10, transportGuests + 1))}
+                        className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-emerald-700 border border-stone-200 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all">
+                        <UilPlus size="14" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => handleBookTransport(selectedTransport)}
+                  disabled={!transportDate || bookingStatus === 'loading' || bookingStatus === 'success'}
+                  className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/40 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {bookingStatus === 'success' ? (
+                    <><UilCheckCircle size="22" /> Booking Confirmed</>
+                  ) : bookingStatus === 'loading' ? (
+                    <UilSync size="22" className="animate-spin" />
+                  ) : (
+                    <>Book — ₱{(selectedTransport.price * transportGuests).toLocaleString()}</>
+                  )}
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

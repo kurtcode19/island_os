@@ -4,7 +4,7 @@ export type BusinessType = 'accommodation' | 'rental' | 'transport' | 'service' 
 export type BusinessCategory = 'resort' | 'inn' | 'homestay' | 'pension_house' | 'motorcycle' | 'bicycle' | 'car' | 'van' | 'ferry' | 'tour_operator' | 'dive_shop' | 'restaurant' | 'cafe' | 'store' | 'other';
 
 export interface BusinessConfig {
-  modules: ('analytics' | 'bookings' | 'inventory' | 'tours' | 'reviews' | 'checkin')[];
+  modules: ('analytics' | 'bookings' | 'inventory' | 'tours' | 'reviews' | 'checkin' | 'fleet')[];
   features: string[];
   label: string;
   icon: string;
@@ -18,7 +18,7 @@ export const BUSINESS_TYPE_CONFIGS: Record<BusinessType, BusinessConfig> = {
     icon: 'Hotel',
   },
   rental: {
-    modules: ['analytics', 'bookings', 'inventory', 'reviews'],
+    modules: ['analytics', 'bookings', 'inventory', 'fleet', 'reviews'],
     features: ['vehicle_tracking', 'maintenance', 'availability'],
     label: 'Rental',
     icon: 'Car',

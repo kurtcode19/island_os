@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 interface SidebarItemProps {
-  icon: any;
+  icon?: any;
   label: string;
   to: string;
   active?: boolean;
@@ -10,13 +10,13 @@ export function SidebarItem({ icon: Icon, label, to, active = false }: SidebarIt
   return (
     <Link
       to={to}
-      className={`w-full flex items-center gap-5 px-8 py-5 rounded-2xl text-sm font-semibold tracking-tight transition-all duration-300 ${
+      className={`w-full flex items-center gap-4 px-6 py-3.5 rounded-xl text-sm font-medium tracking-tight transition-all duration-200 ${
         active
-          ? 'emerald-gradient text-white shadow-2xl shadow-island-emerald/30 border border-white/10'
-          : 'text-island-green/40 bg-transparent hover:bg-emerald-50/50 hover:text-island-green'
+          ? 'bg-black text-white'
+          : 'text-gray-400 hover:text-black hover:bg-gray-50'
       }`}
     >
-      <Icon size="22" />
+      {Icon && <Icon size="16" className="shrink-0" />}
       {label}
     </Link>
   );
