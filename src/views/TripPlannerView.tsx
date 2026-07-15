@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
+import FancyLoader from '../components/shared/FancyLoader';
 import { 
   UilCalendar, 
   UilCompass, 
@@ -880,28 +881,10 @@ export default function TripPlannerView() {
               <div ref={chatEndRef} />
             </div>
           ) : loading ? (
-            <div className="h-full flex flex-col items-center justify-center text-center space-y-12 px-12">
-              <div className="relative">
-                <div className="w-40 h-40 bg-island-volcanic text-island-emerald rounded-[4rem] flex items-center justify-center animate-pulse shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] border-4 border-white/10">
-                  <UilDna size="80" className="animate-spin-slow" />
-                </div>
-                <div className="absolute -top-4 -right-4 w-16 h-16 bg-island-emerald rounded-3xl flex items-center justify-center text-white shadow-2xl">
-                  <img src="/images/mascot.png" alt="" className="w-16 h-16 object-contain" />
-                </div>
-              </div>
-              <div className="space-y-6">
-                <h2 className="text-5xl font-black text-island-volcanic tracking-tighter uppercase leading-none">Synthesizing <br /> Journey Data</h2>
-                <p className="text-slate-400 text-sm font-medium italic leading-relaxed">"{LOADING_QUOTES[quoteIndex]}"</p>
-              </div>
-              <div className="w-full max-w-sm h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: '100%' }}
-                  transition={{ duration: 12, ease: "linear" }}
-                  className="h-full bg-island-emerald shadow-[0_0_30px_rgba(16,185,129,0.5)]"
-                />
-              </div>
-            </div>
+            <FancyLoader
+              quote={LOADING_QUOTES[quoteIndex]}
+              subtitle="Synthesizing Journey Data"
+            />
           ) : itinerary ? (
             <div className="space-y-16 pb-40 animate-in fade-in slide-in-from-bottom-20 duration-1000">
               {/* Result Header */}
