@@ -241,24 +241,13 @@ className={`absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 ${
             ) : (
                 <button 
                   onClick={login}
-                  className={`text-sm font-semibold tracking-tight transition-colors ${
-                    location.pathname === '/' ? 'text-white/70 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                  className={`px-6 py-3 rounded-full text-xs font-bold tracking-wider transition-all hover:scale-105 active:scale-95 ${
+                    location.pathname === '/' ? 'bg-island-emerald text-white hover:bg-emerald-600' : 'bg-island-emerald text-white hover:bg-emerald-600'
                   }`}
                 >
-                {location.pathname === '/' ? 'Register Now' : 'Sign In'}
+                Register
               </button>
             )}
-
-            <button 
-              onClick={() => navigate('/planner')}
-              className={`px-8 py-3 rounded-full text-xs font-bold tracking-wider transition-all hover:scale-105 active:scale-95 text-white bg-black ${
-                location.pathname === '/' 
-                  ? 'hover:bg-black/80' 
-                  : ''
-              }`}
-            >
-              AI Planner
-            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -315,14 +304,10 @@ className={`absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 ${
               {!user && (
                 <button 
                   onClick={login}
-                  className={`w-full flex items-center justify-center gap-4 p-4 rounded-2xl text-sm font-bold tracking-wider ${
-                    location.pathname === '/'
-                      ? 'border border-white/30 text-white hover:bg-white/10'
-                      : 'bg-white border border-slate-200 shadow-lg text-slate-800'
-                  }`}
+                  className="w-full flex items-center justify-center gap-4 p-4 rounded-2xl text-sm font-bold tracking-wider bg-island-emerald text-white hover:bg-emerald-600 transition-all"
                 >
                   <UilSignInAlt size="22" />
-                  {location.pathname === '/' ? 'Register Now' : 'Sign In'}
+                  Register
                 </button>
               )}
               

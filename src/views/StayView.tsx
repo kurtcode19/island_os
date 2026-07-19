@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UilArrowLeft, UilStar, UilMapMarker, UilBuilding, UilCheckCircle, UilSync, UilCalendarAlt, UilPlus, UilMinus, UilUsersAlt, UilGift, UilUtensils, UilMoon, UilGlobe, UilBedDouble } from '@/icons';
 import { useAuth } from '../context/AuthContext';
@@ -32,6 +32,7 @@ export default function StayView() {
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
   const [availabilityError, setAvailabilityError] = useState<string | null>(null);
   const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
+  const isSubmitting = useRef(false);
 
   const [eventVenues, setEventVenues] = useState<{ id: string; name: string; capacitySeated: number; halfDayPrice: number; fullDayPrice: number; overtimeRate: number }[]>([]);
   const [selectedVenue, setSelectedVenue] = useState<any | null>(null);
@@ -106,6 +107,8 @@ export default function StayView() {
   const handleBook = async () => {
     if (!user) { login(); return; }
     if (!selectedHotel) return;
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
     setBookingStatus('loading');
     setAvailabilityError(null);
 
@@ -166,9 +169,11 @@ export default function StayView() {
         setSelectedAddons([]);
         setBusinessServices([]);
         setPurposeOfVisit('leisure');
+        isSubmitting.current = false;
       }, 2000);
     } catch (error) {
       setBookingStatus('idle');
+      isSubmitting.current = false;
       handleFirestoreError(error, OperationType.CREATE, 'bookings');
     }
   };

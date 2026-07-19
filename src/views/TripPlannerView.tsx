@@ -346,6 +346,7 @@ export default function TripPlannerView() {
     }
 
     const activityKey = `${dayNum}-${activity.activity}-${actionType}`;
+    if (bookingStatus[activityKey] === 'loading') return;
     setBookingStatus(prev => ({ ...prev, [activityKey]: 'loading' }));
 
     try {

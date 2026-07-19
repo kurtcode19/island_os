@@ -29,9 +29,10 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line
 } from 'recharts';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { useAuth } from '../context/AuthContext';
 import LocationsView from './LocationsView';
 import CheckInView from './CheckInView';
 import { StatCard } from '../components/shared/StatCard';
@@ -70,6 +71,8 @@ const destinationData = [
 
 export default function GovernmentDashboard() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -348,13 +351,13 @@ export default function GovernmentDashboard() {
             <ArrowUpRight size="16" className="shrink-0" />
             Back to Site
           </Link>
-          <Link 
-            to="/"
+          <button
+            onClick={async () => { await logout(); navigate('/'); }}
             className="w-full flex items-center gap-3 px-6 py-3.5 rounded-xl text-sm font-medium text-gray-400 hover:text-black hover:bg-gray-50 transition-all duration-200"
           >
             <X size="16" className="shrink-0" />
             Logout
-          </Link>
+          </button>
         </div>
       </aside>
 

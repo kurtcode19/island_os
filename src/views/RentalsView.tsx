@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UilHeart, UilMapMarker, UilClock, UilUsersAlt, UilCheckCircle, UilTimes, UilRefresh, UilArrowRight, UilStar, UilCalendarAlt, UilMinus, UilPlus, UilShieldCheck } from '@/icons';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -13,6 +13,7 @@ export default function RentalsView() {
   const [rentDays, setRentDays] = useState(1);
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
   const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
+  const isSubmitting = useRef(false);
 
   useEffect(() => {
     getPilotConfig().then(setPilotConfig);
@@ -24,8 +25,14 @@ export default function RentalsView() {
 
   const handleBook = async (vehicle: any) => {
     if (!user) { login(); return; }
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
     setBookingStatus('loading');
     try {
+      let businessId = vehicle.businessId;
+      if (pilotConfig?.enabled && pilotConfig.businessId) {
+        businessId = pilotConfig.businessId;
+      }
       await addDoc(collection(db, 'bookings'), {
         touristUid: user.uid,
         touristName: user.displayName || 'Anonymous',
@@ -33,7 +40,7 @@ export default function RentalsView() {
         serviceId: vehicle.id,
         serviceName: vehicle.name,
         serviceType: 'rental',
-        businessId: vehicle.businessId,
+        businessId: businessId || '',
         date: new Date().toLocaleDateString(),
         status: 'pending',
         paymentStatus: 'UNPAID',
@@ -42,9 +49,10 @@ export default function RentalsView() {
         createdAt: serverTimestamp()
       });
       setBookingStatus('success');
-      setTimeout(() => { setBookingStatus('idle'); setSelectedVehicle(null); }, 2000);
+      setTimeout(() => { setBookingStatus('idle'); setSelectedVehicle(null); isSubmitting.current = false; }, 2000);
     } catch (error) {
       setBookingStatus('idle');
+      isSubmitting.current = false;
       handleFirestoreError(error, OperationType.CREATE, 'bookings');
     }
   };

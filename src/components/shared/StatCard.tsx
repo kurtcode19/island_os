@@ -7,6 +7,7 @@ interface StatCardProps {
   change: string;
   isPositive: boolean;
   icon: any;
+  color?: string;
 }
 
 export function StatCard({ label, value, change, isPositive, icon: Icon }: StatCardProps) {

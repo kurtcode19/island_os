@@ -226,6 +226,7 @@ export default function MobileAppView() {
     }
 
     const itemId = item.id;
+    if (bookingStatus[itemId] === 'loading') return;
     setBookingStatus(prev => ({ ...prev, [itemId]: 'loading' }));
     setAvailabilityError(null);
 
@@ -337,6 +338,7 @@ export default function MobileAppView() {
   const handleBookTransport = async (item: any) => {
     if (!user) { login(); return; }
     if (!transportDate) return;
+    if (transportBookingStatus === 'loading') return;
     setTransportBookingStatus('loading');
     try {
       await addDoc(collection(db, 'bookings'), {

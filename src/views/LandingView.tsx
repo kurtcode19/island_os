@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -14,7 +14,7 @@ import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { SearchWidget } from '../components/SearchWidget';
 import { ProcessFlow } from '../components/ProcessFlow';
-import { bookingFlow, tripPlannerFlow } from '../data/processFlow';
+import { bookingFlow } from '../data/processFlow';
 
 const experiences = [
   { id: 'exp_2', title: 'Sunken Cemetery Exploration', type: 'Heritage', rating: 4.8, price: 150, businessId: 'catarman_lgu', image: '/images/hero-sunken.png' },
@@ -32,13 +32,16 @@ export default function LandingView() {
   const navigate = useNavigate();
   const [selectedExp, setSelectedExp] = useState<any>(null);
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
-  const [howItWorksTab, setHowItWorksTab] = useState<'booking' | 'planner'>('booking');
+  const isSubmitting = useRef(false);
+
 
   const handleBookExperience = async (exp: any) => {
     if (!user) {
       login();
       return;
     }
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
 
     setBookingStatus('loading');
     try {
@@ -63,9 +66,11 @@ export default function LandingView() {
         setBookingStatus('idle');
         setSelectedExp(null);
         navigate('/my-bookings');
+        isSubmitting.current = false;
       }, 2000);
     } catch (error) {
       setBookingStatus('idle');
+      isSubmitting.current = false;
       handleFirestoreError(error, OperationType.CREATE, 'bookings');
     }
   };
@@ -93,7 +98,7 @@ export default function LandingView() {
               transition={{ duration: 0.8, ease: [0.2, 0, 0.2, 1] }}
               className="max-w-3xl"
             >
-              <h1 className="text-6xl md:text-8xl lg:text-[8.5rem] font-black text-white leading-[0.85] tracking-tighter mb-10">
+              <h1 className="text-6xl md:text-8xl lg:text-[8.5rem] font-bold text-white leading-[0.85] tracking-tighter mb-10 font-serif">
                 Overseas<br />
                 Holiday<br />
                 <span className="text-white/90">Solutions.</span>
@@ -203,41 +208,18 @@ export default function LandingView() {
             </p>
           </motion.div>
 
-          <div className="flex justify-center gap-4 mb-16">
-            <button
-              onClick={() => setHowItWorksTab('booking')}
-              className={`px-8 py-4 rounded-full text-sm font-bold tracking-wider transition-all ${
-                howItWorksTab === 'booking'
-                  ? 'bg-island-volcanic text-white shadow-xl shadow-island-volcanic/20'
-                  : 'bg-white text-slate-500 border border-slate-100 hover:border-island-emerald/30'
-              }`}
-            >
-              Book an Experience
-            </button>
-            <button
-              onClick={() => setHowItWorksTab('planner')}
-              className={`px-8 py-4 rounded-full text-sm font-bold tracking-wider transition-all ${
-                howItWorksTab === 'planner'
-                  ? 'bg-island-volcanic text-white shadow-xl shadow-island-volcanic/20'
-                  : 'bg-white text-slate-500 border border-slate-100 hover:border-island-emerald/30'
-              }`}
-            >
-              Plan with AI
+          <div className="flex justify-center mb-16">
+            <button className="px-10 py-5 rounded-full text-sm font-bold tracking-wider transition-all bg-island-emerald text-white shadow-xl shadow-island-emerald/20 hover:scale-105 active:scale-95">
+              Register Now
             </button>
           </div>
 
-          <motion.div
-            key={howItWorksTab}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="bg-white rounded-[4rem] p-10 md:p-16 shadow-xl border border-slate-100"
-          >
+          <div className="bg-white rounded-[4rem] p-10 md:p-16 shadow-xl border border-slate-100">
             <ProcessFlow
-              steps={howItWorksTab === 'booking' ? bookingFlow.steps : tripPlannerFlow.steps}
+              steps={bookingFlow.steps}
               variant="teaser"
             />
-          </motion.div>
+          </div>
 
           <div className="text-center mt-12">
             <Link

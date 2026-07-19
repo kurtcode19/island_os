@@ -73,16 +73,18 @@ export default function OnboardingModal({ uid }: OnboardingModalProps) {
 
           <div className="space-y-1.5 mb-8">
             <label className="text-xs font-bold text-slate-500 block">Your Nationality</label>
-            <select
+            <input
+              list="countries"
               value={nationality}
               onChange={(e) => setNationality(e.target.value)}
-              className="w-full px-5 py-4 bg-stone-50 border-2 border-stone-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 focus:border-island-emerald/30 transition-all text-sm font-semibold text-slate-800 appearance-none"
-            >
-              <option value="">Select your country...</option>
+              placeholder="Select or type your country..."
+              className="w-full px-5 py-4 bg-stone-50 border-2 border-stone-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 focus:border-island-emerald/30 transition-all text-sm font-semibold text-slate-800"
+            />
+            <datalist id="countries">
               {COUNTRIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c} />
               ))}
-            </select>
+            </datalist>
           </div>
 
           <button

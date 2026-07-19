@@ -20,12 +20,14 @@ export function processRefundEligibility(booking: {
   cancellationRequestedAt?: Timestamp;
   checkInTimestamp?: Timestamp;
   refundStatus?: string;
-}): 'eligible' | 'pending' | 'ineligible' {
-  if (!booking.cancellationRequestedAt || !booking.checkInTimestamp) return 'ineligible';
+}, now?: Date): 'eligible' | 'pending' | 'ineligible' {
+  const cancellationRequestedAt = booking.cancellationRequestedAt
+    ? booking.cancellationRequestedAt.toMillis()
+    : (now?.getTime() || Date.now());
+  if (!booking.checkInTimestamp) return 'ineligible';
 
-  const requestedAt = booking.cancellationRequestedAt.toMillis();
   const checkInAt = booking.checkInTimestamp.toMillis();
-  const hoursBeforeCheckIn = (checkInAt - requestedAt) / (1000 * 60 * 60);
+  const hoursBeforeCheckIn = (checkInAt - cancellationRequestedAt) / (1000 * 60 * 60);
 
   if (hoursBeforeCheckIn > 48) {
     return 'eligible';

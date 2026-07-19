@@ -7,7 +7,7 @@ interface ProcessFlowProps {
   variant?: 'teaser' | 'full';
 }
 
-function StepCard({ step, index, isLast }: { step: FlowStep; index: number; isLast: boolean }) {
+function StepCard({ step, index, isLast, variant }: { step: FlowStep; index: number; isLast: boolean; variant?: 'teaser' | 'full' }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -17,7 +17,7 @@ function StepCard({ step, index, isLast }: { step: FlowStep; index: number; isLa
       className="flex flex-col items-center text-center relative flex-1"
     >
       <div className="relative mb-6">
-        <div className={`w-20 h-20 rounded-[1.75rem] bg-gradient-to-br ${step.gradient} flex items-center justify-center text-white shadow-xl shadow-black/10 relative z-10`}>
+        <div className={`w-20 h-20 rounded-[1.75rem] ${variant === 'teaser' ? 'bg-island-volcanic' : `bg-gradient-to-br ${step.gradient}`} flex items-center justify-center text-white shadow-xl shadow-black/10 relative z-10`}>
           <step.icon size={32} strokeWidth={2.5} />
         </div>
         {!isLast && (
@@ -27,7 +27,7 @@ function StepCard({ step, index, isLast }: { step: FlowStep; index: number; isLa
               whileInView={{ scaleX: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.15 + 0.3 }}
-              className="h-full bg-gradient-to-r from-island-emerald/40 to-island-emerald/10 origin-left"
+              className={`h-full origin-left ${variant === 'teaser' ? 'bg-gradient-to-r from-black/20 to-transparent' : 'bg-gradient-to-r from-island-emerald/40 to-island-emerald/10'}`}
               style={{ transformOrigin: 'left' }}
             />
           </div>
@@ -45,7 +45,7 @@ export function ProcessFlow({ steps, variant = 'full' }: ProcessFlowProps) {
   return (
     <div className={`grid ${isTeaser ? 'grid-cols-4' : 'grid-cols-2 md:grid-cols-4'} gap-8 md:gap-12`}>
       {steps.map((step, idx) => (
-        <StepCard key={idx} step={step} index={idx} isLast={idx === steps.length - 1} />
+        <StepCard key={idx} step={step} index={idx} isLast={idx === steps.length - 1} variant={variant} />
       ))}
     </div>
   );

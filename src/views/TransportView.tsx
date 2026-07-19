@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UilArrowLeft, UilMapMarker, UilClock, UilCheckCircle, UilSync, UilCalendarAlt, UilMinus, UilPlus, UilShieldCheck } from '@/icons';
 import { db, handleFirestoreError, OperationType } from '../firebase';
@@ -18,6 +18,7 @@ export default function TransportView() {
   const [transportDate, setTransportDate] = useState('');
   const [transportGuests, setTransportGuests] = useState(1);
   const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
+  const isSubmitting = useRef(false);
 
   useEffect(() => {
     getPilotConfig().then(setPilotConfig);
@@ -33,6 +34,8 @@ export default function TransportView() {
       toast.error('Please select a travel date');
       return;
     }
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
     setBookingStatus('loading');
     try {
       await addDoc(collection(db, 'bookings'), {
@@ -57,9 +60,11 @@ export default function TransportView() {
       setTimeout(() => {
         setBookingStatus('idle');
         setSelectedTransport(null);
+        isSubmitting.current = false;
       }, 2000);
     } catch (error) {
       setBookingStatus('idle');
+      isSubmitting.current = false;
       handleFirestoreError(error, OperationType.CREATE, 'bookings');
     }
   };

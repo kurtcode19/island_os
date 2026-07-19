@@ -6,7 +6,7 @@ function generatePassId(): string {
   const prefix = 'CTRM';
   const year = new Date().getFullYear();
   const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-  const seq = Date.now().toString(36).substring(-4).toUpperCase();
+  const seq = Date.now().toString(36).slice(-4).toUpperCase();
   return `${prefix}-P-${year}-${rand}${seq}`;
 }
 

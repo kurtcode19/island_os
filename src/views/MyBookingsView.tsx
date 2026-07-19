@@ -51,7 +51,8 @@ export default function MyBookingsView() {
 
     const q = query(
       collection(db, 'bookings'),
-      where('touristUid', '==', user.uid)
+      where('touristUid', '==', user.uid),
+      orderBy('createdAt', 'desc')
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -365,7 +366,7 @@ export default function MyBookingsView() {
                             )}
                             <button
                               onClick={() => {
-                                const eligibility = processRefundEligibility(booking);
+                                const eligibility = processRefundEligibility(booking, new Date());
                                 setCancellingBooking({ id: booking.id, eligibility });
                                 setCancelReason('');
                               }}
