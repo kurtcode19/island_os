@@ -1,10 +1,33 @@
-import { onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { onDocumentCreated, onDocumentUpdated } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { db, Timestamp } from '../config';
+
+const TAX_RATE = 0.12;
+const CAPACITY_LIMITS: Record<string, number> = {
+  stay: 20,
+  transport: 50,
+  rental: 30,
+  tour: 15,
+  dining: 40,
+  shop: 10,
+};
 
 export const onBookingCreated = onDocumentCreated('bookings/{bookingId}', async (event) => {
   const booking = event.data?.data();
   if (!booking) return;
+
+  const validation = await validateBooking(booking);
+
+  if (booking.paymentStatus === 'PAID') {
+    await handleAtomicInventoryDecrement(booking, event.params.bookingId);
+  }
+
+  if (!validation.valid && booking.paymentStatus === 'PAID') {
+    await event.data?.ref.update({
+      validationErrors: validation.errors,
+      status: 'pending',
+    });
+  }
 
   if (booking.paymentStatus === 'UNPAID' && booking.status === 'pending') {
     const createdAt = booking.createdAt?.toDate?.() || new Date();
@@ -26,11 +49,235 @@ export const onBookingCreated = onDocumentCreated('bookings/{bookingId}', async 
   });
 });
 
+export const onBookingUpdated = onDocumentUpdated('bookings/{bookingId}', async (event) => {
+  const before = event.data?.before.data();
+  const after = event.data?.after.data();
+  if (!before || !after) return;
+
+  if (after.status === 'cancelled' && before.status !== 'cancelled') {
+    await handleCancellationRefund(after, event.params.bookingId);
+  }
+
+  if (after.status === 'checked_in' && before.status !== 'checked_in') {
+    await writePortLog(after, event.params.bookingId);
+  }
+
+  if (after.refundStatus === 'approved' && before.refundStatus !== 'approved') {
+    await restoreInventoryOnRefund(after, event.params.bookingId);
+  }
+});
+
+async function validateBooking(booking: any): Promise<{ valid: boolean; errors: string[] }> {
+  const errors: string[] = [];
+
+  const capacityLimit = CAPACITY_LIMITS[booking.serviceType || ''] || 20;
+  const guests = booking.guests || 1;
+
+  if (guests > capacityLimit) {
+    errors.push(`Guest count (${guests}) exceeds capacity limit (${capacityLimit}).`);
+  }
+
+  if (booking.serviceId && booking.date && booking.serviceType) {
+    try {
+      const existingSnapshot = await db.collection('bookings')
+        .where('serviceId', '==', booking.serviceId)
+        .where('date', '==', booking.date)
+        .where('status', 'in', ['pending', 'confirmed', 'checked_in'])
+        .get();
+
+      const totalBookedGuests = existingSnapshot.docs.reduce((sum, doc) => {
+        return sum + (doc.data().guests || 1);
+      }, 0);
+
+      if (totalBookedGuests + guests > capacityLimit) {
+        errors.push(`Not enough capacity: ${totalBookedGuests} already booked, requesting ${guests} (limit ${capacityLimit}).`);
+      }
+    } catch (error) {
+      console.error(`[validation] Capacity check failed:`, error);
+    }
+  }
+
+  if (booking.roomId && booking.checkInTimestamp && booking.checkOutTimestamp) {
+    try {
+      const checkInMillis = booking.checkInTimestamp.toMillis?.() || 0;
+      const checkOutMillis = booking.checkOutTimestamp.toMillis?.() || 0;
+
+      if (checkInMillis && checkOutMillis) {
+        const conflictSnapshot = await db.collection('bookings')
+          .where('roomId', '==', booking.roomId)
+          .where('status', 'in', ['pending', 'confirmed', 'checked_in'])
+          .get();
+
+        const hasConflict = conflictSnapshot.docs.some((doc) => {
+          const data = doc.data();
+          const existingCheckIn = (data.checkInTimestamp as any)?.toMillis?.();
+          const existingCheckOut = (data.checkOutTimestamp as any)?.toMillis?.();
+          if (!existingCheckIn || !existingCheckOut) return false;
+          return checkInMillis < existingCheckOut && checkOutMillis > existingCheckIn;
+        });
+
+        if (hasConflict) {
+          errors.push('This room is already booked for the selected dates.');
+        }
+      }
+    } catch (error) {
+      console.error(`[validation] Room conflict check failed:`, error);
+    }
+  }
+
+  const amount = booking.amount || 0;
+  if (amount <= 0) {
+    errors.push('Invalid booking amount.');
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+async function handleCancellationRefund(booking: any, bookingId: string) {
+  try {
+    const checkInTimestamp = booking.checkInTimestamp;
+    const cancellationRequestedAt = booking.cancellationRequestedAt;
+
+    if (!checkInTimestamp || !cancellationRequestedAt) return;
+
+    const checkInMillis = checkInTimestamp.toMillis?.();
+    const cancelMillis = cancellationRequestedAt.toMillis?.();
+    if (!checkInMillis || !cancelMillis) return;
+
+    const hoursBeforeCheckIn = (checkInMillis - cancelMillis) / (1000 * 60 * 60);
+
+    if (hoursBeforeCheckIn > 48) {
+      await db.collection('bookings').doc(bookingId).update({
+        refundStatus: 'approved',
+        paymentStatus: booking.paymentStatus === 'PAID' ? 'REFUNDED' : booking.paymentStatus,
+        refundedAt: Timestamp.now(),
+        autoApproved: true,
+      });
+      console.log(`[refund] Auto-approved refund for booking ${bookingId} (${hoursBeforeCheckIn.toFixed(1)}h before check-in)`);
+    }
+  } catch (error) {
+    console.error(`[refund] Failed to process cancellation refund for ${bookingId}:`, error);
+  }
+}
+
+async function restoreInventoryOnRefund(booking: any, bookingId: string) {
+  const businessId = booking.businessId;
+  if (!businessId) return;
+  if (booking.paymentStatus !== 'REFUNDED') return;
+
+  const restoreAmount = booking.guests || 1;
+
+  try {
+    const inventorySnapshot = await db.collection('inventory_items')
+      .where('businessId', '==', businessId)
+      .where('stock', '<', 99999)
+      .get();
+
+    if (inventorySnapshot.empty) return;
+
+    const roomName: string | null = booking.roomName || null;
+    let targetDoc = inventorySnapshot.docs[0];
+
+    if (roomName) {
+      const match = inventorySnapshot.docs.find(doc => {
+        const name = doc.data().name || '';
+        return name.toLowerCase().includes(roomName.toLowerCase());
+      });
+      if (match) targetDoc = match;
+    }
+
+    const itemRef = targetDoc.ref;
+
+    await db.runTransaction(async (transaction) => {
+      const item = await transaction.get(itemRef);
+      if (!item.exists) return;
+
+      const currentStock = item.data()?.stock ?? 0;
+      const maxStock = item.data()?.maxStock ?? 99999;
+      const newStock = Math.min(maxStock, currentStock + restoreAmount);
+
+      transaction.update(itemRef, {
+        stock: newStock,
+        status: newStock === 0 ? 'Out of Stock' : newStock < 5 ? 'Limited' : 'Available',
+      });
+    });
+
+    console.log(`[inventory] Restored ${restoreAmount} to ${targetDoc.data().name} for refunded booking ${bookingId}`);
+  } catch (error) {
+    console.error(`[inventory] Failed to restore inventory for refunded booking ${bookingId}:`, error);
+  }
+}
+
+async function handleAtomicInventoryDecrement(booking: any, bookingId: string) {
+  const businessId = booking.businessId;
+  if (!businessId) return;
+
+  const decrement = booking.guests || 1;
+
+  const inventorySnapshot = await db.collection('inventory_items')
+    .where('businessId', '==', businessId)
+    .where('stock', '>', 0)
+    .get();
+
+  if (inventorySnapshot.empty) return;
+
+  const roomName: string | null = booking.roomName || null;
+  let targetDoc = inventorySnapshot.docs[0];
+
+  if (roomName) {
+    const match = inventorySnapshot.docs.find(doc => {
+      const name = doc.data().name || '';
+      return name.toLowerCase().includes(roomName.toLowerCase());
+    });
+    if (match) targetDoc = match;
+  }
+
+  const itemRef = targetDoc.ref;
+
+  try {
+    await db.runTransaction(async (transaction) => {
+      const item = await transaction.get(itemRef);
+      if (!item.exists) return;
+
+      const currentStock = item.data()?.stock ?? 0;
+      if (currentStock <= 0) return;
+
+      const newStock = Math.max(0, currentStock - decrement);
+
+      transaction.update(itemRef, {
+        stock: newStock,
+        status: newStock === 0 ? 'Out of Stock' : newStock < 5 ? 'Limited' : 'Available',
+      });
+    });
+
+    console.log(`[inventory] Decremented ${targetDoc.data().name} (${decrement}) for booking ${bookingId}`);
+  } catch (error) {
+    console.error(`[inventory] Transaction failed for booking ${bookingId}:`, error);
+  }
+}
+
+async function writePortLog(booking: any, bookingId: string) {
+  try {
+    await db.collection('port_logs').add({
+      bookingId,
+      touristUid: booking.touristUid || '',
+      touristName: booking.touristName || 'Unknown',
+      serviceType: booking.serviceType || '',
+      serviceName: booking.serviceName || '',
+      businessId: booking.businessId || '',
+      action: 'checkin',
+      checkedInAt: Timestamp.now(),
+    });
+    console.log(`[port_log] Check-in recorded for booking ${bookingId}`);
+  } catch (error) {
+    console.error(`[port_log] Failed to write port log for booking ${bookingId}:`, error);
+  }
+}
+
 export const processCancellationWindow = onSchedule('every 24 hours', async (event) => {
   const now = Timestamp.now();
   const twentyFourHoursAgo = new Date(now.toDate().getTime() - 24 * 60 * 60 * 1000);
 
-  // Auto-cancel unpaid bookings older than 24h
   const unpaidSnapshot = await db.collection('bookings')
     .where('paymentStatus', '==', 'UNPAID')
     .where('status', '==', 'pending')
@@ -49,27 +296,5 @@ export const processCancellationWindow = onSchedule('every 24 hours', async (eve
   if (unpaidSnapshot.docs.length > 0) {
     await batch.commit();
     console.log(`Auto-cancelled ${unpaidSnapshot.docs.length} unpaid bookings`);
-  }
-
-  // Auto-approve refunds where business hasn't responded in 48h
-  const fortyEightHoursAgo = new Date(now.toDate().getTime() - 48 * 60 * 60 * 1000);
-  const pendingRefundSnapshot = await db.collection('bookings')
-    .where('refundStatus', '==', 'pending')
-    .where('cancellationRequestedAt', '<', Timestamp.fromDate(fortyEightHoursAgo))
-    .get();
-
-  const refundBatch = db.batch();
-  pendingRefundSnapshot.docs.forEach(doc => {
-    refundBatch.update(doc.ref, {
-      refundStatus: 'approved',
-      paymentStatus: 'REFUNDED',
-      refundedAt: now,
-      autoApproved: true,
-    });
-  });
-
-  if (pendingRefundSnapshot.docs.length > 0) {
-    await refundBatch.commit();
-    console.log(`Auto-approved ${pendingRefundSnapshot.docs.length} pending refunds`);
   }
 });

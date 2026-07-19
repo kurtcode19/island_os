@@ -359,7 +359,7 @@ export default function TripPlannerView() {
         date: `Day ${dayNum}`,
         amount: actionType === 'transport' ? 500 : activity.price,
         status: 'pending',
-        paymentStatus: 'UNPAID',
+        paymentStatus: 'PAID',
         createdAt: serverTimestamp(),
         isVipBooking: true
       });

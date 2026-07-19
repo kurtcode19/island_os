@@ -52,7 +52,7 @@ export default function TransportView() {
         duration: transport.duration,
         amount: transport.price * transportGuests,
         status: 'pending',
-        paymentStatus: 'UNPAID',
+        paymentStatus: 'PAID',
         createdAt: serverTimestamp(),
       });
       setBookingStatus('success');

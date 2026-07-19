@@ -43,6 +43,7 @@ import SafetyModule from '../components/lgu/SafetyModule';
 import ReportsModule from '../components/lgu/ReportsModule';
 import PaymentModule from '../components/lgu/PaymentModule';
 import SettlementModule from '../components/lgu/SettlementModule';
+import BusinessApprovalModule from '../components/lgu/BusinessApprovalModule';
 
 const visitorData = [
   { name: 'Jan', visitors: 4500 },
@@ -332,6 +333,7 @@ export default function GovernmentDashboard() {
           <nav className="space-y-1">
             <SidebarItem label="Dashboard" to="/government" active={location.pathname === '/government'} />
             <SidebarItem label="Map" to="/government/map" active={location.pathname.startsWith('/government/map')} />
+            <SidebarItem label="Business Approvals" to="/government/approvals" active={location.pathname.startsWith('/government/approvals')} />
             <SidebarItem label="Registry" to="/government/registry" active={location.pathname.startsWith('/government/registry')} />
             <SidebarItem label="Port" to="/government/port" active={location.pathname.startsWith('/government/port')} />
             <SidebarItem label="Safety" to="/government/health" active={location.pathname.startsWith('/government/health')} />
@@ -392,6 +394,7 @@ export default function GovernmentDashboard() {
             <Routes>
               <Route path="/" element={<AnalyticsHome />} />
               <Route path="/map" element={<div className="h-[78vh] bg-white rounded-[4rem] overflow-hidden border-2 border-emerald-50 shadow-3xl"><LocationsView /></div>} />
+              <Route path="/approvals" element={<BusinessApprovalModule />} />
               <Route path="/registry" element={<RegistryModule />} />
               <Route path="/port" element={<PortModule />} />
               <Route path="/health" element={<SafetyModule />} />

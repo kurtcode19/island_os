@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { UilGlobe, UilSave } from '@/icons';
 import { updateUserNationality } from '@/lib/profileService';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { toast } from 'sonner';
 
 const COUNTRIES = [
@@ -36,16 +38,21 @@ interface OnboardingModalProps {
 
 export default function OnboardingModal({ uid }: OnboardingModalProps) {
   const [nationality, setNationality] = useState('');
+  const [consent, setConsent] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
-    if (!nationality) return;
+    if (!nationality || !consent) return;
     setSaving(true);
     try {
       await updateUserNationality(uid, nationality);
+      await updateDoc(doc(db, 'users', uid), {
+        privacyConsent: true,
+        privacyConsentAt: new Date().toISOString(),
+      });
       toast.success('Welcome aboard!');
-    } catch {
-      toast.error('Failed to save nationality');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `users/${uid}`);
     } finally {
       setSaving(false);
     }
@@ -87,9 +94,21 @@ export default function OnboardingModal({ uid }: OnboardingModalProps) {
             </datalist>
           </div>
 
+          <label className="flex items-start gap-3 mb-6 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={e => setConsent(e.target.checked)}
+              className="mt-1 w-4 h-4 shrink-0 rounded border-2 border-slate-300 text-island-emerald focus:ring-island-emerald/30"
+            />
+            <span className="text-xs text-slate-500 font-medium leading-relaxed">
+              I agree to the processing of my personal data in accordance with the Data Privacy Act and eSuroy's Privacy Policy. I consent to the collection and use of my information for booking and travel purposes.
+            </span>
+          </label>
+
           <button
             onClick={handleSave}
-            disabled={!nationality || saving}
+            disabled={!nationality || !consent || saving}
             className="w-full bg-island-green text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-island-green/20 hover:shadow-island-green/40 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <UilSave size="20" />

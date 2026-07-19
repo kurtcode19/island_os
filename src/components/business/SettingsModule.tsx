@@ -29,6 +29,7 @@ export default function SettingsModule() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>('active');
   const [commissionRate, setCommissionRate] = useState<number>(10);
   const [billingLoading, setBillingLoading] = useState<string | null>(null);
+  const [discountPercent, setDiscountPercent] = useState(0);
 
   useEffect(() => {
     if (!profile?.businessId) return;
@@ -45,6 +46,7 @@ export default function SettingsModule() {
       if (data.notifications) setNotifications(data.notifications);
       setStripeAccountId(data.stripeAccountId || null);
       setCommissionRate(data.commissionRate ?? 10);
+      setDiscountPercent(data.discountPercent ?? 0);
       if (data.subscription) {
         setSubscriptionTier(data.subscription.tier || 'free');
         setSubscriptionStatus(data.subscription.status || 'active');
@@ -77,6 +79,7 @@ export default function SettingsModule() {
         contact: businessContact,
         email: businessEmail,
         notifications,
+        discountPercent,
         updatedAt: serverTimestamp(),
       });
       toast.success('Settings saved successfully');
@@ -450,12 +453,29 @@ export default function SettingsModule() {
           )}
 
           {activeTab === 'integrations' && (
-            <div className="bg-white p-16 rounded-[3rem] border border-slate-100 shadow-sm text-center">
-              <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-6">
-                <Globe size="24" className="text-slate-300" />
+            <div className="space-y-10">
+              <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
+                <h3 className="text-xl font-black text-island-volcanic tracking-tighter mb-6">Pass Discount</h3>
+                <p className="text-slate-500 text-sm font-medium mb-8">
+                  Offer a percentage discount to eSuroy Digital Pass holders. This discount will be visible on the Tourist Pass page.
+                </p>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={discountPercent}
+                    onChange={e => setDiscountPercent(Math.max(0, Math.min(100, parseInt(e.target.value) || 0)))}
+                    className="w-24 p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-island-emerald/30 text-center text-xl font-black text-island-volcanic"
+                  />
+                  <span className="text-2xl font-black text-slate-300">%</span>
+                  <span className="text-sm text-slate-500 font-medium">
+                    {discountPercent > 0
+                      ? `Pass holders save ${discountPercent}% at your business`
+                      : 'No discount currently offered'}
+                  </span>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-slate-400 mb-2 capitalize">Integrations</h3>
-              <p className="text-slate-300 text-sm">Coming soon in the next update.</p>
             </div>
           )}
         </div>

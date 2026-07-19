@@ -17,13 +17,6 @@ service cloud.firestore {
       return isAuthenticated() && getUserData().get('role', '') == role;
     }
 
-    function isAdmin() {
-      return isAuthenticated() && (
-        request.auth.token.email == "kurtmier123@gmail.com" || 
-        getUserData().get('role', '') == 'LGU'
-      );
-    }
-
     function isBusinessOwner(businessId) {
       return isAuthenticated() && 
         getUserData().get('role', '') == 'BUSINESS' && 
@@ -31,51 +24,82 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isOwner(userId) || hasRole('LGU');
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || hasRole('LGU');
+      allow delete: if hasRole('LGU');
     }
 
     match /bookings/{bookingId} {
-      allow read, write: if isAuthenticated();
-    }
-
-    match /accommodations/{id} {
-      allow read: if true;
-      allow write: if isAuthenticated();
-    }
-
-    match /experiences/{id} {
-      allow read: if true;
-      allow write: if isAuthenticated();
-    }
-
-    match /transport/{id} {
-      allow read: if true;
-      allow write: if isAuthenticated();
-    }
-
-    match /restaurants/{id} {
-      allow read: if true;
-      allow write: if isAuthenticated();
+      allow read: if isAuthenticated() && (
+        resource.data.touristUid == request.auth.uid ||
+        hasRole('LGU') ||
+        isBusinessOwner(resource.data.businessId)
+      );
+      allow create: if isAuthenticated() && request.resource.data.touristUid == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        resource.data.touristUid == request.auth.uid ||
+        hasRole('LGU') ||
+        isBusinessOwner(resource.data.businessId)
+      );
+      allow delete: if hasRole('LGU');
     }
 
     match /businesses/{businessId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        resource.data.ownerUid == request.auth.uid ||
+        hasRole('LGU')
+      );
+      allow delete: if hasRole('LGU');
+    }
+
+    match /accommodations/{id} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update, delete: if hasRole('LGU') || isBusinessOwner(resource.data.businessId);
+    }
+
+    match /experiences/{id} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update, delete: if hasRole('LGU') || isBusinessOwner(resource.data.businessId);
+    }
+
+    match /transport/{id} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update, delete: if hasRole('LGU') || isBusinessOwner(resource.data.businessId);
+    }
+
+    match /restaurants/{id} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update, delete: if hasRole('LGU') || isBusinessOwner(resource.data.businessId);
     }
 
     match /passes/{uid} {
-      allow read: if isAuthenticated();
+      allow read: if isOwner(uid) || hasRole('LGU');
       allow write: if isOwner(uid);
     }
 
     match /reviews/{reviewId} {
       allow read: if true;
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.touristUid == request.auth.uid;
       allow update: if hasRole('BUSINESS') || hasRole('LGU');
+      allow delete: if hasRole('LGU');
     }
 
     match /incidents/{incidentId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && (
+        resource.data.touristUid == request.auth.uid || hasRole('LGU')
+      );
+      allow create: if isAuthenticated() && request.resource.data.touristUid == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        resource.data.touristUid == request.auth.uid || hasRole('LGU')
+      );
+      allow delete: if hasRole('LGU');
     }
 
     match /audit_logs/{logId} {
@@ -84,25 +108,46 @@ service cloud.firestore {
     }
 
     match /inventory_items/{itemId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && (
+        hasRole('LGU') || isBusinessOwner(resource.data.businessId)
+      );
+      allow write: if isAuthenticated() && (
+        hasRole('LGU') || isBusinessOwner(resource.data.businessId)
+      );
     }
 
     match /manual_earnings/{earningId} {
-      allow read, write: if isAuthenticated();
-    }
-
-    match /payouts/{payoutId} {
       allow read: if hasRole('LGU') || hasRole('BUSINESS');
       allow write: if hasRole('LGU');
     }
 
+    match /payouts/{payoutId} {
+      allow read: if hasRole('LGU') || isBusinessOwner(resource.data.businessId);
+      allow write: if hasRole('LGU');
+    }
+
     match /disputes/{disputeId} {
-      allow read, write: if isAuthenticated();
+      allow read: if isAuthenticated() && (
+        resource.data.touristUid == request.auth.uid ||
+        hasRole('LGU') ||
+        isBusinessOwner(resource.data.businessId)
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        resource.data.touristUid == request.auth.uid ||
+        hasRole('LGU') ||
+        isBusinessOwner(resource.data.businessId)
+      );
+      allow delete: if hasRole('LGU');
     }
 
     match /platform_revenue/{revenueId} {
-      allow read: if hasRole('LGU');
-      allow write: if hasRole('LGU');
+      allow read, write: if hasRole('LGU');
+    }
+
+    match /port_logs/{logId} {
+      allow read: if hasRole('LGU') || isBusinessOwner(resource.data.businessId);
+      allow create: if isAuthenticated();
     }
 
     match /test/connection {

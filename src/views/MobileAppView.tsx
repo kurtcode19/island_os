@@ -293,7 +293,7 @@ export default function MobileAppView() {
         checkOutDate: checkOut.toISOString(),
         guests: guests,
         status: 'pending',
-        paymentStatus: 'UNPAID',
+        paymentStatus: 'PAID',
         amount: totalAmount,
         createdAt: serverTimestamp()
       };
@@ -355,7 +355,7 @@ export default function MobileAppView() {
         duration: item.duration,
         amount: item.price * transportGuests,
         status: 'pending',
-        paymentStatus: 'UNPAID',
+        paymentStatus: 'PAID',
         createdAt: serverTimestamp()
       });
       setTransportBookingStatus('success');

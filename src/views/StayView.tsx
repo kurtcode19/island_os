@@ -150,7 +150,7 @@ export default function StayView() {
         breakfastPeople: addons.breakfast ? breakfastPeople : 0,
         promoPackage: selectedPromo?.name || null,
         status: 'pending',
-        paymentStatus: 'UNPAID',
+        paymentStatus: 'PAID',
         amount: total,
         totalPrice: total,
         purposeOfVisit,
@@ -651,7 +651,7 @@ export default function StayView() {
                       eventType, expectedPax,
                       eventStartTimestamp: Timestamp.fromDate(eventStart),
                       eventEndTimestamp: Timestamp.fromDate(eventEnd),
-                      status: 'pending', paymentStatus: 'UNPAID',
+                      status: 'pending', paymentStatus: 'PAID',
                       amount: selectedVenue.fullDayPrice, createdAt: serverTimestamp(),
                     });
                     toast.success('Event inquiry submitted!');

@@ -1,7 +1,7 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, User as FirebaseUser, signInWithPopup, signInWithRedirect, signInAnonymously } from 'firebase/auth';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, enableMultiTabIndexedDbPersistence } from 'firebase/firestore';
 import { Toaster, toast } from 'sonner';
 import { auth, db, googleProvider, handleFirestoreError, OperationType } from './firebase';
 import { UserRole, UserProfile } from './types';
@@ -11,6 +11,7 @@ import { createPass } from './lib/passService';
 import { logEvent } from './lib/auditService';
 import { isNativePlatform } from './lib/capacitorAuth';
 import OnboardingModal from './components/modals/OnboardingModal';
+import FeedbackWidget from './components/shared/FeedbackWidget';
 
 export default function App() {
   const [role, setRole] = useState<UserRole>('TOURIST');
@@ -18,11 +19,33 @@ export default function App() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    enableMultiTabIndexedDbPersistence(db).catch((err) => {
+      if (err.code === 'failed-precondition') {
+        console.warn('[offline] Multiple tabs open, persistence disabled');
+      } else if (err.code === 'unimplemented') {
+        console.warn('[offline] Browser does not support persistence');
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   useEffect(() => {
@@ -166,6 +189,10 @@ export default function App() {
       <Router>
         <div className="min-h-screen bg-white font-sans text-island-volcanic selection:bg-island-emerald/20">
           <AppRoutes role={role} setRole={setRole} isMobile={isMobile} />
+          <FeedbackWidget />
+        </div>
+        <div className={`offline-banner ${isOffline ? 'visible' : ''}`}>
+          You are offline. Changes will sync when you reconnect.
         </div>
         <Toaster
           position="top-center"

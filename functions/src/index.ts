@@ -14,8 +14,25 @@ export {
 // Bookings
 export {
   onBookingCreated,
+  onBookingUpdated,
   processCancellationWindow,
 } from './bookings/bookingTriggers';
+
+// Auth / Claims
+export {
+  onUserCreated,
+  createBusiness,
+} from './auth/setupClaims';
+
+// Businesses
+export {
+  approveBusiness,
+} from './businesses/approveBusiness';
+
+// Audit
+export {
+  logAuditEvent,
+} from './audit/logAuditEvent';
 
 // Payouts
 export {

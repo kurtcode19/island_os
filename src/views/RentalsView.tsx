@@ -43,7 +43,7 @@ export default function RentalsView() {
         businessId: businessId || '',
         date: new Date().toLocaleDateString(),
         status: 'pending',
-        paymentStatus: 'UNPAID',
+        paymentStatus: 'PAID',
         amount: vehicle.rate * rentDays,
         details: { days: rentDays, rate: vehicle.rate, unit: vehicle.rateUnit },
         createdAt: serverTimestamp()

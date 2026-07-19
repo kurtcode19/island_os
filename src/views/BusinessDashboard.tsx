@@ -62,6 +62,7 @@ export default function BusinessDashboard() {
   const location = useLocation();
   const [businessType, setBusinessType] = useState<BusinessType | null>(null);
   const [businessName, setBusinessName] = useState('Business');
+  const [businessVerified, setBusinessVerified] = useState(true);
   const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
 
   useEffect(() => {
@@ -82,6 +83,7 @@ export default function BusinessDashboard() {
           const data = bizDoc.data();
           setBusinessType(data.businessType as BusinessType);
           setBusinessName(data.name || 'Business');
+          setBusinessVerified(data.verified !== false);
           return;
         }
       } catch {}
@@ -388,6 +390,15 @@ export default function BusinessDashboard() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-6 lg:p-10 no-scrollbar scroll-smooth">
+          {!businessVerified && (
+            <div className="mb-6 p-5 bg-amber-50 rounded-3xl border-2 border-amber-200 flex items-center gap-4">
+              <Clock size="24" className="text-amber-600 shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-amber-900">Pending Verification</p>
+                <p className="text-xs text-amber-700 font-medium">Your business is awaiting approval from the LGU. Some features may be limited.</p>
+              </div>
+            </div>
+          )}
           <div className="max-w-[1400px] mx-auto space-y-6">
             <Routes>
               <Route path="/" element={<AnalyticsHome />} />

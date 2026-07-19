@@ -1,15 +1,27 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { QRCodeSVG } from 'qrcode.react';
-import { UilShieldCheck, UilTicket, UilMapMarker, UilCalendar, UilUser, UilInfoCircle, UilCheckCircle, UilArrowRight, UilMobileAndroid, UilDownloadAlt, UilStar } from '@/icons';
+import { UilShieldCheck, UilTicket, UilMapMarker, UilCalendar, UilUser, UilInfoCircle, UilCheckCircle, UilArrowRight, UilMobileAndroid, UilDownloadAlt, UilStar, UilTag, UilStore } from '@/icons';
 import { useAuth } from '../context/AuthContext';
 import { subscribeToPass } from '../lib/passService';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 import type { TouristPass } from '../types';
+
+interface DiscountBusiness {
+  id: string;
+  name: string;
+  discountPercent: number;
+  businessType: string;
+  address?: string;
+  category?: string;
+}
 
 export default function TouristPassView() {
   const { user, login } = useAuth();
   const [pass, setPass] = useState<TouristPass | null>(null);
   const [loading, setLoading] = useState(true);
+  const [discounts, setDiscounts] = useState<DiscountBusiness[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -25,6 +37,18 @@ export default function TouristPassView() {
 
     return () => unsubscribe();
   }, [user]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const snapshot = await getDocs(collection(db, 'businesses'));
+        const withDiscounts = snapshot.docs
+          .map(d => ({ id: d.id, ...d.data() } as DiscountBusiness))
+          .filter(b => b.discountPercent && b.discountPercent > 0);
+        setDiscounts(withDiscounts);
+      } catch {}
+    })();
+  }, []);
 
   const passUrl = pass ? `${window.location.origin}/verify-pass/${pass.passId}` : '';
 
@@ -217,6 +241,30 @@ export default function TouristPassView() {
                 ))}
               </div>
             </div>
+
+            {discounts.length > 0 && (
+              <div>
+                <span className="text-island-sunset font-bold tracking-wider text-xs mb-4 block">Pass Discounts</span>
+                <h2 className="text-5xl md:text-7xl font-black text-island-volcanic mb-10 tracking-tighter leading-[0.95]">Partner <br /><span className="text-island-emerald">Perks.</span></h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {discounts.map(biz => (
+                    <div key={biz.id} className="bg-white p-8 rounded-[2.5rem] border-2 border-amber-100 shadow-lg flex items-center gap-5">
+                      <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+                        <UilStore size="28" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-lg font-black text-island-volcanic tracking-tight leading-tight">{biz.name}</h4>
+                        <p className="text-xs text-slate-500 font-medium capitalize">{biz.businessType}</p>
+                        {biz.address && <p className="text-[10px] text-slate-400 mt-1">{biz.address}</p>}
+                      </div>
+                      <div className="shrink-0 px-4 py-2 bg-amber-50 rounded-xl border-2 border-amber-200 text-amber-700 font-black text-sm">
+                        -{biz.discountPercent}%
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="emerald-gradient p-16 rounded-[4.5rem] text-white shadow-3xl border border-white/10 flex flex-col md:flex-row items-center gap-12 relative overflow-hidden">
                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_70%)]"></div>

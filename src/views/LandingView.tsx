@@ -56,7 +56,7 @@ export default function LandingView() {
         date: new Date().toLocaleDateString(),
         amount: exp.price,
         status: 'pending',
-        paymentStatus: 'UNPAID',
+        paymentStatus: 'PAID',
         createdAt: serverTimestamp(),
       };
 
