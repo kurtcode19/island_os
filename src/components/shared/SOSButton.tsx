@@ -1,41 +1,29 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { UilExclamationTriangle, UilTimes, UilMessage, UilMapMarker, UilPhone, UilCheckCircle, UilSpinnerAlt } from '@/icons';
-import { useAuth } from '../../context/AuthContext';
-import { reportIncident } from '../../lib/incidentService';
+import { UilMessage, UilTimes, UilPhone, UilEnvelopeAlt, UilCheckCircle } from '@/icons';
 
-export default function SOSButton() {
-  const { user, profile, login } = useAuth();
+export default function ChatButton() {
   const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSOS = async (type: 'sos' | 'report') => {
-    if (!user) { login(); return; }
-    setSubmitting(true);
-    const id = await reportIncident(user.uid, profile?.name || user.displayName || 'Guest', type, message);
-    setSubmitting(false);
-    if (id) {
-      setSubmitted(true);
-      setTimeout(() => { setOpen(false); setSubmitted(false); setMessage(''); }, 3000);
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+    setTimeout(() => { setOpen(false); setSubmitted(false); }, 3000);
   };
 
   return (
     <>
-      {/* Floating SOS Button */}
       <motion.button
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setOpen(true)}
-        className="fixed bottom-28 right-6 z-50 w-16 h-16 bg-island-coral text-white rounded-full shadow-2xl shadow-island-coral/40 flex items-center justify-center border-4 border-white hover:scale-110 transition-all"
+        className="fixed bottom-28 right-6 z-50 w-16 h-16 bg-gradient-to-r from-[#8b7355] to-[#a0865f] text-white rounded-full shadow-2xl shadow-[#8b7355]/40 flex items-center justify-center hover:scale-110 transition-all"
       >
-        <UilExclamationTriangle size="28" className="animate-pulse" />
+        <UilMessage size="24" />
       </motion.button>
 
-      {/* SOS Modal */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -44,7 +32,7 @@ export default function SOSButton() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[200] flex items-center justify-center p-6"
           >
-            <div className="absolute inset-0 bg-island-volcanic/70 backdrop-blur-sm" onClick={() => setOpen(false)} />
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setOpen(false)} />
 
             <motion.div
               initial={{ scale: 0.9, y: 30 }}
@@ -54,66 +42,49 @@ export default function SOSButton() {
             >
               {submitted ? (
                 <div className="p-12 text-center">
-                  <div className="w-20 h-20 bg-island-emerald/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <UilCheckCircle size="48" className="text-island-emerald" />
+                  <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <UilCheckCircle size="48" className="text-emerald-500" />
                   </div>
-                  <h3 className="text-2xl font-black text-island-volcanic tracking-tighter mb-2">Alert Sent</h3>
-                  <p className="text-slate-500 font-medium">LGU has been notified. Help is on the way.</p>
+                  <h3 className="text-2xl font-semibold text-[#1d1d1f] tracking-tight mb-2">Message Sent</h3>
+                  <p className="text-[#6e6e73] font-medium">We'll get back to you soon.</p>
                 </div>
               ) : (
                 <>
-                  <div className="bg-island-coral p-10 text-white text-center relative overflow-hidden">
-                    <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-                    <button onClick={() => setOpen(false)} className="absolute top-6 right-6 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20">
-                      <UilTimes size="20" />
+                  <div className="bg-gradient-to-r from-[#8b7355] to-[#a0865f] p-10 text-white text-center relative overflow-hidden">
+                    <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+                    <button onClick={() => setOpen(false)} className="absolute top-6 right-6 w-10 h-10 bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/40">
+                      <UilTimes size="20" className="text-white" />
                     </button>
                     <div className="relative z-10">
-                      <div className="w-16 h-16 bg-white/20 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-white/20">
-                        <UilExclamationTriangle size="36" />
+                      <div className="w-16 h-16 bg-white/30 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-white/40">
+                        <UilMessage size="32" className="text-white" />
                       </div>
-                      <h3 className="text-3xl font-black tracking-tighter mb-2">Emergency</h3>
-                      <p className="text-white/70 font-medium text-sm">Your location will be shared with LGU response team.</p>
+                      <h3 className="text-3xl font-light tracking-tight mb-2">Chat with Us</h3>
+                      <p className="text-white/70 font-medium text-sm">We'd love to hear from you!</p>
                     </div>
                   </div>
 
-                  <div className="p-8 space-y-6">
-                    <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100">
-                      <UilMapMarker size="20" className="text-amber-500 shrink-0" />
-                      <p className="text-xs font-medium text-amber-700">GPS location will be captured and sent with your alert.</p>
-                    </div>
-
-                    <textarea
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder="Describe your emergency (optional)..."
-                      rows={3}
-                      className="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-island-emerald/5 text-sm font-medium resize-none"
-                    />
-
-                    <div className="flex gap-4">
-                      <button
-                        onClick={() => handleSOS('sos')}
-                        disabled={submitting}
-                        className="flex-1 py-5 bg-island-coral text-white rounded-2xl font-bold text-sm tracking-wider hover:bg-island-coral/90 transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-island-coral/20"
-                      >
-                        {submitting ? <UilSpinnerAlt size="20" className="animate-spin" /> : <UilExclamationTriangle size="20" />}
-                        SOS Emergency
-                      </button>
-                      <button
-                        onClick={() => handleSOS('report')}
-                        disabled={submitting}
-                        className="flex-1 py-5 bg-island-volcanic text-white rounded-2xl font-bold text-sm tracking-wider hover:bg-island-volcanic/90 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
-                      >
-                        {submitting ? <UilSpinnerAlt size="20" className="animate-spin" /> : <UilMessage size="20" />}
-                        Report Issue
-                      </button>
-                    </div>
+                  <form onSubmit={handleSubmit} className="p-8 space-y-5">
+                    <input type="text" placeholder="Your Name" required
+                      className="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#8b7355]/10 text-sm font-medium" />
+                    <input type="email" placeholder="Your Email" required
+                      className="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#8b7355]/10 text-sm font-medium" />
+                    <textarea rows={3} placeholder="Your Message..." required
+                      className="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-4 focus:ring-[#8b7355]/10 text-sm font-medium resize-none" />
+                    <button type="submit"
+                      className="w-full py-5 bg-gradient-to-r from-[#8b7355] to-[#a0865f] text-white rounded-2xl font-semibold text-sm tracking-wider transition-all shadow-lg shadow-[#8b7355]/20">
+                      Send Message
+                    </button>
 
                     <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                       <UilPhone size="20" className="text-slate-400 shrink-0" />
-                      <p className="text-xs font-medium text-slate-500">Emergency hotline: <span className="font-bold text-island-volcanic">(088) 555-0911</span></p>
+                      <p className="text-xs font-medium text-slate-500">Call us: <span className="font-bold text-[#8b7355]">0917-000-0000</span></p>
                     </div>
-                  </div>
+                    <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                      <UilEnvelopeAlt size="20" className="text-slate-400 shrink-0" />
+                      <p className="text-xs font-medium text-slate-500">Email: <span className="font-bold text-[#8b7355]">hello@dininggasan.com</span></p>
+                    </div>
+                  </form>
                 </>
               )}
             </motion.div>

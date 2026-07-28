@@ -19,8 +19,7 @@ import FunctionRoomView from './views/FunctionRoomView';
 
 import { Navigation } from './components/layout/Navigation';
 
-import { MobileBottomNav } from './components/layout/MobileBottomNav';
-import SOSButton from './components/shared/SOSButton';
+import ChatButton from './components/shared/SOSButton';
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -45,8 +44,8 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
           <>
             {location.pathname !== '/mobile' && <Navigation currentRole={role} onRoleChange={setRole} />}
             {/* SOS Button on tourist-facing pages */}
-            {role === 'TOURIST' && !location.pathname.startsWith('/business') && !location.pathname.startsWith('/government') && <SOSButton />}
-              <main className={`${isMobile && location.pathname !== '/mobile' ? "pb-24 " : ""}${location.pathname === '/mobile' ? "" : location.pathname === '/' ? "" : "pt-20"}`}>
+            {role === 'TOURIST' && !location.pathname.startsWith('/business') && !location.pathname.startsWith('/government') && <ChatButton />}
+              <main className={`${location.pathname === '/' ? "" : location.pathname === '/mobile' ? "" : "pt-20"}`}>
               <AnimatePresence mode="wait">
                 <motion.div 
                   key={location.pathname}
@@ -74,7 +73,6 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
                 </motion.div>
               </AnimatePresence>
             </main>
-            {isMobile && location.pathname !== '/mobile' && <MobileBottomNav />}
           </>
         } />
       </Routes>

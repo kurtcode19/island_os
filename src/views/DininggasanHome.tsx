@@ -106,7 +106,7 @@ export default function DininggasanHome() {
 
   return (
     <div>
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <AnimatePresence initial={false}>
           <motion.div
             key={bgIndex}
@@ -126,7 +126,8 @@ export default function DininggasanHome() {
           </motion.span>
           <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
             className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-light text-white tracking-[-0.03em] mb-4 sm:mb-6 leading-[0.9]">
-            Dininggasan
+            Diningasan
+            <span className="block text-lg sm:text-xl md:text-2xl lg:text-3xl font-light tracking-[0.05em] mt-2">Riverside Inn</span>
           </motion.h1>
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="text-base sm:text-lg md:text-xl text-white/70 font-normal leading-relaxed mb-8 sm:mb-12 max-w-xl mx-auto">
@@ -146,7 +147,7 @@ export default function DininggasanHome() {
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-6 py-32">
+      <section id="about" className="max-w-5xl mx-auto px-6 py-32">
         <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           className="text-center mb-24">
           <span className="text-[11px] font-semibold text-[#8b7355] uppercase tracking-[0.15em]">About</span>
@@ -161,22 +162,19 @@ export default function DininggasanHome() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {[
-            { icon: UilCompass, title: 'Tour Packages', description: 'Heritage walks, island tours, nature escapes, and food trips — all guided and hassle-free.', action: 'Learn More', onClick: () => {} },
-            { icon: UilBedDouble, title: 'Rooms', description: `Comfortable room good for up to ${MAX_ADULTS} guests at ₱${ROOM_PRICE.toLocaleString()}/night. Perfect for families and groups.`, action: 'Book Now', onClick: () => setShowRoomBooking(true) },
-            { icon: UilBuilding, title: 'Function Room', description: 'Morning (₱2K/3hrs) or night (₱3K/3hrs) sessions. Sound system available. Ideal for events, meetings, and celebrations.', action: 'Reserve Now', onClick: () => navigate('/function-room') },
-            { icon: UilTennisBall, title: 'Pickleball Court', description: 'Enjoy a game on our pickleball court. ₱150/hr for non-guests, free for guests.', action: 'Inquire', onClick: () => navigate('/function-room') },
+            { title: 'Tour Packages', description: 'Heritage walks, island tours, nature escapes, and food trips — all guided and hassle-free.', action: 'Learn More', onClick: () => {} },
+            { title: 'Rooms', description: `Comfortable room good for up to ${MAX_ADULTS} guests at ₱${ROOM_PRICE.toLocaleString()}/night. Perfect for families and groups.`, action: 'Book Now', onClick: () => setShowRoomBooking(true) },
+            { title: 'Function Room', description: 'Morning (₱2K/3hrs) or night (₱3K/3hrs) sessions. Sound system available. Ideal for events, meetings, and celebrations.', action: 'Reserve Now', onClick: () => navigate('/function-room') },
+            { title: 'Pickleball Court', description: 'Enjoy a game on our pickleball court. ₱150/hr for non-guests, free for guests.', action: 'Inquire', onClick: () => navigate('/function-room') },
           ].map((item, i) => (
             <motion.div key={item.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.08 }}
               className="bg-white rounded-2xl border border-[#e8e8ed] p-8 hover:shadow-lg hover:shadow-black/[0.02] transition-all group">
-              <div className="w-11 h-11 rounded-xl bg-[#f5f5f7] flex items-center justify-center text-[#8b7355] mb-6">
-                <item.icon size="22" />
-              </div>
               <h3 className="text-xl font-semibold text-[#1d1d1f] tracking-[-0.01em] mb-3">{item.title}</h3>
               <p className="text-[#6e6e73] text-sm leading-relaxed mb-8">{item.description}</p>
               <button onClick={item.onClick}
                 className="flex items-center gap-1.5 text-sm font-semibold text-[#8b7355] hover:text-[#6b5a40] transition-all group/btn">
-                {item.action} <UilArrowRight size="14" className="transition-transform group-hover/btn:translate-x-0.5" />
+                {item.action}
               </button>
             </motion.div>
           ))}
@@ -226,7 +224,7 @@ export default function DininggasanHome() {
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-6 py-32">
+      <section id="rooms" className="max-w-5xl mx-auto px-6 py-32">
         <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           className="text-center mb-16">
           <span className="text-[11px] font-semibold text-[#8b7355] uppercase tracking-[0.15em]">Rooms</span>
@@ -254,7 +252,7 @@ export default function DininggasanHome() {
         </motion.div>
       </section>
 
-      <section className="bg-[#fafafa] py-32">
+      <section id="facilities" className="bg-[#fafafa] py-32">
         <div className="max-w-5xl mx-auto px-6">
           <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             className="text-center mb-16">
@@ -267,7 +265,7 @@ export default function DininggasanHome() {
             className="grid grid-cols-2 md:grid-cols-3 gap-3 max-w-2xl mx-auto">
             {amenities.map((amenity, i) => (
               <div key={i} className="flex items-center gap-3 px-5 py-3.5 rounded-xl bg-white border border-[#e8e8ed]">
-                <UilCheckCircle className="text-[#8b7355] shrink-0" size="16" />
+                <UilCheckCircle size="16" className="text-emerald-500 shrink-0" />
                 <span className="text-sm font-medium text-[#1d1d1f]">{amenity}</span>
               </div>
             ))}
@@ -275,7 +273,24 @@ export default function DininggasanHome() {
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-6 py-32">
+      <section id="gallery" className="max-w-5xl mx-auto px-6 py-32">
+        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          className="text-center mb-16">
+          <span className="text-[11px] font-semibold text-[#8b7355] uppercase tracking-[0.15em]">Gallery</span>
+          <h2 className="text-4xl md:text-5xl font-light text-[#1d1d1f] tracking-[-0.02em] mt-3">Our Place</h2>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          className="overflow-hidden">
+          <div className="flex gap-3 gallery-marquee">
+            {[...bgImages, ...bgImages].map((img, i) => (
+              <div key={i} className="w-72 aspect-[4/3] shrink-0 rounded-2xl bg-cover bg-center overflow-hidden"
+                style={{ backgroundImage: `url(${img})` }} />
+            ))}
+          </div>
+        </motion.div>
+      </section>
+
+      <section id="contact" className="max-w-5xl mx-auto px-6 py-32">
         <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           className="max-w-xl mx-auto text-center">
           <div className="w-12 h-12 rounded-xl bg-[#f5f5f7] flex items-center justify-center mx-auto mb-5">

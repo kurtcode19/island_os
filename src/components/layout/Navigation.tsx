@@ -39,18 +39,18 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
 
   const isDininggasan = true;
 
-  const touristItems = isDininggasan ? [
-    { path: '/', label: 'Tour Packages', icon: UilCompass },
-    { path: '/function-room', label: 'Function Room', icon: UilBuilding },
-    { path: '/services', label: 'Services Offered', icon: UilListUl },
-  ] : [
-    { path: '/', label: 'Home', icon: UilHome },
-    { path: '/tours', label: 'Tour Packages', icon: UilCompass },
-    { path: '/transport', label: 'Mobility', icon: UilNavigator },
-    { path: '/locations', label: 'Map', icon: UilMapPin },
-    { path: '/services', label: 'Services Offered', icon: UilListUl },
-    { path: '/my-bookings', label: 'My Bookings', icon: UilCalendarAlt },
+  const dininggasanItems = [
+    { id: 'home', label: 'Home' },
+    { id: 'about', label: 'About Us' },
+    { id: 'home', label: 'Riverside Inn' },
+    { id: 'rooms', label: 'Rooms' },
+    { id: 'facilities', label: 'Facilities' },
+    { id: 'function-room', label: 'Function Rooms' },
+    { id: 'gallery', label: 'Gallery' },
+    { id: 'contact', label: 'Contact Us' },
   ];
+
+  const touristItems = dininggasanItems;
 
   const businessItems = [
     { path: '/business', label: 'Dashboard', icon: UilDashboard },
@@ -123,31 +123,31 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
             </div>
           </div>
 
-          {/* Center: Navigation Links - Will be perfectly centered between logo and auth sections */}
+          {/* Center: Navigation Links */}
           <div className="hidden md:flex flex-1 justify-center">
             <div className="flex items-center space-x-1">
               {navItems.map((item) => {
-                const isActive = item.path === '/' 
-                  ? location.pathname === '/' 
-                  : location.pathname.startsWith(item.path);
+                const isActive = item.id === 'function-room'
+                  ? location.pathname === '/function-room'
+                  : location.pathname === '/';
                   
                 return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={`relative px-5 py-2.5 rounded-full text-sm font-semibold tracking-tight transition-all group ${
-                        isActive ? 'text-white' : location.pathname === '/' && visible ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-island-green'
-                      }`}
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      if (item.id === 'function-room') {
+                        navigate('/function-room');
+                      } else {
+                        if (location.pathname !== '/') navigate('/');
+                        setTimeout(() => document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' }), 100);
+                      }
+                    }}
+                    className={`relative px-5 py-2.5 rounded-full text-sm font-semibold tracking-tight transition-all ${
+                      isActive ? (location.pathname === '/' && visible ? 'text-white' : 'text-island-green') : location.pathname === '/' && visible ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-island-green'
+                    }`}
                   >
-                    {isActive && (
-                      <motion.div
-                        layoutId="navActiveBackground"
-                        className="absolute inset-0 rounded-full -z-10 bg-island-volcanic"
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      />
-                    )}
-                    <span className="relative z-10 whitespace-nowrap">{item.label}</span>
-                  </Link>
+                    <span className="whitespace-nowrap">{item.label}</span>
+                  </button>
                 );
               })}
             </div>
@@ -281,59 +281,64 @@ className="absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 bg-wh
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Menu - Slide from left */}
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden overflow-hidden bg-white"
-          >
-            <div className="px-6 pt-4 pb-10 space-y-3">
-              {navItems.map((item) => {
-                const isActive = item.path === '/' 
-                  ? location.pathname === '/' 
-                  : location.pathname.startsWith(item.path);
-                  
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center gap-4 p-4 rounded-2xl text-sm font-semibold tracking-tight ${
-                      isActive 
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={() => setIsMenuOpen(false)}
+            />
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="fixed top-0 right-0 bottom-0 w-72 bg-white z-50 md:hidden shadow-2xl"
+            >
+              <div className="px-4 pt-24 space-y-2">
+                {dininggasanItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      if (item.id === 'function-room') {
+                        navigate('/function-room');
+                      } else {
+                        if (location.pathname !== '/') navigate('/');
+                        setTimeout(() => document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' }), 100);
+                      }
+                    }}
+                    className={`flex items-center gap-4 p-4 rounded-2xl text-sm font-light tracking-tight w-full text-left ${
+                      location.pathname === '/' && item.id === 'home'
                         ? 'bg-[#8b7355]/10 text-[#8b7355]'
                         : 'text-slate-600 hover:bg-slate-50'
                     }`}
                   >
-                    <item.icon size={22} />
                     {item.label}
-                  </Link>
-                );
-              })}
-              
-              {!user && (
-                <button 
-                  onClick={login}
-                  className="w-full flex items-center justify-center gap-4 p-4 rounded-2xl text-sm font-bold tracking-wider bg-island-emerald text-white hover:bg-emerald-600 transition-all"
-                >
-                  <UilSignInAlt size="22" />
-                  Register
-                </button>
-              )}
-              
-              {user && (
-                <button 
-                  onClick={logout}
-                  className="w-full flex items-center justify-center gap-4 p-4 rounded-2xl text-sm font-bold tracking-wider bg-island-coral/10 text-island-coral"
-                >
-                  <UilSignOutAlt size="22" />
-                  Sign Out
-                </button>
-              )}
-            </div>
-          </motion.div>
+                  </button>
+                ))}
+              </div>
+              <div className="absolute bottom-8 left-6 right-6 space-y-2">
+                {!user ? (
+                  <button onClick={() => { login(); setIsMenuOpen(false); }}
+                    className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl text-sm font-bold bg-island-emerald text-white hover:bg-emerald-600 transition-all">
+                    <UilSignInAlt size="20" />
+                    Register
+                  </button>
+                ) : (
+                  <button onClick={() => { logout(); setIsMenuOpen(false); }}
+                    className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl text-sm font-bold bg-island-coral/10 text-island-coral transition-all">
+                    <UilSignOutAlt size="20" />
+                    Sign Out
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
