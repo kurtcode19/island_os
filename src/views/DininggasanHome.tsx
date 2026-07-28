@@ -106,7 +106,7 @@ export default function DininggasanHome() {
 
   return (
     <div>
-      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <AnimatePresence initial={false}>
           <motion.div
             key={bgIndex}
@@ -125,21 +125,21 @@ export default function DininggasanHome() {
             Catarman, Camiguin
           </motion.span>
           <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-            className="text-7xl md:text-8xl lg:text-9xl font-light text-white tracking-[-0.03em] mb-6 leading-[0.9]">
+            className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-light text-white tracking-[-0.03em] mb-4 sm:mb-6 leading-[0.9]">
             Dininggasan
           </motion.h1>
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-            className="text-lg md:text-xl text-white/70 font-normal leading-relaxed mb-12 max-w-xl mx-auto">
+            className="text-base sm:text-lg md:text-xl text-white/70 font-normal leading-relaxed mb-8 sm:mb-12 max-w-xl mx-auto">
             Tour packages, rooms, function room, and pickleball — your Camiguin experience starts here.
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-            className="flex flex-wrap justify-center gap-3">
+            className="flex flex-wrap justify-center gap-3 px-4">
             <button onClick={() => setShowRoomBooking(true)}
-              className="px-8 py-4 rounded-xl bg-gradient-to-r from-[#8b7355] to-[#a0865f] text-white text-sm font-bold shadow-lg shadow-[#8b7355]/30 hover:shadow-xl hover:shadow-[#8b7355]/40 hover:scale-[1.02] active:scale-[0.97] transition-all">
+              className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-gradient-to-r from-[#8b7355] to-[#a0865f] text-white text-sm font-bold shadow-lg shadow-[#8b7355]/30 hover:shadow-xl hover:shadow-[#8b7355]/40 hover:scale-[1.02] active:scale-[0.97] transition-all">
               Book a Room
             </button>
             <button onClick={() => navigate('/function-room')}
-              className="px-8 py-4 rounded-xl border-2 border-[#8b7355]/60 text-white text-sm font-bold hover:bg-[#8b7355]/10 hover:border-[#8b7355] shadow-lg shadow-black/20 hover:shadow-[#8b7355]/20 hover:scale-[1.02] active:scale-[0.97] transition-all">
+              className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl border-2 border-[#8b7355]/60 text-white text-sm font-bold hover:bg-[#8b7355]/10 hover:border-[#8b7355] shadow-lg shadow-black/20 hover:shadow-[#8b7355]/20 hover:scale-[1.02] active:scale-[0.97] transition-all">
               Reserve Function Room
             </button>
           </motion.div>
@@ -308,13 +308,13 @@ export default function DininggasanHome() {
             Book a tour, reserve a room, or just drop by.
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
-            className="flex flex-wrap justify-center gap-3">
+            className="flex flex-wrap justify-center gap-3 px-4">
             <button onClick={() => setShowRoomBooking(true)}
-              className="px-8 py-4 rounded-xl bg-gradient-to-r from-[#8b7355] to-[#a0865f] text-white text-sm font-bold shadow-lg shadow-[#8b7355]/30 hover:shadow-xl hover:shadow-[#8b7355]/40 hover:scale-[1.02] active:scale-[0.97] transition-all">
+              className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-gradient-to-r from-[#8b7355] to-[#a0865f] text-white text-sm font-bold shadow-lg shadow-[#8b7355]/30 hover:shadow-xl hover:shadow-[#8b7355]/40 hover:scale-[1.02] active:scale-[0.97] transition-all">
               Book a Room
             </button>
             <button onClick={() => navigate('/function-room')}
-              className="px-8 py-4 rounded-xl border-2 border-[#8b7355]/60 text-[#8b7355] text-sm font-bold hover:bg-[#8b7355] hover:text-white shadow-lg shadow-black/20 hover:shadow-[#8b7355]/30 hover:scale-[1.02] active:scale-[0.97] transition-all">
+              className="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl border-2 border-[#8b7355]/60 text-[#8b7355] text-sm font-bold hover:bg-[#8b7355] hover:text-white shadow-lg shadow-black/20 hover:shadow-[#8b7355]/30 hover:scale-[1.02] active:scale-[0.97] transition-all">
               Reserve Function Room
             </button>
           </motion.div>

@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { useLayoutEffect } from 'react';
 import { UserRole } from './types';
@@ -6,7 +6,6 @@ import { UserRole } from './types';
 // Views
 import BusinessDashboard from './views/BusinessDashboard';
 import GovernmentDashboard from './views/GovernmentDashboard';
-import MobileAppView from './views/MobileAppView';
 import TransportView from './views/TransportView';
 import TouristPassView from './views/TouristPassView';
 import LocationsView from './views/LocationsView';
@@ -41,12 +40,7 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/mobile" element={
-          <main className="h-screen overflow-hidden">
-            <MobileAppView />
-            {/* Bottom nav is now handled inside MobileAppView for better control */}
-          </main>
-        } />
+        <Route path="/mobile" element={<Navigate to="/" replace />} />
         <Route path="*" element={
           <>
             {location.pathname !== '/mobile' && <Navigation currentRole={role} onRoleChange={setRole} />}

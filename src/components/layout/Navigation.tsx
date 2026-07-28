@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { UilHome, UilBedDouble, UilNavigator, UilMapPin, UilStar, UilCalendarAlt, UilBuilding, UilChartBar, UilSignOutAlt, UilSignInAlt, UilShieldCheck, UilBars, UilTimes, UilDashboard, UilCalendar, UilMap, UilTicket, UilTennisBall, UilCompass, UilListUl } from '@/icons';
+import { UilHome, UilBedDouble, UilNavigator, UilMapPin, UilStar, UilCalendarAlt, UilBuilding, UilChartBar, UilSignOutAlt, UilSignInAlt, UilShieldCheck, UilDashboard, UilCalendar, UilMap, UilTicket, UilTennisBall, UilCompass, UilListUl } from '@/icons';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types';
 import { doc, setDoc } from 'firebase/firestore';
@@ -265,13 +265,17 @@ className="absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 bg-wh
             {user && (
               <button 
                 onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
-                className="p-2 rounded-lg text-slate-600 bg-slate-50"
+                className={`p-2 rounded-lg transition-all ${
+                  location.pathname === '/' && visible
+                    ? 'text-white/80 hover:bg-white/10'
+                    : 'text-slate-600 bg-slate-50'
+                }`}
               >
                 <UilShieldCheck size="20" />
               </button>
             )}
-            <button className="p-2 text-slate-600" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <UilTimes size="24" /> : <UilBars size="24" />}
+            <button className={`text-sm font-semibold tracking-tight transition-all ${location.pathname === '/' && visible ? 'text-white' : 'text-slate-600'}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              {isMenuOpen ? 'Close' : 'Menu'}
             </button>
           </div>
         </div>
@@ -299,7 +303,7 @@ className="absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 bg-wh
                     onClick={() => setIsMenuOpen(false)}
                     className={`flex items-center gap-4 p-4 rounded-2xl text-sm font-semibold tracking-tight ${
                       isActive 
-                        ? 'bg-island-emerald/10 text-island-emerald'
+                        ? 'bg-[#8b7355]/10 text-[#8b7355]'
                         : 'text-slate-600 hover:bg-slate-50'
                     }`}
                   >
