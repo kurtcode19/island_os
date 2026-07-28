@@ -92,6 +92,10 @@ export interface Booking {
   expectedPax?: number;
   eventStartTimestamp?: any;
   eventEndTimestamp?: any;
+  timeSlot?: 'morning' | 'night';
+  durationHours?: number;
+  baseAmount?: number;
+  succeedingAmount?: number;
   refundStatus?: 'none' | 'pending' | 'approved' | 'rejected';
   cancellationRequestedAt?: any;
   cancellationReason?: string;
@@ -161,6 +165,21 @@ export interface Business {
   services?: { id: string; name: string; price: number; description?: string }[];
   acceptsEvents?: boolean;
   eventVenues?: { id: string; name: string; capacitySeated: number; halfDayPrice: number; fullDayPrice: number; overtimeRate: number }[];
+  functionRoom?: {
+    name: string;
+    capacity: number;
+    description: string;
+    images: string[];
+    amenities: string[];
+    timeSlots: {
+      id: 'morning' | 'night';
+      label: string;
+      baseHours: number;
+      basePrice: number;
+      succeedingRate: number;
+    }[];
+    addons?: { id: string; name: string; price: number; priceType: 'flat' | 'per_hour'; description?: string }[];
+  };
   location?: { lat: number; lng: number };
   commissionRate?: number;
   stripeAccountId?: string;

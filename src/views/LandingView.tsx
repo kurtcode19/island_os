@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getPilotConfig, isDininggasanPilot } from '../lib/pilotService';
 import { 
   UilArrowRight, 
   UilStar, 
@@ -33,6 +34,14 @@ export default function LandingView() {
   const [selectedExp, setSelectedExp] = useState<any>(null);
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
   const isSubmitting = useRef(false);
+
+  useEffect(() => {
+    getPilotConfig().then(config => {
+      if (isDininggasanPilot(config)) {
+        navigate('/dininggasan', { replace: true });
+      }
+    });
+  }, [navigate]);
 
 
   const handleBookExperience = async (exp: any) => {

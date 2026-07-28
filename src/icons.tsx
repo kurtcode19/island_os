@@ -180,3 +180,5 @@ export const UilAngleDown = (props) => (
 );
 export const UilSnowflake = (props) => <Duo.CloudSnow {...props} />;
 export const UilShieldExclamation = (props) => <Missing {...props} />;
+export const UilMusic = (props) => <Missing {...props} />;
+export const UilTennisBall = (props) => <Missing {...props} />;

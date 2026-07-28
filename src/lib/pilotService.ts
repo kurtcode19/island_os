@@ -36,6 +36,10 @@ function writeCache(config: PilotConfig): void {
   } catch {}
 }
 
+export function isDininggasanPilot(config: PilotConfig | null): boolean {
+  return config?.enabled === true && config?.businessId === 'dininggasan-catarman';
+}
+
 export async function getPilotConfig(): Promise<PilotConfig> {
   const cached = readCache();
   if (cached) return cached;

@@ -4,19 +4,19 @@ import { useLayoutEffect } from 'react';
 import { UserRole } from './types';
 
 // Views
-import LandingView from './views/LandingView';
 import BusinessDashboard from './views/BusinessDashboard';
 import GovernmentDashboard from './views/GovernmentDashboard';
 import MobileAppView from './views/MobileAppView';
-import StayView from './views/StayView';
 import TransportView from './views/TransportView';
 import TouristPassView from './views/TouristPassView';
 import LocationsView from './views/LocationsView';
 import MyBookingsView from './views/MyBookingsView';
 import ClaimBusinessView from './views/ClaimBusinessView';
 import TripPlannerView from './views/TripPlannerView';
-import HowItWorksView from './views/HowItWorksView';
 import RentalsView from './views/RentalsView';
+import DininggasanHome from './views/DininggasanHome';
+import DininggasanDashboard from './views/DininggasanDashboard';
+import FunctionRoomView from './views/FunctionRoomView';
 
 import { Navigation } from './components/layout/Navigation';
 
@@ -52,7 +52,7 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
             {location.pathname !== '/mobile' && <Navigation currentRole={role} onRoleChange={setRole} />}
             {/* SOS Button on tourist-facing pages */}
             {role === 'TOURIST' && !location.pathname.startsWith('/business') && !location.pathname.startsWith('/government') && <SOSButton />}
-              <main className={`${isMobile && location.pathname !== '/mobile' ? "pb-24 " : ""}${location.pathname === '/' || location.pathname === '/mobile' ? "" : "pt-20"}`}>
+              <main className={`${isMobile && location.pathname !== '/mobile' ? "pb-24 " : ""}${location.pathname === '/mobile' ? "" : location.pathname === '/' ? "" : "pt-20"}`}>
               <AnimatePresence mode="wait">
                 <motion.div 
                   key={location.pathname}
@@ -62,9 +62,11 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
                   transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
                 >
                   <Routes location={location}>
-                    <Route path="/" element={<LandingView />} />
-                    <Route path="/how-it-works" element={<HowItWorksView />} />
-                    <Route path="/stay" element={<StayView />} />
+                    <Route path="/" element={<DininggasanHome />} />
+                    <Route path="/services" element={<DininggasanHome />} />
+                    <Route path="/tours" element={<DininggasanHome />} />
+                    <Route path="/admin/*" element={<DininggasanDashboard />} />
+                    <Route path="/function-room" element={<FunctionRoomView />} />
                     <Route path="/transport" element={<TransportView />} />
                     <Route path="/locations" element={<LocationsView />} />
                     <Route path="/rentals" element={<RentalsView />} />

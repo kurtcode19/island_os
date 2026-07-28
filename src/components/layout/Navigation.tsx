@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { UilHome, UilBedDouble, UilNavigator, UilMapPin, UilStar, UilCalendarAlt, UilBuilding, UilChartBar, UilSignOutAlt, UilSignInAlt, UilShieldCheck, UilBars, UilTimes, UilDashboard, UilCalendar, UilMap, UilTicket } from '@/icons';
+import { UilHome, UilBedDouble, UilNavigator, UilMapPin, UilStar, UilCalendarAlt, UilBuilding, UilChartBar, UilSignOutAlt, UilSignInAlt, UilShieldCheck, UilBars, UilTimes, UilDashboard, UilCalendar, UilMap, UilTicket, UilTennisBall, UilCompass, UilListUl } from '@/icons';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types';
 import { doc, setDoc } from 'firebase/firestore';
@@ -37,12 +37,18 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const touristItems = [
+  const isDininggasan = true;
+
+  const touristItems = isDininggasan ? [
+    { path: '/', label: 'Tour Packages', icon: UilCompass },
+    { path: '/function-room', label: 'Function Room', icon: UilBuilding },
+    { path: '/services', label: 'Services Offered', icon: UilListUl },
+  ] : [
     { path: '/', label: 'Home', icon: UilHome },
-    { path: '/stay', label: 'Stay', icon: UilBedDouble },
+    { path: '/tours', label: 'Tour Packages', icon: UilCompass },
     { path: '/transport', label: 'Mobility', icon: UilNavigator },
     { path: '/locations', label: 'Map', icon: UilMapPin },
-    { path: '/planner', label: 'AI Planner', icon: UilStar },
+    { path: '/services', label: 'Services Offered', icon: UilListUl },
     { path: '/my-bookings', label: 'My Bookings', icon: UilCalendarAlt },
   ];
 
@@ -91,13 +97,11 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
 
   return (
     <>
-      {/* Subtle dark gradient overlay at the top for readability */}
-      {location.pathname === '/' && (
-        <div className="fixed top-0 left-0 right-0 z-40 h-24 bg-gradient-to-b from-black/30 to-transparent pointer-events-none" />
-      )}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          location.pathname === '/' ? 'bg-black/10 backdrop-blur-xl' : 'bg-white'
-        } ${visible ? 'translate-y-0' : '-translate-y-full'}`}>
+        location.pathname === '/' 
+          ? visible ? 'bg-transparent' : 'bg-white/80 backdrop-blur-xl border-b border-[#e8e8ed]/50'
+          : 'bg-white border-b border-[#e8e8ed]'
+      }`}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between h-20 items-center">
           
@@ -107,8 +111,14 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
               <div className="w-10 h-10 bg-island-volcanic/5 rounded-xl flex items-center justify-center border border-island-volcanic/10 transition-transform group-hover:scale-110">
                 <img src="/images/weblogo.png" alt="eSuroy Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
               </div>
-              <span className={`text-xl font-bold tracking-tighter whitespace-nowrap ${location.pathname === '/' ? 'text-white' : 'text-slate-800'}`}>
-                <span className="text-island-emerald">eSuroy</span>
+              <span className={`text-lg font-semibold tracking-tight whitespace-nowrap ${
+                location.pathname === '/' && visible ? 'text-white' : 'text-slate-800'
+              }`}>
+                {isDininggasan ? (
+                  <span>Dininggasan</span>
+                ) : (
+                  <span className="text-island-emerald">eSuroy</span>
+                )}
               </span>
             </div>
           </div>
@@ -122,17 +132,17 @@ export function Navigation({ currentRole, onRoleChange }: { currentRole: UserRol
                   : location.pathname.startsWith(item.path);
                   
                 return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-className={`relative px-5 py-2.5 rounded-full text-sm font-semibold tracking-tight transition-all group ${
-                       isActive ? (location.pathname === '/' ? 'text-black' : 'text-white') : location.pathname === '/' ? 'text-white/70 hover:text-white' : 'text-slate-600 hover:text-island-green'
-                     }`}
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`relative px-5 py-2.5 rounded-full text-sm font-semibold tracking-tight transition-all group ${
+                        isActive ? 'text-white' : location.pathname === '/' && visible ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-island-green'
+                      }`}
                   >
                     {isActive && (
                       <motion.div
                         layoutId="navActiveBackground"
-                        className={`absolute inset-0 rounded-full -z-10 ${location.pathname === '/' ? 'bg-white' : 'bg-island-volcanic'}`}
+                        className="absolute inset-0 rounded-full -z-10 bg-island-volcanic"
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                       />
                     )}
@@ -151,9 +161,7 @@ className={`relative px-5 py-2.5 rounded-full text-sm font-semibold tracking-tig
                 <div className="relative">
                   <button 
                     onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold tracking-tight transition-all border ${
-                      location.pathname === '/' ? 'bg-white/10 text-white border-white/20 hover:bg-white/20' : 'bg-slate-50 text-slate-700 border-slate-100 hover:bg-slate-100'
-                    }`}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold tracking-tight transition-all border bg-slate-50 text-slate-700 border-slate-100 hover:bg-slate-100"
                   >
                     {currentRole}
                   </button>
@@ -164,9 +172,7 @@ className={`relative px-5 py-2.5 rounded-full text-sm font-semibold tracking-tig
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-className={`absolute right-0 mt-4 w-56 rounded-3xl shadow-2xl p-2 z-50 overflow-hidden ${
-                           location.pathname === '/' ? 'bg-island-volcanic/90 backdrop-blur-xl border border-white/10' : 'bg-white'
-                         }`}
+className="absolute right-0 mt-4 w-56 rounded-3xl shadow-2xl p-2 z-50 overflow-hidden bg-white"
                       >
                         {(['TOURIST', 'BUSINESS', 'LGU'] as UserRole[]).map((role) => (
                           <button
@@ -174,8 +180,8 @@ className={`absolute right-0 mt-4 w-56 rounded-3xl shadow-2xl p-2 z-50 overflow-
                             onClick={() => handleRoleSwitch(role)}
                             className={`w-full text-left px-5 py-3.5 rounded-2xl text-xs font-semibold tracking-tight transition-all ${
                               currentRole === role 
-                                ? location.pathname === '/' ? 'bg-white/20 text-white' : 'bg-island-emerald/10 text-island-emerald'
-                                : location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-50'
+                                ? 'bg-island-emerald/10 text-island-emerald'
+                                : 'text-slate-600 hover:bg-slate-50'
                             }`}
                           >
                             {role}
@@ -206,29 +212,31 @@ className={`absolute right-0 mt-4 w-56 rounded-3xl shadow-2xl p-2 z-50 overflow-
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-className={`absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 ${
-                           location.pathname === '/' ? 'bg-island-volcanic/90 backdrop-blur-xl border border-white/10' : 'bg-white'
-                         }`}
-                      >
-                        <div className={`mb-6 pb-6 text-center ${location.pathname === '/' ? 'border-b border-white/10' : ''}`}>
-                          <p className={`text-sm font-bold mb-1 ${location.pathname === '/' ? 'text-white' : 'text-slate-800'}`}>{user.displayName}</p>
-                          <p className={`text-[10px] font-medium uppercase tracking-widest ${location.pathname === '/' ? 'text-white/50' : 'text-slate-400'}`}>{user.email}</p>
+className="absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 bg-white"
+                       >
+                         <div className="mb-6 pb-6 text-center">
+                           <p className="text-sm font-bold mb-1 text-slate-800">{user.displayName}</p>
+                           <p className="text-[10px] font-medium uppercase tracking-widest text-slate-400">{user.email}</p>
                         </div>
-                        <Link
-                          to="/claim-business"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-semibold tracking-tight transition-all mb-2 ${
-                            location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-slate-700 hover:bg-island-emerald/5'
-                          }`}
-                        >
-                          <UilBuilding size="18" />
-                          Claim Business
-                        </Link>
+                          <Link
+                            to="/admin"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-semibold tracking-tight transition-all mb-2 text-slate-700 hover:bg-island-emerald/5"
+                          >
+                            <UilBuilding size="18" />
+                            Dashboard
+                          </Link>
+                          <Link
+                            to="/my-bookings"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-semibold tracking-tight transition-all mb-2 text-slate-700 hover:bg-island-emerald/5"
+                          >
+                            <UilCalendarAlt size="18" />
+                            My Bookings
+                          </Link>
                         <button
                           onClick={() => { logout(); setIsUserMenuOpen(false); }}
-                          className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-semibold tracking-tight transition-all ${
-                            location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-slate-700 hover:bg-island-coral/5'
-                          }`}
+                          className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-xs font-semibold tracking-tight transition-all text-slate-700 hover:bg-island-coral/5"
                         >
                           <UilSignOutAlt size="18" />
                           Sign Out
@@ -239,14 +247,16 @@ className={`absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 ${
                 </div>
               </div>
             ) : (
-                <button 
-                  onClick={login}
-                  className={`px-6 py-3 rounded-full text-xs font-bold tracking-wider transition-all hover:scale-105 active:scale-95 ${
-                    location.pathname === '/' ? 'bg-island-emerald text-white hover:bg-emerald-600' : 'bg-island-emerald text-white hover:bg-emerald-600'
-                  }`}
-                >
-                Register
-              </button>
+                  <button 
+                    onClick={login}
+                    className={`px-6 py-3 rounded-full text-xs font-bold tracking-wider transition-all hover:scale-105 active:scale-95 ${
+                      location.pathname === '/' && visible
+                        ? 'bg-white/15 text-white hover:bg-white/25 backdrop-blur-sm'
+                        : 'bg-island-emerald text-white hover:bg-emerald-600'
+                    }`}
+                  >
+                  Register
+                </button>
             )}
           </div>
 
@@ -255,12 +265,12 @@ className={`absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 ${
             {user && (
               <button 
                 onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
-                className={`p-2 rounded-lg ${location.pathname === '/' ? 'text-white/70' : 'text-slate-600 bg-slate-50'}`}
+                className="p-2 rounded-lg text-slate-600 bg-slate-50"
               >
                 <UilShieldCheck size="20" />
               </button>
             )}
-            <button className={`p-2 ${location.pathname === '/' ? 'text-white' : 'text-slate-600'}`} onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <button className="p-2 text-slate-600" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               {isMenuOpen ? <UilTimes size="24" /> : <UilBars size="24" />}
             </button>
           </div>
@@ -274,9 +284,7 @@ className={`absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 ${
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className={`md:hidden overflow-hidden ${
-              location.pathname === '/' ? 'bg-island-volcanic/90 backdrop-blur-xl' : 'bg-white'
-            }`}
+            className="md:hidden overflow-hidden bg-white"
           >
             <div className="px-6 pt-4 pb-10 space-y-3">
               {navItems.map((item) => {
@@ -291,8 +299,8 @@ className={`absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 ${
                     onClick={() => setIsMenuOpen(false)}
                     className={`flex items-center gap-4 p-4 rounded-2xl text-sm font-semibold tracking-tight ${
                       isActive 
-                        ? location.pathname === '/' ? 'bg-white/20 text-white' : 'bg-island-emerald/10 text-island-emerald'
-                        : location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-50'
+                        ? 'bg-island-emerald/10 text-island-emerald'
+                        : 'text-slate-600 hover:bg-slate-50'
                     }`}
                   >
                     <item.icon size={22} />
@@ -314,9 +322,7 @@ className={`absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 ${
               {user && (
                 <button 
                   onClick={logout}
-                  className={`w-full flex items-center justify-center gap-4 p-4 rounded-2xl text-sm font-bold tracking-wider ${
-                    location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'bg-island-coral/10 text-island-coral'
-                  }`}
+                  className="w-full flex items-center justify-center gap-4 p-4 rounded-2xl text-sm font-bold tracking-wider bg-island-coral/10 text-island-coral"
                 >
                   <UilSignOutAlt size="22" />
                   Sign Out
@@ -334,20 +340,18 @@ className={`absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 ${
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className={`md:hidden overflow-hidden ${
-              location.pathname === '/' ? 'bg-island-volcanic/90 backdrop-blur-xl' : 'bg-white'
-            }`}
+            className="md:hidden overflow-hidden bg-white"
           >
             <div className="px-6 pt-4 pb-10 space-y-3">
-              <p className={`text-xs font-semibold tracking-tight px-4 mb-2 ${location.pathname === '/' ? 'text-white/50' : 'text-slate-500'}`}>Switch Role</p>
+              <p className="text-xs font-semibold tracking-tight px-4 mb-2 text-slate-500">Switch Role</p>
               {(['TOURIST', 'BUSINESS', 'LGU'] as UserRole[]).map((role) => (
                 <button
                   key={role}
                   onClick={() => handleRoleSwitch(role)}
                   className={`w-full flex items-center gap-4 p-4 rounded-2xl text-sm font-semibold tracking-tight ${
                     currentRole === role 
-                      ? location.pathname === '/' ? 'bg-white/20 text-white' : 'bg-island-emerald/10 text-island-emerald'
-                      : location.pathname === '/' ? 'text-white/70 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-50'
+                      ? 'bg-island-emerald/10 text-island-emerald'
+                      : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                 <UilShieldCheck size="20" />

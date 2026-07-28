@@ -161,4 +161,19 @@ export const accommodations: Accommodation[] = [
       { id: 'pkg-stay-9-1', name: 'Garden Retreat', persons: 2, days: 3, nights: 2, price: 4200, inclusions: ['Breakfast', 'Garden Tour', 'Afternoon Tea', 'Spa Access'], description: 'Peaceful garden retreat for those seeking tranquility.' },
     ]
   },
+  {
+    id: 'stay-dininggasan',
+    name: 'Dininggasan Accommodation',
+    type: 'Resort',
+    rating: 4.5,
+    reviews: 0,
+    price: 3800,
+    image: '/images/dininggasan/room.jpg',
+    tags: ['Group Stay', 'Family', 'Catarman'],
+    businessId: 'dininggasan-catarman',
+    maxAdults: 8,
+    promoPackages: [
+      { id: 'pkg-dininggasan-1', name: 'Group Stay', persons: 8, days: 2, nights: 1, price: 3800, inclusions: ['Room for 8 pax', 'Basic Amenities'], description: 'Perfect for group stays and families.' },
+    ]
+  },
 ];

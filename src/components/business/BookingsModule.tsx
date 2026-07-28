@@ -190,7 +190,10 @@ export default function BookingsModule() {
                   <th className="px-10 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Guest</th>
                   <th className="px-10 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Venue</th>
                   <th className="px-10 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Event Type</th>
+                  <th className="px-10 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Time Slot</th>
+                  <th className="px-10 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Duration</th>
                   <th className="px-10 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pax</th>
+                  <th className="px-10 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Amount</th>
                   <th className="px-10 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
                   <th className="px-10 py-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
                 </tr>
@@ -198,7 +201,7 @@ export default function BookingsModule() {
               <tbody className="divide-y divide-slate-50">
                 {bookings.filter(b => b.bookingCategory === 'event').length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-10 py-12 text-center text-slate-400 italic">
+                    <td colSpan={9} className="px-10 py-12 text-center text-slate-400 italic">
                       No event inquiries yet.
                     </td>
                   </tr>
@@ -217,13 +220,34 @@ export default function BookingsModule() {
                         </div>
                       </td>
                       <td className="px-10 py-6">
-                        <p className="text-sm font-bold text-island-green">{booking.eventVenueId || booking.serviceName}</p>
+                        <p className="text-sm font-bold text-island-green">{booking.eventVenueId === 'function-room' ? 'Function Room' : (booking.eventVenueId || booking.serviceName)}</p>
                       </td>
                       <td className="px-10 py-6">
                         <span className="text-xs font-semibold text-slate-600 capitalize">{booking.eventType || 'N/A'}</span>
                       </td>
                       <td className="px-10 py-6">
+                        {booking.timeSlot ? (
+                          <span className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                            booking.timeSlot === 'morning' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'
+                          }`}>
+                            {booking.timeSlot === 'morning' ? '☀️ Morning' : '🌙 Night'}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-10 py-6">
+                        {booking.durationHours ? (
+                          <span className="text-sm font-bold text-island-green">{booking.durationHours}h</span>
+                        ) : (
+                          <span className="text-xs text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-10 py-6">
                         <span className="text-sm font-bold text-island-green">{booking.expectedPax || '-'}</span>
+                      </td>
+                      <td className="px-10 py-6">
+                        <span className="text-sm font-bold text-island-volcanic">₱{(booking.amount || 0).toLocaleString()}</span>
                       </td>
                       <td className="px-10 py-6">
                         <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 w-fit ${
