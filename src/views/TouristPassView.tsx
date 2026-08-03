@@ -75,7 +75,7 @@ export default function TouristPassView() {
                   <div className="w-24 h-24 bg-white/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 backdrop-blur-3xl border border-white/20 shadow-2xl">
                     <UilTicket size="48" />
                   </div>
-                  <h3 className="text-3xl font-black tracking-tighter"><span className="text-island-emerald">eSuroy</span> <br /> <span className="text-island-emerald">Pass.</span></h3>
+                  <h3 className="text-3xl font-black tracking-tighter"><span className="text-island-emerald">Dininggasan</span> <br /> <span className="text-island-emerald">Pass.</span></h3>
                   <p className="text-white/40 text-[10px] font-bold tracking-wider mt-3">Verified Pass</p>
                 </div>
               </div>
@@ -226,7 +226,7 @@ export default function TouristPassView() {
               <div className="flex-1 text-center md:text-left relative z-10">
                 <h3 className="text-4xl font-black mb-3 tracking-tighter leading-none">Mobile First.</h3>
                 <p className="text-white/70 font-medium text-xl mb-10 leading-relaxed">
-                  Download the eSuroy app for offline access and real-time updates.
+                  Download the Dininggasan app for offline access and real-time updates.
                 </p>
                 <div className="flex flex-wrap justify-center md:justify-start gap-5">
                   <button className="btn-volcanic px-8 py-4 rounded-2xl">App Store</button>

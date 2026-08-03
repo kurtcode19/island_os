@@ -42,7 +42,7 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
         <Route path="/mobile" element={<Navigate to="/" replace />} />
         <Route path="*" element={
           <>
-            {location.pathname !== '/mobile' && <Navigation currentRole={role} onRoleChange={setRole} />}
+            {location.pathname !== '/mobile' && <Navigation />}
             {/* SOS Button on tourist-facing pages */}
             {role === 'TOURIST' && !location.pathname.startsWith('/business') && !location.pathname.startsWith('/government') && <ChatButton />}
               <main className={`${location.pathname === '/' ? "" : location.pathname === '/mobile' ? "" : "pt-20"}`}>

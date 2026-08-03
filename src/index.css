@@ -1,5 +1,6 @@
 @import url('https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 @import url('https://fonts.cdnfonts.com/css/sinethar');
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
@@ -9,6 +10,7 @@
 @theme {
   --font-sans: "Satoshi", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Satoshi", sans-serif;
+  --font-montserrat: "Montserrat", "Satoshi", sans-serif;
   --font-serif: "Cormorant Garamond", serif;
   --font-script: "Sinethar", cursive;
   

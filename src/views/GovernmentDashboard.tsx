@@ -265,7 +265,7 @@ export default function GovernmentDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wider block mb-2">Municipal</label>
-            <input defaultValue="eSuroy" className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 text-sm font-medium text-black outline-none focus:ring-2 focus:ring-gray-200" readOnly />
+            <input defaultValue="Dininggasan" className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 text-sm font-medium text-black outline-none focus:ring-2 focus:ring-gray-200" readOnly />
           </div>
           <div>
             <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wider block mb-2">Province</label>
@@ -325,7 +325,7 @@ export default function GovernmentDashboard() {
       <aside className="w-[280px] bg-white border-r border-gray-100 hidden lg:flex flex-col shrink-0">
         <div className="p-8 flex-1 overflow-y-auto no-scrollbar">
           <div className="mb-12 px-4">
-            <h3 className="text-xl font-semibold text-black tracking-tight">eSuroy</h3>
+            <h3 className="text-xl font-semibold text-black tracking-tight">Dininggasan</h3>
             <span className="text-xs text-gray-400 font-medium">Municipal</span>
           </div>
 

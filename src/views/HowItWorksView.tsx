@@ -37,7 +37,7 @@ export default function HowItWorksView() {
               <span className="text-island-emerald not-italic">starts here.</span>
             </h1>
             <p className="text-slate-500 text-xl font-medium leading-relaxed max-w-2xl">
-              eSuroy makes it easy to discover, book, and explore everything our platform has to offer.
+              Dininggasan makes it easy to discover, book, and explore everything our platform has to offer.
             </p>
           </motion.div>
         </div>
@@ -108,7 +108,7 @@ export default function HowItWorksView() {
               <span className="text-island-emerald not-italic">tourist app.</span>
             </h2>
             <p className="text-slate-300 text-lg font-medium leading-relaxed max-w-2xl mb-16">
-              eSuroy serves everyone — tourists exploring the island, businesses managing bookings,
+              Dininggasan serves everyone — tourists exploring the island, businesses managing bookings,
               and the LGU monitoring municipal data.
             </p>
 

@@ -67,7 +67,7 @@ interface DayPlan {
 type Step = 'welcome' | 'duration' | 'group' | 'transport' | 'pace' | 'interests' | 'style' | 'budget' | 'result';
 
 const LOADING_QUOTES = [
-  "Consulting the eSuroy digital concierge...",
+  "Consulting the Dininggasan digital concierge...",
   "Mapping the tides at Sunken Cemetery...",
   "Sourcing fresh local delicacies...",
   "Optimizing your heritage trail...",
@@ -105,7 +105,7 @@ export default function TripPlannerView() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const SAVED_KEY = 'esuroy_saved_itineraries';
+  const SAVED_KEY = 'dininggasan_saved_itineraries';
   const [savedItineraries, setSavedItineraries] = useState<any[]>(() => {
     try { return JSON.parse(localStorage.getItem(SAVED_KEY) || '[]'); } catch { return []; }
   });
@@ -892,7 +892,7 @@ export default function TripPlannerView() {
               <div className="flex items-start justify-between gap-6">
                 <div className="space-y-4">
                   <span className="text-[10px] font-bold text-island-emerald tracking-wider block">Itinerary Complete</span>
-                  <h2 className="text-5xl md:text-7xl font-black text-island-volcanic tracking-tighter uppercase leading-[0.85] italic"><span className="not-italic text-island-emerald">eSuroy</span> <br /> <span className="not-italic text-island-emerald">Explorer</span></h2>
+                  <h2 className="text-5xl md:text-7xl font-black text-island-volcanic tracking-tighter uppercase leading-[0.85] italic"><span className="not-italic text-island-emerald">Dininggasan</span> <br /> <span className="not-italic text-island-emerald">Explorer</span></h2>
                   <div className="flex flex-wrap gap-3">
                     <span className="flex items-center gap-2 bg-island-volcanic text-white px-4 py-1.5 rounded-full border border-white/10 shadow-lg text-[10px] font-bold tracking-wider">
                       <UilCalendar size="12" className="text-island-emerald" /> {days} Days
@@ -1101,7 +1101,7 @@ export default function TripPlannerView() {
           >
             <div className="w-1.5 h-32 bg-island-emerald/40 rounded-full" />
             <div className="space-y-8">
-              <h2 className="text-[10rem] font-black leading-[0.75] tracking-tighter uppercase italic drop-shadow-3xl">Bespoke <br /><span className="text-island-emerald not-italic">eSuroy.</span></h2>
+              <h2 className="text-[10rem] font-black leading-[0.75] tracking-tighter uppercase italic drop-shadow-3xl">Bespoke <br /><span className="text-island-emerald not-italic">Dininggasan.</span></h2>
               <p className="text-3xl text-emerald-50/60 font-medium leading-relaxed max-w-2xl">Your journey is being computed against local heritage vectors and real-time municipality data.</p>
             </div>
           </motion.div>

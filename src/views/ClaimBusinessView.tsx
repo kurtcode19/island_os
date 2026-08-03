@@ -91,7 +91,7 @@ export default function ClaimBusinessView() {
           </div>
           <h1 className="text-5xl font-black text-island-volcanic tracking-tighter mb-4">Claim a <span className="text-island-emerald">Business.</span></h1>
           <p className="text-island-green/60 font-medium text-lg max-w-lg mx-auto">
-            Register your business to manage bookings, reviews, and analytics on the eSuroy platform.
+            Register your business to manage bookings, reviews, and analytics on the Dininggasan platform.
           </p>
         </motion.div>
 

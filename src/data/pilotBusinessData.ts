@@ -11,7 +11,7 @@ export const pilotBusinessData: Omit<Business, 'id'> = {
   ownerUid: 'pilot-owner',
   businessType: 'accommodation',
   category: 'resort',
-  description: 'Beachfront diving resort in Poblacion, Catarman. The pilot business for the Catarman eSuroy platform.',
+  description: 'Beachfront diving resort in Poblacion, Catarman. The pilot business for the Catarman Dininggasan platform.',
   address: 'Poblacion, Catarman, Camiguin',
   contact: '0917-111-1115',
   verified: true,

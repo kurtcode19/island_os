@@ -63,11 +63,20 @@ export default function DininggasanHome() {
     '/images/dininggasan/737383602_26625630437112405_7161482258112319983_n.jpg',
     '/images/dininggasan/737827220_1339672174254548_923328153894047872_n.jpg',
   ];
-  const [bgIndex, setBgIndex] = useState(0);
+  const [index, setIndex] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
-    const t = setInterval(() => setBgIndex(i => (i + 1) % bgImages.length), 5000);
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    v.currentTime = 0;
+    v.play().catch(() => {});
+  }, [index === 0]);
+  useEffect(() => {
+    if (index === 0) return;
+    const t = setInterval(() => setIndex(i => (i + 1) % (bgImages.length + 1)), 5000);
     return () => clearInterval(t);
-  }, []);
+  }, [index === 0]);
 
   const [showRoomBooking, setShowRoomBooking] = useState(false);
   const [checkIn, setCheckIn] = useState(new Date(2026, 6, 15));
@@ -108,16 +117,28 @@ export default function DininggasanHome() {
     <div>
       <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <AnimatePresence initial={false}>
+          {index > 0 && (
           <motion.div
-            key={bgIndex}
+            key={index}
             initial={{ clipPath: 'inset(0 100% 0 0)' }}
             animate={{ clipPath: 'inset(0 0 0 0)' }}
             exit={{ clipPath: 'inset(0 0 0 100%)' }}
             transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${bgImages[bgIndex]})` }}
+            style={{ backgroundImage: `url(${bgImages[index - 1]})` }}
           />
+          )}
         </AnimatePresence>
+        <video
+          ref={videoRef}
+          src="/dininggasanlogo.mp4"
+          autoPlay
+          muted
+          playsInline
+          preload="auto"
+          onEnded={() => setIndex(1)}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${index > 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        />
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 text-center px-6 max-w-3xl">
           <motion.span initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
@@ -339,7 +360,7 @@ export default function DininggasanHome() {
       <footer className="bg-white py-8 border-t border-[#e8e8ed]">
         <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-3">
           <p className="text-[#6e6e73] text-sm font-medium">Dininggasan · Catarman, Camiguin</p>
-          <p className="text-[#86868b] text-xs">Powered by eSuroy</p>
+          <p className="text-[#86868b] text-xs">Powered by Dininggasan</p>
         </div>
       </footer>
 
