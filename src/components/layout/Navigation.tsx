@@ -7,7 +7,6 @@ import { useAuth } from '../../context/AuthContext';
 const menuItems = [
   { id: 'home', label: 'Home', to: '/' },
   { id: 'about', label: 'About Us', to: '/#about' },
-  { id: 'home', label: 'Riverside Inn', to: '/#home' },
   { id: 'rooms', label: 'Rooms', to: '/#rooms' },
   { id: 'facilities', label: 'Facilities', to: '/#facilities' },
   { id: 'function-room', label: 'Function Rooms', to: '/function-room' },
@@ -177,6 +176,7 @@ className="absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 bg-wh
           </div>
         </div>
       </div>
+    </nav>
 
       {/* Mobile Menu - Slide from left */}
       <AnimatePresence>
@@ -186,7 +186,7 @@ className="absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 bg-wh
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              className="fixed inset-0 z-40 md:hidden"
               onClick={() => setIsMenuOpen(false)}
             />
             <motion.div
@@ -196,7 +196,11 @@ className="absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 bg-wh
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               className="fixed top-0 right-0 bottom-0 w-72 bg-white z-50 md:hidden shadow-2xl"
             >
-              <div className="px-4 pt-24 space-y-2">
+              <div className="px-6 pt-24 space-y-2">
+                <div className="px-4 pb-6 mb-2 border-b border-slate-100">
+                  <p className="font-montserrat text-lg font-bold uppercase tracking-[0.2em] text-slate-900">Dininggasan</p>
+                  <p className="text-xs font-medium uppercase tracking-widest text-slate-500">Accommodation</p>
+                </div>
                 {menuItems.map((item) => (
                   <button
                     key={item.label}
@@ -204,10 +208,10 @@ className="absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 bg-wh
                       setIsMenuOpen(false);
                       handleNavClick(item);
                     }}
-                    className={`flex items-center gap-4 p-4 rounded-2xl text-sm font-light tracking-tight w-full text-left ${
+                    className={`flex items-center gap-4 p-4 rounded-2xl text-sm font-semibold tracking-tight w-full text-left ${
                       location.pathname === '/' && item.id === 'home'
                         ? 'bg-[#8b7355]/10 text-[#8b7355]'
-                        : 'text-slate-600 hover:bg-slate-50'
+                        : 'text-slate-800 hover:bg-slate-50'
                     }`}
                   >
                     {item.label}
@@ -217,8 +221,7 @@ className="absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 bg-wh
               <div className="absolute bottom-8 left-6 right-6 space-y-2">
                 {!user ? (
                   <button onClick={() => { login(); setIsMenuOpen(false); }}
-                    className="w-full flex items-center justify-center gap-3 p-4 rounded-2xl text-sm font-bold bg-island-emerald text-white hover:bg-emerald-600 transition-all">
-                    <UilSignInAlt size="20" />
+                    className="w-full flex items-center justify-center p-4 rounded-2xl text-sm font-bold bg-island-emerald text-white hover:bg-emerald-600 transition-all">
                     Register
                   </button>
                 ) : (
@@ -233,7 +236,6 @@ className="absolute right-0 mt-4 w-72 rounded-[2.5rem] shadow-2xl p-6 z-50 bg-wh
           </>
         )}
       </AnimatePresence>
-    </nav>
     </>
   );
 }

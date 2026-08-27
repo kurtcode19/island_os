@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType, Timestamp } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { toast } from 'sonner';
-import { UilArrowRight, UilCompass, UilBuilding, UilTennisBall, UilMapMarker, UilPhone, UilCheckCircle, UilArrowLeft, UilCalendarAlt, UilPlus, UilMinus, UilUsersAlt, UilSync, UilBedDouble } from '@/icons';
+import { UilArrowRight, UilCompass, UilBuilding, UilTennisBall, UilMapMarker, UilPhone, UilEnvelopeAlt, UilFacebook, UilCheckCircle, UilArrowLeft, UilCalendarAlt, UilPlus, UilMinus, UilUsersAlt, UilSync, UilBedDouble } from '@/icons';
 
 const amenities = [
   'Free Wi-Fi', 'Air Conditioning', 'Hot & Cold Shower', 'Parking', 'CCTV', 'Event-ready Space',
@@ -140,15 +140,15 @@ export default function DininggasanHome() {
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${index > 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
         />
         <div className="absolute inset-0 bg-black/60" />
-        <div className="relative z-10 text-center px-6 max-w-3xl">
+        <div className="relative z-10 text-center px-6">
           <motion.span initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
             className="inline-block text-[11px] font-semibold text-[#8b7355] uppercase tracking-[0.15em] mb-8">
             Catarman, Camiguin
           </motion.span>
           <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-            className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-light text-white tracking-[-0.03em] mb-4 sm:mb-6 leading-[0.9]">
-            Diningasan
-            <span className="block text-lg sm:text-xl md:text-2xl lg:text-3xl font-light tracking-[0.05em] mt-2">Riverside Inn</span>
+            className="text-center font-delmon text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-light text-white tracking-[-0.03em] mb-4 sm:mb-6 leading-[0.9] uppercase">
+            Dininggasan
+            <span className="block font-sans text-lg sm:text-xl md:text-2xl lg:text-3xl font-light tracking-[0.05em] mt-2">Riverside Inn</span>
           </motion.h1>
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="text-base sm:text-lg md:text-xl text-white/70 font-normal leading-relaxed mb-8 sm:mb-12 max-w-xl mx-auto">
@@ -318,10 +318,21 @@ export default function DininggasanHome() {
             <UilMapMarker className="text-[#8b7355]" size="22" />
           </div>
           <h2 className="text-3xl font-semibold text-[#1d1d1f] tracking-[-0.01em] mb-2">Visit Us</h2>
-          <p className="text-[#6e6e73] mb-1">Catarman, Camiguin</p>
-          <div className="flex items-center justify-center gap-1.5 text-sm font-medium text-[#8b7355] mb-8">
-            <UilPhone size="14" />
-            <span>0917-000-0000</span>
+          <p className="text-[#6e6e73] mb-1">Dinggasan Tourism Complex, Catarman, Philippines, 9104</p>
+          <div className="flex flex-col items-center gap-2 mb-8">
+            <div className="flex items-center gap-1.5 text-sm font-medium text-[#8b7355]">
+              <UilPhone size="14" />
+              <span>0997 577 8185</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-sm font-medium text-[#8b7355]">
+              <UilEnvelopeAlt size="14" />
+              <a href="mailto:lgucatarman50@gmail.com" className="hover:underline">lgucatarman50@gmail.com</a>
+            </div>
+            <a href="https://www.facebook.com/profile.php?id=61591491051099" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-sm font-medium text-[#8b7355] hover:underline">
+              <UilFacebook size="14" />
+              <span>LGU Catarman on Facebook</span>
+            </a>
           </div>
           <div className="w-full h-64 rounded-2xl bg-[#f5f5f7] overflow-hidden border border-[#e8e8ed]">
             <iframe
@@ -333,7 +344,12 @@ export default function DininggasanHome() {
         </motion.div>
       </section>
 
-      <section className="bg-[#1d1d1f] py-28">
+      <section className="relative bg-[#1d1d1f] py-28">
+        <div className="absolute inset-x-0 -top-16 md:-top-24 h-16 md:h-24 overflow-hidden" aria-hidden>
+          <svg className="wave-slide block w-[200%] h-full fill-[#1d1d1f]" preserveAspectRatio="none" viewBox="0 0 1200 120">
+            <path d="M0 60 C100 0 200 0 300 60 C400 120 500 120 600 60 C700 0 800 0 900 60 C1000 120 1100 120 1200 60 L1200 120 L0 120 Z" />
+          </svg>
+        </div>
         <div className="max-w-5xl mx-auto px-6 text-center">
           <motion.h2 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             className="text-4xl md:text-5xl font-light text-white tracking-[-0.02em] mb-4">
@@ -355,14 +371,11 @@ export default function DininggasanHome() {
             </button>
           </motion.div>
         </div>
-      </section>
-
-      <footer className="bg-white py-8 border-t border-[#e8e8ed]">
-        <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-3">
-          <p className="text-[#6e6e73] text-sm font-medium">Dininggasan · Catarman, Camiguin</p>
+        <div className="max-w-5xl mx-auto px-6 mt-24 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-3">
+          <p className="text-[#a1a1a6] text-sm font-medium">Dininggasan · Catarman, Camiguin</p>
           <p className="text-[#86868b] text-xs">Powered by Dininggasan</p>
         </div>
-      </footer>
+      </section>
 
       {/* Room Booking Modal */}
       <AnimatePresence>

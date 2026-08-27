@@ -156,7 +156,16 @@ export const UilExternalLinkAlt = (props) => <Missing {...props} />;
 export const UilCornerUpRight = (props) => <Missing {...props} />;
 export const UilReply = (props) => <Missing {...props} />;
 export const UilSlidersV = (props) => <Duo.Settings {...props} />;
-export const UilEnvelopeAlt = (props) => <Missing {...props} />;
+export const UilEnvelopeAlt = (props) => (
+  <svg viewBox="0 0 24 24" width={props.size||24} height={props.size||24} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={props.className}>
+    <rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+  </svg>
+);
+export const UilFacebook = (props) => (
+  <svg viewBox="0 0 24 24" width={props.size||24} height={props.size||24} fill="currentColor" className={props.className}>
+    <path d="M13.5 21v-7.5h2.52l.48-3h-3V8.62c0-.87.29-1.62 1.67-1.62H16.6V4.35C16.35 4.32 15.3 4.25 14.1 4.25c-2.55 0-4.35 1.6-4.35 4.53V10.5H7.25v3h2.5V21h3.75Z" />
+  </svg>
+);
 export const UilMail = (props) => <Missing {...props} />;
 export const UilSpinnerAlt = (props) => <Missing {...props} />;
 export const UilCloudRain = (props) => <Duo.CloudSnow {...props} />;

@@ -1,6 +1,8 @@
 @import url('https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+@import url('https://fonts.cdnfonts.com/css/mosthat');
+@import url('https://fonts.cdnfonts.com/css/delmon-delicate');
 @import url('https://fonts.cdnfonts.com/css/sinethar');
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
@@ -13,6 +15,8 @@
   --font-montserrat: "Montserrat", "Satoshi", sans-serif;
   --font-serif: "Cormorant Garamond", serif;
   --font-script: "Sinethar", cursive;
+  --font-delmon: "Delmon Delicate", "Montserrat", "Satoshi", sans-serif;
+  --font-mosthat: "Mosthat", "Montserrat", "Satoshi", sans-serif;
   
   --color-island-green: #1F3D36; /* Luxury Dark Green */
   --color-island-emerald: #10b981; /* Fresh Emerald */
@@ -79,6 +83,14 @@
   animation-play-state: paused;
 }
 @keyframes gallery-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.wave-slide {
+  animation: wave-slide 14s linear infinite;
+}
+@keyframes wave-slide {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
