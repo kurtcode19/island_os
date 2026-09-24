@@ -1,5 +1,38 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { UilStar, UilHeart } from '@/icons';
+
+const FAV_KEY = 'island_favorites';
+
+export function getFavorites(): string[] {
+  try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch { return []; }
+}
+
+export function toggleFavorite(id: string | number): string[] {
+  const key = String(id);
+  const next = getFavorites().includes(key)
+    ? getFavorites().filter(x => x !== key)
+    : [...getFavorites(), key];
+  localStorage.setItem(FAV_KEY, JSON.stringify(next));
+  return next;
+}
+
+export function FavoriteButton({ id, className = '' }: { id: string | number; className?: string }) {
+  const [fav, setFav] = useState(getFavorites().includes(String(id)));
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleFavorite(id);
+        setFav(getFavorites().includes(String(id)));
+      }}
+      aria-label="Save to favorites"
+      className={`w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center hover:scale-105 transition-all shadow-sm ${fav ? 'bg-rose-500 text-white' : 'bg-white/80 text-gray-700 hover:bg-white'} ${className}`}
+    >
+      <UilHeart size="15" className={fav ? 'fill-white' : ''} />
+    </button>
+  );
+}
 
 interface CardItem {
   id: number;
@@ -18,6 +51,7 @@ interface CardCarouselProps {
 }
 
 function Card({ item, onClick }: { item: CardItem; onClick: () => void }) {
+  const [fav, setFav] = useState(getFavorites().includes(String(item.id)));
   return (
     <motion.div
       whileTap={{ scale: 0.97 }}
@@ -27,10 +61,15 @@ function Card({ item, onClick }: { item: CardItem; onClick: () => void }) {
       <div className="relative aspect-[4/3] overflow-hidden">
         <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
         <button
-          onClick={(e) => { e.stopPropagation(); }}
-          className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-700 hover:bg-white transition-all shadow-sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleFavorite(item.id);
+            setFav(getFavorites().includes(String(item.id)));
+          }}
+          className={`absolute top-2.5 right-2.5 w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center transition-all shadow-sm ${fav ? 'bg-rose-500 text-white' : 'bg-white/80 text-gray-700 hover:bg-white'}`}
+          aria-label="Save to favorites"
         >
-          <UilHeart size="13" />
+          <UilHeart size="13" className={fav ? 'fill-white' : ''} />
         </button>
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
           {[0, 1, 2].map((i) => (

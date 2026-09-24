@@ -160,7 +160,7 @@ export interface Business {
   images: string[];
   createdAt: any;
   media?: { featuredImage?: string; gallery?: string[] };
-  roomTypes?: { id: string; name: string; basePrice: number; capacity: number; priceModifiers?: { name: string; amount: number }[] }[];
+  roomTypes?: { id: string; name: string; basePrice: number; capacity: number; priceModifiers?: { name: string; amount: number }[]; unitCount?: number; image?: string }[];
   policies?: { standardCheckInTime?: string; standardCheckOutTime?: string; cancellationHours?: number };
   services?: { id: string; name: string; price: number; description?: string }[];
   acceptsEvents?: boolean;
@@ -177,6 +177,8 @@ export interface Business {
       baseHours: number;
       basePrice: number;
       succeedingRate: number;
+      endTime?: string;
+      endTimeLabel?: string;
     }[];
     addons?: { id: string; name: string; price: number; priceType: 'flat' | 'per_hour'; description?: string }[];
   };

@@ -6,19 +6,20 @@ import { useAuth } from '../../context/AuthContext';
 import { subscribeToBusinessReviews, moderateReview, replyToReview } from '../../lib/reviewService';
 import type { Review } from '../../types';
 
-export default function ReviewsModule() {
+export default function ReviewsModule({ businessId }: { businessId?: string } = {}) {
   const { profile } = useAuth();
+  const resolvedBusinessId = businessId || profile?.businessId;
   const [reviews, setReviews] = useState<Review[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [replyText, setReplyText] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
-    if (!profile?.businessId) return;
-    const unsubscribe = subscribeToBusinessReviews(profile.businessId, (data) => {
+    if (!resolvedBusinessId) return;
+    const unsubscribe = subscribeToBusinessReviews(resolvedBusinessId, (data) => {
       setReviews(data);
     });
     return () => unsubscribe();
-  }, [profile?.businessId]);
+  }, [resolvedBusinessId]);
 
   const averageRating = reviews.length > 0
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)

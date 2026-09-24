@@ -55,13 +55,33 @@ export default function FunctionRoomView() {
 
   const isMorning = inferredSlot === 'morning';
 
+  const slotWindowError = useMemo(() => {
+    if (!slotConfig || !startTime || !endTime) return null;
+    if (slotConfig.id === 'morning') {
+      const limit = slotConfig.endTime || '17:00';
+      const label = slotConfig.endTimeLabel || '5:00 PM';
+      if (endTime > limit) return `Morning session must end by ${label}`;
+      if (endTime <= startTime) return 'End time must be after start time';
+      return null;
+    }
+    // night: may run to midnight (00:00 next day); reject nonsensical end before start only if not 00:00
+    if (endTime === '00:00') return null;
+    if (endTime < startTime) return 'End time must be after start time (or 12:00 AM for midnight)';
+    return null;
+  }, [slotConfig, startTime, endTime]);
+
   const computeDurationHours = () => {
     if (!startTime || !endTime) return 0;
     const [sh, sm] = startTime.split(':').map(Number);
     const [eh, em] = endTime.split(':').map(Number);
-    const startMins = sh * 60 + sm;
-    const endMins = eh * 60 + em;
-    if (endMins <= startMins) return 0;
+    let startMins = sh * 60 + sm;
+    let endMins = eh * 60 + em;
+    if (endMins <= startMins) {
+      // only night sessions may roll past midnight (end 00:00 or end before start)
+      if (inferredSlot === 'night') endMins += 24 * 60;
+      else return 0;
+    }
+    if (endMins - startMins > 24 * 60) return 0;
     return (endMins - startMins) / 60;
   };
 
@@ -102,10 +122,13 @@ export default function FunctionRoomView() {
   const handleBook = async () => {
     if (!user) { login(); return; }
     if (!business || !priceBreakdown || durationHours <= 0) return;
+    if (slotWindowError) { toast.error(slotWindowError); return; }
     setBookingStatus('loading');
 
     const startDateTime = new Date(`${selectedDate}T${startTime}:00`);
+    // night session ending at 00:00 rolls to next calendar day
     const endDateTime = new Date(`${selectedDate}T${endTime}:00`);
+    if (endDateTime <= startDateTime) endDateTime.setDate(endDateTime.getDate() + 1);
 
     if (endDateTime <= startDateTime) {
       toast.error('End time must be after start time');
@@ -194,6 +217,11 @@ export default function FunctionRoomView() {
                 </button>
                 <span className="text-xs font-semibold text-[#8b7355] uppercase tracking-[0.15em]">Dininggasan</span>
               </div>
+              {fRoom.images?.[0] && (
+                <div className="rounded-2xl overflow-hidden border border-[#e8e8ed] mb-8">
+                  <img src={fRoom.images[0]} alt={fRoom.name} className="w-full h-56 md:h-72 object-cover" />
+                </div>
+              )}
               <h1 className="text-4xl md:text-5xl font-light text-[#1d1d1f] tracking-[-0.03em]">
                 Function Room
               </h1>
@@ -235,8 +263,11 @@ export default function FunctionRoomView() {
                         isMorning ? 'bg-[#f5f5f7] text-[#8b7355]' : 'bg-[#f5f5f7] text-[#6e6e73]'
                       }`}>
                         {isMorning ? <UilSun size="13" /> : <UilMoon size="13" />}
-                        {isMorning ? 'Morning session' : 'Night session'}
+                        {isMorning ? 'Morning session · until 5:00 PM' : 'Night session · until 12:00 AM'}
                       </div>
+                    )}
+                    {slotWindowError && (
+                      <p className="text-xs font-semibold text-red-500">{slotWindowError}</p>
                     )}
 
                     <div className="grid grid-cols-2 gap-4">
@@ -322,6 +353,7 @@ export default function FunctionRoomView() {
                 <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
                   className="bg-white rounded-2xl border border-[#e8e8ed] p-8">
                   <h2 className="text-lg font-semibold text-[#1d1d1f] tracking-[-0.01em] mb-6">Pricing</h2>
+                  <p className="text-xs text-[#8b7355] font-semibold mb-4">Rental fee includes tables & chairs.</p>
                   <div className="space-y-3">
                     {fRoom.timeSlots.map(slot => (
                       <div key={slot.id} className={`px-5 py-4 rounded-xl border transition-all ${
@@ -331,7 +363,7 @@ export default function FunctionRoomView() {
                           {slot.id === 'morning' ? <UilSun className="text-[#8b7355]" size="14" /> : <UilMoon className="text-[#6e6e73]" size="14" />}
                           <span className="font-semibold text-sm text-[#1d1d1f]">{slot.label}</span>
                         </div>
-                        <p className="text-xs text-[#6e6e73]">₱{slot.basePrice.toLocaleString()} for first {slot.baseHours}h</p>
+                        <p className="text-xs text-[#6e6e73]">₱{slot.basePrice.toLocaleString()} for first {slot.baseHours}h{slot.endTimeLabel ? ` · until ${slot.endTimeLabel}` : slot.id === 'morning' ? ' · until 5:00 PM' : ' · until 12:00 AM'}</p>
                         <p className="text-xs text-[#6e6e73]">₱{slot.succeedingRate.toLocaleString()}/hr succeeding</p>
                       </div>
                     ))}
@@ -375,7 +407,7 @@ export default function FunctionRoomView() {
 
                   <motion.button whileTap={{ scale: 0.98 }}
                     onClick={handleBook}
-                    disabled={!user || durationHours <= 0 || bookingStatus === 'loading'}
+                    disabled={!user || durationHours <= 0 || !!slotWindowError || bookingStatus === 'loading'}
                     className="w-full mt-8 bg-[#1d1d1f] text-white py-4 rounded-xl font-semibold text-sm hover:bg-[#2d2d2f] transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                     {user ? (bookingStatus === 'loading' ? 'Submitting...' : 'Submit Inquiry') : 'Sign in to Book'}
                   </motion.button>
@@ -391,6 +423,7 @@ export default function FunctionRoomView() {
                       </span>
                     ))}
                   </div>
+                  <p className="text-xs text-[#8b7355] font-semibold mt-4">Tables & chairs are included in the rental fee.</p>
                 </motion.div>
               </div>
             </div>

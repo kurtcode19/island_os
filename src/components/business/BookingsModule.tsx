@@ -41,7 +41,7 @@ export default function BookingsModule() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
-  const [activeTab, setActiveTab] = useState<'bookings' | 'refunds' | 'events'>('bookings');
+  const [activeTab, setActiveTab] = useState<'bookings' | 'calendar' | 'refunds' | 'events'>('bookings');
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
 
   useEffect(() => {
@@ -131,6 +131,14 @@ export default function BookingsModule() {
               All Bookings
             </button>
             <button
+              onClick={() => setActiveTab('calendar')}
+              className={`px-6 py-2.5 rounded-xl text-[10px] font-bold tracking-wider transition-all ${
+                activeTab === 'calendar' ? 'bg-white text-island-volcanic shadow-sm' : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              Calendar
+            </button>
+            <button
               onClick={() => setActiveTab('events')}
               className={`px-6 py-2.5 rounded-xl text-[10px] font-bold tracking-wider transition-all ${
                 activeTab === 'events' ? 'bg-white text-island-volcanic shadow-sm' : 'text-slate-400 hover:text-slate-600'
@@ -177,7 +185,54 @@ export default function BookingsModule() {
         </div>
       </div>
 
-      {activeTab === 'events' ? (
+      {activeTab === 'calendar' ? (
+        <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden p-10">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="text-lg font-bold text-island-green">Booking Calendar</h3>
+            <div className="flex gap-2">
+              <span className="px-3 py-1 bg-island-emerald/10 text-island-emerald rounded-full text-xs font-bold">Confirmed</span>
+              <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">Pending</span>
+            </div>
+          </div>
+          <div className="min-h-[500px]">
+            {/* Simple calendar placeholder since FullCalendar isn't installed. 
+                Using a list view grouped by date for Ponytail mode simplicity. */}
+            <div className="space-y-6">
+              {Object.entries(
+                bookings.reduce((acc, booking) => {
+                  const date = booking.date || 'No Date';
+                  if (!acc[date]) acc[date] = [];
+                  acc[date].push(booking);
+                  return acc;
+                }, {} as Record<string, any[]>)
+              ).sort((a: any, b: any) => new Date(a[0]).getTime() - new Date(b[0]).getTime())
+               .map(([date, dateBookings]: [string, any]) => (
+                <div key={date} className="border border-slate-100 rounded-2xl p-6">
+                  <h4 className="font-bold text-island-green mb-4 flex items-center gap-2">
+                    <Calendar size="18" className="text-island-emerald" /> {date}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {dateBookings.map((booking: any) => (
+                      <div 
+                        key={booking.id}
+                        onClick={() => setSelectedBooking(booking)}
+                        className={`p-4 rounded-xl cursor-pointer border ${
+                          booking.status === 'confirmed' ? 'bg-island-emerald/5 border-island-emerald/20' : 
+                          booking.status === 'pending' ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'
+                        }`}
+                      >
+                        <p className="font-bold text-sm text-island-volcanic">{booking.touristName || booking.guestName}</p>
+                        <p className="text-xs text-slate-500 mt-1">{booking.serviceName}</p>
+                        <p className="text-xs font-bold uppercase mt-2 opacity-70">{booking.status}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : activeTab === 'events' ? (
         <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
           <div className="p-10 border-b border-slate-50">
             <h3 className="text-lg font-bold text-island-green">Event Inquiries</h3>

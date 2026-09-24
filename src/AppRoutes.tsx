@@ -4,31 +4,32 @@ import { useLayoutEffect } from 'react';
 import { UserRole } from './types';
 
 // Views
-import BusinessDashboard from './views/BusinessDashboard';
-import GovernmentDashboard from './views/GovernmentDashboard';
-import TransportView from './views/TransportView';
-import TouristPassView from './views/TouristPassView';
-import LocationsView from './views/LocationsView';
 import MyBookingsView from './views/MyBookingsView';
-import ClaimBusinessView from './views/ClaimBusinessView';
-import TripPlannerView from './views/TripPlannerView';
-import RentalsView from './views/RentalsView';
 import DininggasanHome from './views/DininggasanHome';
 import DininggasanDashboard from './views/DininggasanDashboard';
 import FunctionRoomView from './views/FunctionRoomView';
+import StayView from './views/StayView';
+import RentalsView from './views/RentalsView';
+import TransportView from './views/TransportView';
+import LocationsView from './views/LocationsView';
+import HowItWorksView from './views/HowItWorksView';
+import TripPlannerView from './views/TripPlannerView';
+import MobileAppView from './views/MobileAppView';
+import ClaimBusinessView from './views/ClaimBusinessView';
+import BusinessDashboard from './views/BusinessDashboard';
+import GovernmentDashboard from './views/GovernmentDashboard';
+import TouristPassView from './views/TouristPassView';
 
 import { Navigation } from './components/layout/Navigation';
-
-import ChatButton from './components/shared/SOSButton';
 
 // Scroll to top on route change
 function ScrollToTop() {
   const { pathname } = useLocation();
-  
+
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
-  
+
   return null;
 }
 
@@ -39,15 +40,12 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/mobile" element={<Navigate to="/" replace />} />
         <Route path="*" element={
           <>
-            {location.pathname !== '/mobile' && <Navigation />}
-            {/* SOS Button on tourist-facing pages */}
-            {role === 'TOURIST' && !location.pathname.startsWith('/business') && !location.pathname.startsWith('/government') && <ChatButton />}
-              <main className={`${location.pathname === '/' ? "" : location.pathname === '/mobile' ? "" : "pt-20"}`}>
+            <Navigation />
+            <main className={`${location.pathname === '/' ? "" : "pt-20"}`}>
               <AnimatePresence mode="wait">
-                <motion.div 
+                <motion.div
                   key={location.pathname}
                   initial={{ opacity: 0, y: 20, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -56,19 +54,24 @@ export function AppRoutes({ role, setRole, isMobile }: { role: UserRole, setRole
                 >
                   <Routes location={location}>
                     <Route path="/" element={<DininggasanHome />} />
-                    <Route path="/services" element={<DininggasanHome />} />
-                    <Route path="/tours" element={<DininggasanHome />} />
+                    <Route path="/dininggasan" element={<Navigate to="/" replace />} />
                     <Route path="/admin/*" element={<DininggasanDashboard />} />
                     <Route path="/function-room" element={<FunctionRoomView />} />
+                    <Route path="/my-bookings" element={<MyBookingsView />} />
+                    <Route path="/stay" element={<StayView />} />
+                    <Route path="/rentals" element={<RentalsView />} />
                     <Route path="/transport" element={<TransportView />} />
                     <Route path="/locations" element={<LocationsView />} />
-                    <Route path="/rentals" element={<RentalsView />} />
+                    <Route path="/how-it-works" element={<HowItWorksView />} />
                     <Route path="/planner" element={<TripPlannerView />} />
-                    <Route path="/pass" element={<TouristPassView />} />
-                    <Route path="/my-bookings" element={<MyBookingsView />} />
+                    <Route path="/mobile" element={<MobileAppView />} />
                     <Route path="/claim-business" element={<ClaimBusinessView />} />
                     <Route path="/business/*" element={<BusinessDashboard />} />
-                    {!isMobile && <Route path="/government/*" element={<GovernmentDashboard />} />}
+                    <Route path="/government/*" element={<GovernmentDashboard />} />
+                    <Route path="/pass" element={<TouristPassView />} />
+                    <Route path="/verify-pass/:id" element={<TouristPassView />} />
+                    <Route path="/services" element={<Navigate to="/function-room" replace />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </motion.div>
               </AnimatePresence>

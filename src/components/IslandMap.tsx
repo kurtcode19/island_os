@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { getPilotConfig, type PilotConfig } from '../lib/pilotService';
+import { downloadCsv } from '../lib/csv';
 import { UilMapMarker as MapPin, UilNavigator as Navigation, UilBookOpen as BookOpen, UilCrosshair as Crosshair, UilExternalLinkAlt as ExternalLink, UilStar as Sparkles, UilTimes as X, UilClock as Clock, UilShoppingBag as ShoppingBag, UilStore as Store, UilStar as Star, UilPhone as Phone, UilMapMarker as MapMarker } from '@/icons';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -757,7 +758,17 @@ const IslandMap: React.FC = () => {
           <p className="text-emerald-100/60 font-medium text-sm mb-8 leading-relaxed italic">
             "Get around Catarman by tricycle."
           </p>
-          <button className="w-full py-5 bg-white/10 backdrop-blur-xl hover:bg-white/20 border-2 border-white/20 rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all">
+          <button
+            onClick={() => {
+              downloadCsv(
+                `manifest_${new Date().toISOString().slice(0, 10)}.csv`,
+                ['Name', 'Latitude', 'Longitude', 'Schedule', 'Description'],
+                locations.map(l => [l.name, l.coords[0], l.coords[1], l.openSchedule, l.description])
+              );
+              toast.success(`Manifest downloaded — ${locations.length} locations`);
+            }}
+            className="w-full py-5 bg-white/10 backdrop-blur-xl hover:bg-white/20 border-2 border-white/20 rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all"
+          >
             Download Manifest
           </button>
         </div>

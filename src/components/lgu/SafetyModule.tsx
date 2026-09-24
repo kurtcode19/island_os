@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { UilShieldCheck as ShieldCheck, UilHeartbeat as HeartPulse, UilSearch as Search, UilFilter as Filter, UilDownloadAlt as Download, UilExclamationCircle as AlertCircle, UilCheckCircle as CheckCircle2, UilClock as Clock, UilHeartbeat as Activity, UilShieldExclamation as ShieldAlert, UilMapMarker as MapPin, UilUser as User, UilTimes as X, UilMessage as Send } from '@/icons';
 import { subscribeToIncidents, resolveIncident } from '../../lib/incidentService';
+import { collection, addDoc, onSnapshot, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { useAuth } from '../../context/AuthContext';
+import { logEvent } from '../../lib/auditService';
+import { downloadCsv } from '../../lib/csv';
 import type { Incident } from '../../types';
 import { toast } from 'sonner';
 
@@ -13,10 +18,13 @@ const reports = [
 ];
 
 export default function SafetyModule() {
+  const { user } = useAuth();
   const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [broadcasts, setBroadcasts] = useState<any[]>([]);
   const [showBroadcast, setShowBroadcast] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [sendingBroadcast, setSendingBroadcast] = useState(false);
+  const [reportSearch, setReportSearch] = useState('');
 
   useEffect(() => {
     const unsubscribe = subscribeToIncidents((data) => {
@@ -24,6 +32,57 @@ export default function SafetyModule() {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const q = query(collection(db, 'broadcasts'), orderBy('createdAt', 'desc'), limit(10));
+    const unsub = onSnapshot(q, snap => {
+      setBroadcasts(snap.docs.map(d => ({ id: d.id, ...d.data() } as any)));
+    }, err => console.error('broadcasts load error:', err));
+    return () => unsub();
+  }, []);
+
+  const sendBroadcast = async () => {
+    if (!broadcastMessage.trim()) {
+      toast.error('Please enter an alert message');
+      return;
+    }
+    setSendingBroadcast(true);
+    try {
+      await addDoc(collection(db, 'broadcasts'), {
+        message: broadcastMessage.trim(),
+        audience: 'all',
+        createdBy: user?.uid || 'unknown',
+        createdByName: user?.displayName || user?.email || 'LGU',
+        status: 'active',
+        createdAt: serverTimestamp(),
+      });
+      logEvent('created', 'broadcasts', undefined, `Broadcast: ${broadcastMessage.trim().slice(0, 80)}`);
+      toast.success('Alert broadcast saved and is now visible to all users');
+      setBroadcastMessage('');
+      setShowBroadcast(false);
+    } catch (err) {
+      console.error('broadcast error:', err);
+      toast.error('Failed to send broadcast');
+    } finally {
+      setSendingBroadcast(false);
+    }
+  };
+
+  const exportReports = () => {
+    downloadCsv(
+      `safety_reports_${new Date().toISOString().slice(0, 10)}.csv`,
+      ['ID', 'Location', 'Type', 'Status', 'Date', 'Inspector'],
+      filteredReports.map(r => [r.id, r.location, r.type, r.status, r.date, r.inspector])
+    );
+    toast.success(`Exported ${filteredReports.length} reports`);
+  };
+
+  const filteredReports = reports.filter(r =>
+    !reportSearch ||
+    r.location.toLowerCase().includes(reportSearch.toLowerCase()) ||
+    r.type.toLowerCase().includes(reportSearch.toLowerCase()) ||
+    r.inspector.toLowerCase().includes(reportSearch.toLowerCase())
+  );
 
   const activeIncidents = incidents.filter(i => i.status === 'active');
   const sosIncidents = activeIncidents.filter(i => i.type === 'sos');
@@ -45,7 +104,7 @@ export default function SafetyModule() {
           <p className="text-slate-500 font-light">Monitoring island health standards and safety protocols.</p>
         </div>
         <div className="flex gap-4 w-full md:w-auto">
-          <button className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
+          <button onClick={exportReports} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
             <Download size="18" /> Export Reports
           </button>
           <button className="flex-1 md:flex-none px-6 py-3 btn-primary">
@@ -162,6 +221,8 @@ export default function SafetyModule() {
                 <input 
                   type="text" 
                   placeholder="Search reports..." 
+                  value={reportSearch}
+                  onChange={e => setReportSearch(e.target.value)}
                   className="pl-10 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm font-bold text-island-green"
                 />
               </div>
@@ -171,7 +232,7 @@ export default function SafetyModule() {
             </div>
           </div>
           <div className="space-y-6">
-            {reports.map((report, idx) => (
+            {filteredReports.map((report, idx) => (
               <div key={report.id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-slate-50/50 rounded-2xl border border-slate-50 hover:border-island-emerald/20 transition-all cursor-pointer group">
                 <div className="flex items-center gap-5 mb-4 md:mb-0">
                   <div className={`w-14 h-14 rounded-2xl bg-island-emerald/10 flex items-center justify-center text-island-emerald group-hover:bg-island-emerald/20 transition-colors`}>
@@ -256,6 +317,24 @@ export default function SafetyModule() {
           </div>
         </div>
       </div>
+      {broadcasts.length > 0 && (
+        <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
+          <h3 className="text-2xl font-serif font-bold text-island-green mb-6 italic">
+            Recent <span className="not-italic text-island-emerald">Alerts</span>
+          </h3>
+          <div className="space-y-3">
+            {broadcasts.map(b => (
+              <div key={b.id} className="p-4 bg-rose-50 border border-rose-100 rounded-xl">
+                <p className="text-sm font-semibold text-island-volcanic">{b.message}</p>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  {b.createdByName || 'LGU'} · {b.createdAt?.toDate?.().toLocaleString() || ''}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Broadcast Alert Modal */}
       <AnimatePresence>
         {showBroadcast && (
@@ -298,18 +377,7 @@ export default function SafetyModule() {
                 </div>
               </div>
               <button
-                onClick={async () => {
-                  if (!broadcastMessage.trim()) {
-                    toast.error('Please enter an alert message');
-                    return;
-                  }
-                  setSendingBroadcast(true);
-                  await new Promise(resolve => setTimeout(resolve, 1000));
-                  toast.success('Alert broadcast to all registered users');
-                  setBroadcastMessage('');
-                  setShowBroadcast(false);
-                  setSendingBroadcast(false);
-                }}
+                onClick={sendBroadcast}
                 disabled={sendingBroadcast}
                 className="w-full bg-island-coral text-white py-5 rounded-2xl font-bold text-sm shadow-xl shadow-island-coral/20 hover:shadow-island-coral/40 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
               >

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { UilStar, UilHeart, UilArrowLeft, UilMapMarker, UilClock, UilNavigator, UilWifi, UilWind, UilCoffee, UilSun } from '@/icons';
+import { getFavorites, toggleFavorite } from './CardCarousel';
 
 interface DetailSpot {
   id: number;
@@ -23,6 +24,7 @@ interface DestinationDetailProps {
 export function DestinationDetail({ spot, images, onBack, onStartTrip }: DestinationDetailProps) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [detailTab, setDetailTab] = useState('Details');
+  const [fav, setFav] = useState(getFavorites().includes(String(spot.id)));
 
   return (
     <motion.div
@@ -53,9 +55,10 @@ export function DestinationDetail({ spot, images, onBack, onStartTrip }: Destina
           <motion.button
             whileTap={{ scale: 0.9 }}
             aria-label="Save to favorites"
-            className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-xl flex items-center justify-center text-white border border-white/20 shadow-lg hover:bg-rose-400/50 transition-colors"
+            onClick={() => { toggleFavorite(spot.id); setFav(getFavorites().includes(String(spot.id))); }}
+            className={`w-11 h-11 rounded-full backdrop-blur-xl flex items-center justify-center border border-white/20 shadow-lg transition-colors ${fav ? 'bg-rose-500 text-white' : 'bg-white/20 text-white hover:bg-rose-400/50'}`}
           >
-            <UilHeart size="18" />
+            <UilHeart size="18" className={fav ? 'fill-white' : ''} />
           </motion.button>
         </div>
 

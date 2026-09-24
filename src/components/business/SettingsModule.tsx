@@ -3,7 +3,8 @@ import { motion } from 'motion/react';
 import { UilUser as User, UilBell as Bell, UilShield as Shield, UilCreditCard as CreditCard, UilGlobe as Globe, UilSave as Save, UilCamera as Camera, UilAngleRightB as ChevronRight, UilBuilding as Building2, UilMapMarker as MapPin, UilPhone as Phone, UilEnvelopeAlt as Mail, UilTag as Tag, UilCheckCircle as CheckCircle2, UilTimes as X, UilExternalLinkAlt as ExternalLink, UilStar as Star, UilRefresh as RefreshCw } from '@/icons';
 import { useAuth } from '../../context/AuthContext';
 import { doc, getDoc, updateDoc, serverTimestamp, onSnapshot } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../../firebase';
+import { db, handleFirestoreError, OperationType, auth } from '../../firebase';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import { businesses as staticBusinesses } from '../../data/businesses';
 import { BusinessType, BUSINESS_TYPE_CONFIGS } from '../../types';
 import { toast } from 'sonner';
@@ -440,22 +441,57 @@ export default function SettingsModule() {
           )}
 
           {activeTab === 'security' && (
-            <div className="bg-white p-16 rounded-[3rem] border border-slate-100 shadow-sm text-center">
-              <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-6">
-                <Shield size="24" className="text-slate-300" />
+            <div className="max-w-lg space-y-6">
+              <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center">
+                  <Shield size="20" className="text-slate-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Account email</p>
+                  <p className="text-sm font-semibold text-slate-700">{profile?.email || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Role</p>
+                  <p className="text-sm font-semibold text-slate-700">{profile?.role || 'BUSINESS'}</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    if (!profile?.email) return;
+                    try {
+                      await sendPasswordResetEmail(auth, profile.email);
+                      toast.success('Password reset email sent');
+                    } catch {
+                      toast.error('Could not send reset email');
+                    }
+                  }}
+                  className="w-full px-4 py-3 bg-black text-white rounded-xl font-medium text-sm hover:bg-slate-800 transition-all active:scale-95"
+                >
+                  Send password reset email
+                </button>
               </div>
-              <h3 className="text-xl font-bold text-slate-400 mb-2 capitalize">Security Settings</h3>
-              <p className="text-slate-300 text-sm">Coming soon in the next update.</p>
             </div>
           )}
 
           {activeTab === 'integrations' && (
-            <div className="bg-white p-16 rounded-[3rem] border border-slate-100 shadow-sm text-center">
-              <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-6">
-                <Globe size="24" className="text-slate-300" />
-              </div>
-              <h3 className="text-xl font-bold text-slate-400 mb-2 capitalize">Integrations</h3>
-              <p className="text-slate-300 text-sm">Coming soon in the next update.</p>
+            <div className="max-w-lg space-y-4">
+              {[
+                { name: 'Firebase / Firestore', desc: 'Auth, database, and realtime sync', connected: true },
+                { name: 'Stripe Connect', desc: stripeAccountId ? `Account ${stripeAccountId.slice(0, 12)}…` : 'Not connected yet', connected: !!stripeAccountId, tab: 'billing' },
+              ].map(item => (
+                <button
+                  key={item.name}
+                  onClick={() => { if (item.tab) setActiveTab(item.tab); }}
+                  className="w-full flex items-center justify-between bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-left hover:bg-slate-50 transition-all"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">{item.name}</p>
+                    <p className="text-xs text-slate-400">{item.desc}</p>
+                  </div>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${item.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                    {item.connected ? 'Connected' : 'Not connected'}
+                  </span>
+                </button>
+              ))}
             </div>
           )}
         </div>

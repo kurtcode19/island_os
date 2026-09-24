@@ -46,10 +46,11 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'sonner';
 
 // Initialize Gemini
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
-const genAI = new GoogleGenAI({ apiKey });
+const genAI = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 interface DayPlan {
   day: number;
@@ -101,6 +102,7 @@ export default function TripPlannerView() {
   const [loading, setLoading] = useState(false);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [itinerary, setItinerary] = useState<DayPlan[] | null>(null);
+  const [isSample, setIsSample] = useState(false);
   const [bookingStatus, setBookingStatus] = useState<{[key: string]: 'idle' | 'loading' | 'success'}>({});
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -251,11 +253,13 @@ export default function TripPlannerView() {
       }));
     };
 
-    if (!apiKey || apiKey === '') {
+    if (!genAI) {
+      toast.error('AI planner key not configured — showing a sample itinerary');
       setTimeout(() => {
         setItinerary(getMockItinerary(days));
+        setIsSample(true);
         setLoading(false);
-      }, 4000);
+      }, 800);
       return;
     }
 
@@ -331,9 +335,12 @@ export default function TripPlannerView() {
       const data: DayPlan[] = JSON.parse(responseText);
       data.forEach(day => day.activities.sort(sortByTimeSlot));
       setItinerary(data);
-    } catch (error) {
+      setIsSample(false);
+    } catch (error: any) {
       console.error("Gemini Error:", error);
+      toast.error(`AI planner failed — showing a sample itinerary${error?.message ? `: ${error.message}` : ''}`);
       setItinerary(getMockItinerary(days));
+      setIsSample(true);
     } finally {
       setLoading(false);
     }
@@ -891,7 +898,10 @@ export default function TripPlannerView() {
               {/* Result Header */}
               <div className="flex items-start justify-between gap-6">
                 <div className="space-y-4">
-                  <span className="text-[10px] font-bold text-island-emerald tracking-wider block">Itinerary Complete</span>
+                  <span className="text-[10px] font-bold text-island-emerald tracking-wider block">
+                    Itinerary Complete
+                    {isSample && <span className="ml-2 text-amber-600">· Sample itinerary (AI unavailable)</span>}
+                  </span>
                   <h2 className="text-5xl md:text-7xl font-black text-island-volcanic tracking-tighter uppercase leading-[0.85] italic"><span className="not-italic text-island-emerald">Dininggasan</span> <br /> <span className="not-italic text-island-emerald">Explorer</span></h2>
                   <div className="flex flex-wrap gap-3">
                     <span className="flex items-center gap-2 bg-island-volcanic text-white px-4 py-1.5 rounded-full border border-white/10 shadow-lg text-[10px] font-bold tracking-wider">

@@ -14,9 +14,9 @@ export default defineConfig(({mode}) => {
         registerType: 'autoUpdate',
         includeAssets: ['**/*'],
         manifest: {
-          name: 'eSuroy - Smart Tourism Platform',
-          short_name: 'eSuroy',
-          description: 'Smart tourism platform for Camiguin Island',
+          name: 'Dininggasan - Riverside Inn',
+          short_name: 'Dininggasan',
+          description: 'Dininggasan hotel, tours, and function room in Catarman, Camiguin',
           theme_color: '#0a2e26',
           background_color: '#f8fafc',
           display: 'standalone',

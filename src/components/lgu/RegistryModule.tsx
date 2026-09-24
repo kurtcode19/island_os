@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { UilUsersAlt as Users, UilSearch as Search, UilFilter as Filter, UilDownloadAlt as Download, UilUserCheck as UserCheck, UilUserTimes as UserX, UilMapMarker as MapPin, UilCalendar as Calendar, UilClock as Clock } from '@/icons';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { downloadCsv } from '../../lib/csv';
 
 export default function RegistryModule() {
   const [tourists, setTourists] = useState<any[]>([]);
@@ -58,7 +59,21 @@ export default function RegistryModule() {
         </div>
         <div className="flex gap-4 w-full md:w-auto">
           <button
-            onClick={() => toast.success('Registry data export ready for download')}
+            onClick={() => {
+              downloadCsv(
+                `registry_export_${new Date().toISOString().slice(0, 10)}.csv`,
+                ['Registry ID', 'Name', 'Email', 'Service', 'Date', 'Status'],
+                filteredTourists.map(t => [
+                  `REG-${String(t.id).slice(0, 4).toUpperCase()}`,
+                  t.guestName || t.touristName || '',
+                  t.guestEmail || t.touristEmail || '',
+                  t.serviceName || '',
+                  t.date || '',
+                  t.status || 'confirmed',
+                ])
+              );
+              toast.success(`Exported ${filteredTourists.length} registry entries`);
+            }}
             className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2"
           >
             <Download size="18" /> Export Data

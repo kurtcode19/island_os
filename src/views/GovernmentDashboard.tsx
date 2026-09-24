@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { toast } from 'sonner';
 import {
    UilUsersAlt as Users, 
    UilMapMarker as MapPin, 
@@ -43,6 +42,7 @@ import SafetyModule from '../components/lgu/SafetyModule';
 import ReportsModule from '../components/lgu/ReportsModule';
 import PaymentModule from '../components/lgu/PaymentModule';
 import SettlementModule from '../components/lgu/SettlementModule';
+import LguSettingsModule from '../components/lgu/LguSettingsModule';
 
 const visitorData = [
   { name: 'Jan', visitors: 4500 },
@@ -249,77 +249,6 @@ export default function GovernmentDashboard() {
     </>
   );
 
-  const SettingsModule = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-3xl mx-auto space-y-10"
-    >
-      <div>
-        <h2 className="text-2xl font-semibold text-black tracking-tight">Settings</h2>
-        <p className="text-gray-400 text-sm">Manage municipal dashboard preferences.</p>
-      </div>
-
-      <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-        <h3 className="text-lg font-semibold text-black tracking-tight">Profile</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wider block mb-2">Municipal</label>
-            <input defaultValue="Dininggasan" className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 text-sm font-medium text-black outline-none focus:ring-2 focus:ring-gray-200" readOnly />
-          </div>
-          <div>
-            <label className="text-[10px] font-medium text-gray-400 uppercase tracking-wider block mb-2">Province</label>
-            <input defaultValue="Camiguin" className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 text-sm font-medium text-black outline-none focus:ring-2 focus:ring-gray-200" readOnly />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-        <h3 className="text-lg font-semibold text-black tracking-tight">Notifications</h3>
-        <div className="space-y-4">
-          {[
-            { label: 'Booking Alerts', desc: 'New bookings and cancellations' },
-            { label: 'Safety Incidents', desc: 'Emergency reports and health alerts' },
-            { label: 'Port Updates', desc: 'Vessel arrivals and departures' },
-            { label: 'Weekly Reports', desc: 'Automated visitor statistics digest' },
-          ].map((item, idx) => (
-            <div key={idx} className="flex items-center justify-between py-3">
-              <div>
-                <p className="text-sm font-medium text-black">{item.label}</p>
-                <p className="text-xs text-gray-400">{item.desc}</p>
-              </div>
-              <div className="w-11 h-6 bg-black rounded-full relative cursor-pointer shadow-sm">
-                <div className="w-4 h-4 bg-white rounded-full absolute top-1 right-1 shadow-sm" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-        <h3 className="text-lg font-semibold text-black tracking-tight">Display</h3>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-black">Compact Mode</p>
-            <p className="text-xs text-gray-400">Show more data in less space</p>
-          </div>
-          <div className="w-11 h-6 bg-gray-200 rounded-full relative cursor-pointer shadow-sm">
-            <div className="w-4 h-4 bg-white rounded-full absolute top-1 left-1 shadow-sm" />
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-end">
-        <button
-          onClick={() => toast.success('Settings saved successfully')}
-          className="px-6 py-3 bg-black text-white rounded-xl font-medium text-sm hover:bg-gray-800 transition-all active:scale-95"
-        >
-          Save Settings
-        </button>
-      </div>
-    </motion.div>
-  );
-
   return (
     <div className="flex h-screen bg-white overflow-hidden">
       <aside className="w-[280px] bg-white border-r border-gray-100 hidden lg:flex flex-col shrink-0">
@@ -375,11 +304,15 @@ export default function GovernmentDashboard() {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-gray-500 transition-colors" size="16" />
                 <input 
                   type="text" 
-                  placeholder="Search..." 
+                  placeholder="Search registry..." 
+                  onKeyDown={e => { if (e.key === 'Enter') navigate('/government/registry'); }}
                   className="pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-200 transition-all w-full md:w-64 text-sm"
                 />
               </div>
-              <button className="w-10 h-10 bg-white border border-gray-100 rounded-xl text-gray-500 flex items-center justify-center relative hover:bg-gray-50 active:scale-90 transition-all group shrink-0">
+              <button
+                onClick={() => navigate('/government/health')}
+                aria-label="Safety incidents"
+                className="w-10 h-10 bg-white border border-gray-100 rounded-xl text-gray-500 flex items-center justify-center relative hover:bg-gray-50 active:scale-90 transition-all group shrink-0">
                 <Bell size="18" className="group-hover:text-black transition-colors" />
                 <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-black rounded-full border-2 border-white"></span>
               </button>
@@ -399,7 +332,7 @@ export default function GovernmentDashboard() {
               <Route path="/payments" element={<PaymentModule />} />
               <Route path="/settlement" element={<SettlementModule />} />
               <Route path="/departure" element={<CheckInView />} />
-              <Route path="/settings" element={<SettingsModule />} />
+              <Route path="/settings" element={<LguSettingsModule />} />
             </Routes>
           </div>
         </main>

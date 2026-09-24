@@ -46,7 +46,7 @@ import IslandMap from '../components/IslandMap';
 import { OnboardingHero } from '../components/mobile/OnboardingHero';
 import { Header } from '../components/mobile/Header';
 import { SearchBar } from '../components/mobile/SearchBar';
-import { CardCarousel } from '../components/mobile/CardCarousel';
+import { CardCarousel, FavoriteButton } from '../components/mobile/CardCarousel';
 import { DestinationDetail } from '../components/mobile/DestinationDetail';
 import { BottomNav } from '../components/mobile/BottomNav';
 
@@ -253,7 +253,12 @@ export default function MobileAppView() {
     // Property-level availability (stays only)
     if (type === 'stay') {
       const dateStr = checkIn.toLocaleDateString();
-      const availability = await checkAvailability(item.id, dateStr, adults + children + tweens);
+      const availability = await checkAvailability(item.id, dateStr, adults + children + tweens, 'stay');
+      if (availability.error) {
+        setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
+        setAvailabilityError(availability.error);
+        return;
+      }
       if (!availability.available) {
         setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
         setAvailabilityError(`Sorry, this accommodation is not fully available for your selected dates. Only ${availability.remaining} guest slots remaining.`);
@@ -448,7 +453,7 @@ export default function MobileAppView() {
                   {sectionFilter !== 'Stays' && sectionFilter !== 'Vehicles' && (
                     <div className="flex justify-between items-center mb-1">
                       <h3 className="text-xl font-bold text-gray-900 tracking-tight">Popular Destination</h3>
-                      <button className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">View All</button>
+                      <button onClick={() => navigate('/locations')} className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">View All</button>
                     </div>
                   )}
 
@@ -462,12 +467,7 @@ export default function MobileAppView() {
                     >
                       <div className="relative aspect-[4/3] overflow-hidden">
                         <img src={spot.image} alt={spot.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        <button
-                          onClick={(e) => { e.stopPropagation(); }}
-                          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-700 hover:bg-white hover:scale-105 transition-all shadow-sm"
-                        >
-                          <UilHeart size="15" />
-                        </button>
+                        <FavoriteButton id={spot.id} className="absolute top-3 right-3" />
                         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
                           {[0, 1, 2].map((i) => (
                             <span key={i} className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-white' : 'bg-white/40'}`} />
@@ -497,7 +497,7 @@ export default function MobileAppView() {
                     <div>
                       <div className="flex justify-between items-center mb-1 mt-1">
                         <h3 className="text-xl font-bold text-gray-900 tracking-tight">Stays</h3>
-                        <button className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">View All</button>
+                        <button onClick={() => navigate('/stay')} className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">View All</button>
                       </div>
                       {filteredAccommodations.map((stay) => (
                         <motion.div
@@ -508,12 +508,7 @@ export default function MobileAppView() {
                         >
                           <div className="relative aspect-[4/3] overflow-hidden">
                             <img src={stay.image} alt={stay.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                            <button
-                              onClick={(e) => { e.stopPropagation(); }}
-                              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-700 hover:bg-white hover:scale-105 transition-all shadow-sm"
-                            >
-                              <UilHeart size="15" />
-                            </button>
+                            <FavoriteButton id={stay.id} className="absolute top-3 right-3" />
                             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
                               {[0, 1, 2, 3].map((i) => (
                                 <span key={i} className={`w-1.5 h-1.5 rounded-full ${i === 1 ? 'bg-white' : 'bg-white/40'}`} />
@@ -547,7 +542,7 @@ export default function MobileAppView() {
                     <div>
                       <div className="flex justify-between items-center mb-1 mt-1">
                         <h3 className="text-xl font-bold text-gray-900 tracking-tight">Rental Vehicles</h3>
-                        <button className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">View All</button>
+                        <button onClick={() => navigate('/rentals')} className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">View All</button>
                       </div>
                       {filteredVehicles.map((vehicle) => (
                         <motion.div
@@ -558,12 +553,7 @@ export default function MobileAppView() {
                         >
                           <div className="relative aspect-[4/3] overflow-hidden">
                             <img src={vehicle.image} alt={vehicle.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                            <button
-                              onClick={(e) => { e.stopPropagation(); }}
-                              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-700 hover:bg-white hover:scale-105 transition-all shadow-sm"
-                            >
-                              <UilHeart size="15" />
-                            </button>
+                            <FavoriteButton id={vehicle.id} className="absolute top-3 right-3" />
                             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
                               {[0, 1, 2].map((i) => (
                                 <span key={i} className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-white' : 'bg-white/40'}`} />

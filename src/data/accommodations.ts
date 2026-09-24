@@ -168,7 +168,7 @@ export const accommodations: Accommodation[] = [
     rating: 4.5,
     reviews: 0,
     price: 3800,
-    image: '/images/dininggasan/room.jpg',
+    image: '/images/dininggasan/736019840_879569734737182_4910857333828317433_n.jpg',
     tags: ['Group Stay', 'Family', 'Catarman'],
     businessId: 'dininggasan-catarman',
     maxAdults: 8,

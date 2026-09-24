@@ -5,22 +5,20 @@ const Missing = (props: any) => (
     viewBox="0 0 24 24"
     width={props.size || 24}
     height={props.size || 24}
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={2}
-    strokeLinecap="round"
-    strokeLinejoin="round"
+    fill="currentColor"
     className={props.className}
   >
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="8" x2="12" y2="16" />
-    <line x1="8" y1="12" x2="16" y2="12" />
+    <circle cx="12" cy="12" r="4" opacity="0.3" />
   </svg>
 );
 
 export const UilHome = (props) => <Duo.Calendar {...props} />;
 export const UilHouseUser = (props) => <Duo.Calendar {...props} />;
-export const UilBedDouble = (props) => <Missing {...props} />;
+export const UilBedDouble = (props: any) => (
+  <svg viewBox="0 0 24 24" width={props.size||24} height={props.size||24} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={props.className}>
+    <path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v9" />
+  </svg>
+);
 export const UilBuilding = (props) => <Duo.Building {...props} />;
 export const UilSearch = (props) => <Duo.ComputerCamera {...props} />;
 export const UilUser = (props) => <Duo.User {...props} />;
@@ -87,12 +85,20 @@ export const UilPhone = (props) => (
 );
 export const UilGlobe = (props) => <Duo.World {...props} />;
 export const UilCamera = (props) => <Duo.Camera {...props} />;
-export const UilSignOutAlt = (props) => <Missing {...props} />;
+export const UilSignOutAlt = (props: any) => (
+  <svg viewBox="0 0 24 24" width={props.size||24} height={props.size||24} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={props.className}>
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+  </svg>
+);
 export const UilSignInAlt = (props) => <Missing {...props} />;
 export const UilShield = (props) => <Missing {...props} />;
 export const UilTicket = (props) => <Missing {...props} />;
 export const UilDashboard = (props) => <Duo.Dashboard {...props} />;
-export const UilChartBar = (props) => <Missing {...props} />;
+export const UilChartBar = (props: any) => (
+  <svg viewBox="0 0 24 24" width={props.size||24} height={props.size||24} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={props.className}>
+    <line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>
+  </svg>
+);
 export const UilChartGrowth = (props) => <Missing {...props} />;
 export const UilChartPie = (props) => <Duo.ChartPie {...props} />;
 export const UilDownloadAlt = (props) => <Duo.UploadFile {...props} />;
@@ -203,4 +209,9 @@ export const UilAngleDown = (props) => (
 export const UilSnowflake = (props) => <Duo.CloudSnow {...props} />;
 export const UilShieldExclamation = (props) => <Missing {...props} />;
 export const UilMusic = (props) => <Missing {...props} />;
-export const UilTennisBall = (props) => <Missing {...props} />;
+export const UilTennisBall = (props: any) => <Missing {...props} />;
+export const UilTrashAlt = (props: any) => (
+  <svg viewBox="0 0 24 24" width={props.size||24} height={props.size||24} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={props.className}>
+    <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6L18 19A2 2 0 0 1 16 21H8A2 2 0 0 1 6 19L5 6"></path><path d="M10 11L10 17"></path><path d="M14 11L14 17"></path><path d="M9 6L9 4A2 2 0 0 1 11 2H13A2 2 0 0 1 15 4L15 6"></path>
+  </svg>
+);

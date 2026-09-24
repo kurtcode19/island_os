@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { UilHeart, UilMapMarker, UilClock, UilUsersAlt, UilCheckCircle, UilTimes, UilRefresh, UilArrowRight, UilStar, UilCalendarAlt, UilMinus, UilPlus, UilShieldCheck } from '@/icons';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -14,14 +15,23 @@ export default function RentalsView() {
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
   const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
   const isSubmitting = useRef(false);
+  const [params] = useSearchParams();
+  const searchQ = (params.get('q') || '').toLowerCase();
 
   useEffect(() => {
     getPilotConfig().then(setPilotConfig);
   }, []);
 
-  const visibleVehicles = pilotConfig?.enabled && pilotConfig.businessId
-    ? rentalVehicles.filter(v => v.merchantId === pilotConfig.businessId)
-    : rentalVehicles;
+  const visibleVehicles = useMemo(() => {
+    const base = pilotConfig?.enabled && pilotConfig.businessId
+      ? rentalVehicles.filter(v => v.merchantId === pilotConfig.businessId)
+      : rentalVehicles;
+    if (!searchQ) return base;
+    return base.filter(v =>
+      v.name.toLowerCase().includes(searchQ) ||
+      v.type.toLowerCase().includes(searchQ)
+    );
+  }, [pilotConfig, searchQ]);
 
   const handleBook = async (vehicle: any) => {
     if (!user) { login(); return; }

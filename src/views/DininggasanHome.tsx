@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType, Timestamp } from '../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 import { toast } from 'sonner';
-import { UilArrowRight, UilCompass, UilBuilding, UilTennisBall, UilMapMarker, UilPhone, UilEnvelopeAlt, UilFacebook, UilCheckCircle, UilArrowLeft, UilCalendarAlt, UilPlus, UilMinus, UilUsersAlt, UilSync, UilBedDouble } from '@/icons';
+import { UilArrowRight, UilCompass, UilBuilding, UilTennisBall, UilMapMarker, UilPhone, UilEnvelopeAlt, UilFacebook, UilCheckCircle, UilArrowLeft, UilCalendarAlt, UilPlus, UilMinus, UilUsersAlt, UilSync, UilBedDouble, UilExclamationCircle } from '@/icons';
+import { DININGGASAN_IMAGES, DININGGASAN_ROOM_COUNT } from '../data/dininggasanData';
 
 const amenities = [
   'Free Wi-Fi', 'Air Conditioning', 'Hot & Cold Shower', 'Parking', 'CCTV', 'Event-ready Space',
@@ -79,6 +80,27 @@ export default function DininggasanHome() {
   }, [index === 0]);
 
   const [showRoomBooking, setShowRoomBooking] = useState(false);
+  const [showTourBooking, setShowTourBooking] = useState(false);
+  const [selectedTour, setSelectedTour] = useState<typeof tourPackages[0] | null>(null);
+  const [latestBroadcast, setLatestBroadcast] = useState<any>(null);
+
+  useEffect(() => {
+    const q = query(collection(db, 'broadcasts'), orderBy('createdAt', 'desc'), limit(1));
+    const unsub = onSnapshot(q, snap => {
+      if (!snap.empty) {
+        const d = snap.docs[0];
+        const data = { id: d.id, ...d.data() } as any;
+        const ageMs = Date.now() - (data.createdAt?.toMillis?.() || 0);
+        // ponytail: only show alerts from the last 48h
+        if (ageMs < 48 * 60 * 60 * 1000) setLatestBroadcast(data);
+        else setLatestBroadcast(null);
+      } else {
+        setLatestBroadcast(null);
+      }
+    }, () => {});
+    return () => unsub();
+  }, []);
+  
   const [checkIn, setCheckIn] = useState(new Date(2026, 6, 15));
   const [checkOut, setCheckOut] = useState(new Date(2026, 6, 18));
   const [adults, setAdults] = useState(2);
@@ -107,6 +129,42 @@ export default function DininggasanHome() {
       setRoomStatus('success');
       toast.success('Room booked!');
       setTimeout(() => { setRoomStatus('idle'); setShowRoomBooking(false); roomSubmitting.current = false; }, 2000);
+    } catch (error) {
+      setRoomStatus('idle'); roomSubmitting.current = false;
+      handleFirestoreError(error, OperationType.CREATE, 'bookings');
+    }
+  };
+
+  const handleTourBook = async () => {
+    if (!user) { login(); return; }
+    if (!selectedTour) return;
+    if (roomSubmitting.current) return;
+    
+    roomSubmitting.current = true;
+    setRoomStatus('loading');
+    try {
+      await addDoc(collection(db, 'bookings'), {
+        touristUid: user.uid, 
+        touristName: user.displayName || 'Anonymous',
+        serviceId: selectedTour.id, 
+        serviceName: selectedTour.name,
+        serviceType: 'tour', 
+        businessId: 'dininggasan-catarman',
+        date: checkIn.toLocaleDateString(), // Assuming checkIn date for tour
+        amount: selectedTour.price, 
+        totalPrice: selectedTour.price,
+        status: 'pending', 
+        paymentStatus: 'UNPAID', 
+        createdAt: serverTimestamp()
+      });
+      setRoomStatus('success');
+      toast.success('Tour booked successfully!');
+      setTimeout(() => { 
+        setRoomStatus('idle'); 
+        setShowTourBooking(false); 
+        setSelectedTour(null);
+        roomSubmitting.current = false; 
+      }, 2000);
     } catch (error) {
       setRoomStatus('idle'); roomSubmitting.current = false;
       handleFirestoreError(error, OperationType.CREATE, 'bookings');
@@ -168,6 +226,17 @@ export default function DininggasanHome() {
         </div>
       </section>
 
+      {latestBroadcast && (
+        <div className="bg-amber-50 border-b border-amber-200 px-6 py-3 flex items-start gap-3">
+          <UilExclamationCircle size="18" className="text-amber-600 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Island Alert</span>
+            <p className="text-sm text-amber-900 font-medium">{latestBroadcast.message}</p>
+          </div>
+          <button onClick={() => setLatestBroadcast(null)} className="text-amber-500 hover:text-amber-700 text-xs font-bold">Dismiss</button>
+        </div>
+      )}
+
       <section id="about" className="max-w-5xl mx-auto px-6 py-32">
         <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           className="text-center mb-24">
@@ -183,9 +252,9 @@ export default function DininggasanHome() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {[
-            { title: 'Tour Packages', description: 'Heritage walks, island tours, nature escapes, and food trips — all guided and hassle-free.', action: 'Learn More', onClick: () => {} },
-            { title: 'Rooms', description: `Comfortable room good for up to ${MAX_ADULTS} guests at ₱${ROOM_PRICE.toLocaleString()}/night. Perfect for families and groups.`, action: 'Book Now', onClick: () => setShowRoomBooking(true) },
-            { title: 'Function Room', description: 'Morning (₱2K/3hrs) or night (₱3K/3hrs) sessions. Sound system available. Ideal for events, meetings, and celebrations.', action: 'Reserve Now', onClick: () => navigate('/function-room') },
+            { title: 'Tour Packages', description: 'Heritage walks, island tours, nature escapes, and food trips — all guided and hassle-free.', action: 'Book Tour', onClick: () => { setSelectedTour(tourPackages[0]); setShowTourBooking(true); } },
+            { title: 'Rooms', description: `${DININGGASAN_ROOM_COUNT} rooms · up to ${MAX_ADULTS} guests at ₱${ROOM_PRICE.toLocaleString()}/night. Perfect for families and groups.`, action: 'Book Now', onClick: () => setShowRoomBooking(true) },
+            { title: 'Function Room', description: 'Morning until 5:00 PM (₱2,000 first 3 hrs, +₱200/hr) or night until 12:00 AM (₱3,000 first 3 hrs, +₱300/hr). Tables & chairs included.', action: 'Reserve Now', onClick: () => navigate('/function-room') },
             { title: 'Pickleball Court', description: 'Enjoy a game on our pickleball court. ₱150/hr for non-guests, free for guests.', action: 'Inquire', onClick: () => navigate('/function-room') },
           ].map((item, i) => (
             <motion.div key={item.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
@@ -235,8 +304,16 @@ export default function DininggasanHome() {
                       <span key={j} className="px-2 py-0.5 bg-[#f5f5f7] rounded-md text-[10px] font-medium text-[#6e6e73]">{inc}</span>
                     ))}
                   </div>
-                  <div className="flex items-center gap-1.5 text-sm font-semibold text-[#8b7355]">
-                    {tour.duration} · Up to {tour.persons} pax <UilArrowRight size="14" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-sm font-semibold text-[#8b7355]">
+                      {tour.duration} · Up to {tour.persons} pax
+                    </div>
+                    <button 
+                      onClick={() => { setSelectedTour(tour); setShowTourBooking(true); }}
+                      className="px-4 py-2 bg-[#8b7355] text-white text-xs font-bold rounded-lg hover:bg-[#6b5a40] transition-colors"
+                    >
+                      Book Tour
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -253,22 +330,23 @@ export default function DininggasanHome() {
             Comfortable Stay in Catarman
           </h2>
           <p className="text-[#6e6e73] text-lg max-w-xl mx-auto mt-4">
-            A cozy room good for up to {MAX_ADULTS} guests at ₱{ROOM_PRICE.toLocaleString()}/night. Ideal for families, groups, and travelers.
+            {DININGGASAN_ROOM_COUNT} rooms, each good for up to {MAX_ADULTS} guests at ₱{ROOM_PRICE.toLocaleString()}/night. Ideal for families, groups, and travelers.
           </p>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           className="max-w-md mx-auto">
-          <div className="bg-white rounded-2xl border border-[#e8e8ed] p-8 text-center">
-            <div className="w-14 h-14 rounded-xl bg-[#f5f5f7] flex items-center justify-center mx-auto mb-5">
-              <UilBedDouble className="text-[#8b7355]" size="24" />
+          <div className="bg-white rounded-2xl border border-[#e8e8ed] overflow-hidden text-center">
+            <img src={DININGGASAN_IMAGES.roomInterior} alt="Dininggasan Room"
+              className="w-full h-48 object-cover" />
+            <div className="p-8">
+              <h3 className="text-2xl font-semibold text-[#1d1d1f] mb-2">Dininggasan Room</h3>
+              <p className="text-[#6e6e73] text-sm mb-1">Up to {MAX_ADULTS} guests · Free Wi-Fi · Air Conditioning</p>
+              <p className="text-3xl font-semibold text-[#1d1d1f] mb-6">₱{ROOM_PRICE.toLocaleString()}<span className="text-base font-normal text-[#6e6e73]">/night</span></p>
+              <button onClick={() => setShowRoomBooking(true)}
+                className="w-full px-7 py-3.5 rounded-xl bg-[#1d1d1f] text-white text-sm font-semibold hover:bg-[#2d2d2f] transition-all active:scale-[0.98]">
+                Book This Room
+              </button>
             </div>
-            <h3 className="text-2xl font-semibold text-[#1d1d1f] mb-2">Dininggasan Room</h3>
-            <p className="text-[#6e6e73] text-sm mb-1">Up to {MAX_ADULTS} guests · Free Wi-Fi · Air Conditioning</p>
-            <p className="text-3xl font-semibold text-[#1d1d1f] mb-6">₱{ROOM_PRICE.toLocaleString()}<span className="text-base font-normal text-[#6e6e73]">/night</span></p>
-            <button onClick={() => setShowRoomBooking(true)}
-              className="w-full px-7 py-3.5 rounded-xl bg-[#1d1d1f] text-white text-sm font-semibold hover:bg-[#2d2d2f] transition-all active:scale-[0.98]">
-              Book This Room
-            </button>
           </div>
         </motion.div>
       </section>
@@ -398,9 +476,8 @@ export default function DininggasanHome() {
             <div className="px-5 md:px-6 pt-5 md:pt-6 space-y-5 md:space-y-6 pb-8 max-w-lg mx-auto w-full">
               <div className="bg-[#fafafa] rounded-2xl p-5 border border-[#e8e8ed]">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-[#f5f5f7] flex items-center justify-center text-[#8b7355]">
-                    <UilBedDouble size="24" />
-                  </div>
+                  <img src={DININGGASAN_IMAGES.roomInterior} alt="Dininggasan Room"
+                    className="w-16 h-16 rounded-xl object-cover shrink-0" />
                   <div>
                     <p className="text-base font-semibold text-[#1d1d1f]">Dininggasan Room</p>
                     <p className="text-sm text-[#6e6e73]">₱{ROOM_PRICE.toLocaleString()}/night · Up to {MAX_ADULTS} guests</p>
@@ -460,6 +537,70 @@ export default function DininggasanHome() {
                   disabled={roomStatus === 'loading'}
                   className="w-full bg-[#1d1d1f] text-white py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#2d2d2f]">
                   {roomStatus === 'loading' ? <UilSync size="22" className="animate-spin" /> : <><UilBedDouble size="18" /> Book — ₱{roomTotal.toLocaleString()}</>}
+                </motion.button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Tour Booking Modal */}
+      <AnimatePresence>
+        {showTourBooking && selectedTour && (
+          <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="fixed inset-0 bg-white z-[60] flex flex-col overflow-y-auto no-scrollbar">
+            <div className="sticky top-0 bg-white/95 backdrop-blur-3xl z-10 px-5 md:px-6 pt-5 md:pt-6 pb-4 border-b border-[#e8e8ed]">
+              <div className="flex items-center gap-4">
+                <motion.button whileTap={{ scale: 0.9 }} onClick={() => { setShowTourBooking(false); setSelectedTour(null); setRoomStatus('idle'); }}
+                  className="w-10 h-10 md:w-11 md:h-11 bg-[#f5f5f7] rounded-full flex items-center justify-center text-[#6e6e73] hover:bg-[#e8e8ed] transition-colors shrink-0">
+                  <UilArrowLeft size="20" />
+                </motion.button>
+                <div className="min-w-0">
+                  <h3 className="text-lg font-semibold text-[#1d1d1f] tracking-tight">Book a Tour</h3>
+                  <p className="text-[11px] text-[#6e6e73]">Dininggasan · Catarman, Camiguin</p>
+                </div>
+              </div>
+            </div>
+            <div className="px-5 md:px-6 pt-5 md:pt-6 space-y-5 md:space-y-6 pb-8 max-w-lg mx-auto w-full">
+              <div className="bg-[#fafafa] rounded-2xl p-5 border border-[#e8e8ed]">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-[#f5f5f7] flex items-center justify-center text-[#8b7355]">
+                    <UilCompass size="24" />
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold text-[#1d1d1f]">{selectedTour.name}</p>
+                    <p className="text-sm text-[#6e6e73]">₱{selectedTour.price.toLocaleString()} · Up to {selectedTour.persons} guests</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-[#1d1d1f] mb-3 flex items-center gap-2"><UilCalendarAlt size="16" className="text-[#8b7355]" /> Tour Date</h4>
+                <div>
+                    <input type="date" value={checkIn.toISOString().split('T')[0]}
+                      onChange={e => { const d = new Date(e.target.value + 'T08:00:00'); setCheckIn(d); }}
+                      className="w-full px-4 py-3 bg-[#f5f5f7] border-2 border-[#e8e8ed] rounded-xl outline-none text-sm font-medium text-[#1d1d1f] focus:border-[#8b7355] transition-colors" />
+                </div>
+              </div>
+              <div className="bg-[#fafafa] rounded-2xl p-4 border border-[#e8e8ed]">
+                <div className="flex justify-between items-center">
+                  <span className="text-base font-semibold text-[#1d1d1f]">Total</span>
+                  <span className="text-xl font-semibold text-[#1d1d1f]">₱{selectedTour.price.toLocaleString()}</span>
+                </div>
+              </div>
+              {roomStatus === 'success' ? (
+                <div className="text-center py-6">
+                  <div className="w-14 h-14 bg-[#f5f5f7] rounded-full flex items-center justify-center mx-auto mb-3">
+                    <UilCheckCircle size="28" className="text-emerald-600" />
+                  </div>
+                  <p className="text-lg font-semibold text-[#1d1d1f] tracking-tight mb-1">Tour Booked!</p>
+                  <p className="text-xs text-[#6e6e73] font-medium">Check your ticket details in 'My Bookings'.</p>
+                </div>
+              ) : (
+                <motion.button whileTap={{ scale: 0.97 }} onClick={handleTourBook}
+                  disabled={roomStatus === 'loading'}
+                  className="w-full bg-[#1d1d1f] text-white py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#2d2d2f]">
+                  {roomStatus === 'loading' ? <UilSync size="22" className="animate-spin" /> : <><UilCompass size="18" /> Book — ₱{selectedTour.price.toLocaleString()}</>}
                 </motion.button>
               )}
             </div>

@@ -28,7 +28,7 @@ import {
   UilPlus as Plus,
   UilClock as Clock
 } from '@/icons';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { StatCard } from '../components/shared/StatCard';
 import { SidebarItem } from '../components/shared/SidebarItem';
@@ -60,9 +60,11 @@ const typeIcons: Record<string, any> = {
 export default function BusinessDashboard() {
   const { logout, profile } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [businessType, setBusinessType] = useState<BusinessType | null>(null);
   const [businessName, setBusinessName] = useState('Business');
   const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
+  const [headerSearch, setHeaderSearch] = useState('');
 
   useEffect(() => {
     getPilotConfig().then(setPilotConfig);
@@ -373,9 +375,20 @@ export default function BusinessDashboard() {
             <div className="flex items-center gap-4 w-full md:w-auto">
               <div className="relative flex-1 md:flex-none group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-gray-500 transition-colors" size="16" />
-                <input type="text" placeholder="Search..." className="pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-200 transition-all w-full md:w-64 text-sm" />
+                <input
+                  type="text"
+                  placeholder="Search bookings..."
+                  value={headerSearch}
+                  onChange={e => setHeaderSearch(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') navigate('/business/bookings'); }}
+                  className="pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-200 transition-all w-full md:w-64 text-sm"
+                />
               </div>
-              <button className="w-10 h-10 bg-white border border-gray-100 rounded-xl text-gray-500 flex items-center justify-center relative hover:bg-gray-50 active:scale-90 transition-all group shrink-0">
+              <button
+                onClick={() => navigate('/business/bookings')}
+                aria-label="Pending bookings"
+                className="w-10 h-10 bg-white border border-gray-100 rounded-xl text-gray-500 flex items-center justify-center relative hover:bg-gray-50 active:scale-90 transition-all group shrink-0"
+              >
                 <Bell size="18" className="group-hover:text-black transition-colors" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-black text-white text-[9px] font-semibold rounded-full flex items-center justify-center px-1 border-2 border-white">

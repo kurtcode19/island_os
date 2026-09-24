@@ -18,10 +18,11 @@ export function getMaxGuests(serviceType: string): number {
 export async function checkAvailability(
   serviceId: string | number,
   date: string,
-  guests: number = 1
+  guests: number = 1,
+  serviceType: string = 'stay'
 ): Promise<{ available: boolean; remaining: number; error?: string }> {
   try {
-    const maxGuests = DEFAULT_MAX_GUESTS['stay'];
+    const maxGuests = getMaxGuests(serviceType);
     const q = query(
       collection(db, 'bookings'),
       where('serviceId', '==', serviceId),
@@ -40,7 +41,8 @@ export async function checkAvailability(
     };
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, 'bookings');
-    return { available: true, remaining: 999, error: 'Could not check availability' };
+    // ponytail: fail closed — TOCTOU window remains until a transactional counter exists
+    return { available: false, remaining: 0, error: 'Could not check availability. Please try again.' };
   }
 }
 
@@ -80,7 +82,7 @@ export async function checkRoomAvailability(
     return { available: true, message: '' };
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, 'bookings');
-    return { available: true, message: '' };
+    return { available: false, message: 'Could not check room availability. Please try again.' };
   }
 }
 
@@ -114,6 +116,6 @@ export async function checkEventVenueAvailability(
     };
   } catch (error) {
     handleFirestoreError(error, OperationType.LIST, 'bookings');
-    return { available: true, conflictingBookings: 0 };
+    return { available: false, conflictingBookings: 0 };
   }
 }

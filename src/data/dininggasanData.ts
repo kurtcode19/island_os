@@ -4,6 +4,15 @@ import { db } from '../firebase';
 
 export const DININGGASAN_BUSINESS_ID = 'dininggasan-catarman';
 
+export const DININGGASAN_IMAGES = {
+  roomInterior: '/images/dininggasan/736019840_879569734737182_4910857333828317433_n.jpg',
+  aerialTower: '/images/dininggasan/736931370_2792978721062810_1238064698030272327_n.jpg',
+  buildingExterior: '/images/dininggasan/737383602_26625630437112405_7161482258112319983_n.jpg',
+  complexAerial: '/images/dininggasan/737827220_1339672174254548_923328153894047872_n.jpg',
+};
+
+export const DININGGASAN_ROOM_COUNT = 12;
+
 export const dininggasanData: Omit<Business, 'id'> = {
   name: 'Dininggasan',
   ownerUid: 'dininggasan-owner',
@@ -16,11 +25,16 @@ export const dininggasanData: Omit<Business, 'id'> = {
   images: [],
   createdAt: null,
   media: {
-    featuredImage: '/images/dininggasan/hero.jpg',
-    gallery: ['/images/dininggasan/hero.jpg', '/images/dininggasan/room.jpg', '/images/dininggasan/function-room.jpg', '/images/dininggasan/pickleball.jpg'],
+    featuredImage: DININGGASAN_IMAGES.buildingExterior,
+    gallery: [
+      DININGGASAN_IMAGES.roomInterior,
+      DININGGASAN_IMAGES.buildingExterior,
+      DININGGASAN_IMAGES.aerialTower,
+      DININGGASAN_IMAGES.complexAerial,
+    ],
   },
   roomTypes: [
-    { id: 'room-main', name: 'Dininggasan Room', basePrice: 3800, capacity: 8, priceModifiers: [] },
+    { id: 'room-main', name: 'Dininggasan Room', basePrice: 3800, capacity: 8, priceModifiers: [], unitCount: DININGGASAN_ROOM_COUNT, image: DININGGASAN_IMAGES.roomInterior },
   ],
   policies: {
     standardCheckInTime: '14:00',
@@ -35,12 +49,12 @@ export const dininggasanData: Omit<Business, 'id'> = {
   functionRoom: {
     name: 'Dininggasan Function Room',
     capacity: 80,
-    description: 'A versatile function room perfect for meetings, celebrations, and gatherings. Available for morning or evening sessions.',
-    images: ['/images/dininggasan/function-room.jpg'],
-    amenities: ['Air Conditioning', 'Sound System Available', 'Tables & Chairs', 'LED TV', 'Catering Ready'],
+    description: 'A versatile function room perfect for meetings, celebrations, and gatherings. Morning session until 5:00 PM; night session until 12:00 AM. Rental fee includes tables & chairs.',
+    images: [DININGGASAN_IMAGES.buildingExterior],
+    amenities: ['Air Conditioning', 'Sound System Available', 'Tables & Chairs (included)', 'LED TV', 'Catering Ready'],
     timeSlots: [
-      { id: 'morning', label: 'Morning Session', baseHours: 3, basePrice: 2000, succeedingRate: 200 },
-      { id: 'night', label: 'Night Session', baseHours: 3, basePrice: 3000, succeedingRate: 300 },
+      { id: 'morning', label: 'Morning Session', baseHours: 3, basePrice: 2000, succeedingRate: 200, endTime: '17:00', endTimeLabel: '5:00 PM' },
+      { id: 'night', label: 'Night Session', baseHours: 3, basePrice: 3000, succeedingRate: 300, endTime: '00:00', endTimeLabel: '12:00 AM' },
     ],
     addons: [
       { id: 'addon-sound', name: 'Sound System', price: 1800, priceType: 'flat', description: 'Complete sound system for the whole event duration' },

@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { UilArrowLeft, UilMapMarker, UilClock, UilCheckCircle, UilSync, UilCalendarAlt, UilMinus, UilPlus, UilShieldCheck } from '@/icons';
 import { db, handleFirestoreError, OperationType } from '../firebase';
@@ -19,14 +20,33 @@ export default function TransportView() {
   const [transportGuests, setTransportGuests] = useState(1);
   const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
   const isSubmitting = useRef(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [params] = useSearchParams();
+  const searchQ = (searchTerm || params.get('q') || '').toLowerCase();
 
   useEffect(() => {
     getPilotConfig().then(setPilotConfig);
   }, []);
 
-  const visibleTransportOptions = pilotConfig?.enabled && pilotConfig.businessId
-    ? transportOptions.filter(o => o.businessId === pilotConfig.businessId)
-    : transportOptions;
+  const visibleTransportOptions = useMemo(() => {
+    const base = pilotConfig?.enabled && pilotConfig.businessId
+      ? transportOptions.filter(o => o.businessId === pilotConfig.businessId)
+      : transportOptions;
+    if (!searchQ) return base;
+    return base.filter(o =>
+      o.title.toLowerCase().includes(searchQ) ||
+      o.route?.toLowerCase().includes(searchQ) ||
+      o.provider?.toLowerCase().includes(searchQ)
+    );
+  }, [pilotConfig, searchQ]);
+
+  const visibleRentals = useMemo(() => {
+    if (!searchQ) return rentalVehicles;
+    return rentalVehicles.filter(v =>
+      v.name.toLowerCase().includes(searchQ) ||
+      v.type.toLowerCase().includes(searchQ)
+    );
+  }, [searchQ]);
 
   const handleBookTransport = async (transport: any) => {
     if (!user) { login(); return; }
@@ -87,7 +107,9 @@ export default function TransportView() {
             <svg className="w-5 h-5 text-stone-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
-            <input type="text" placeholder="Search vehicles..." readOnly
+            <input type="text" placeholder="Search vehicles..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
               className="text-sm font-semibold text-stone-500 bg-transparent outline-none w-full placeholder:text-stone-400/60" />
           </div>
         </div>
@@ -107,7 +129,7 @@ export default function TransportView() {
         {/* rentals */}
         {mobilityFilter === 'Rentals' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-            {rentalVehicles.map((vehicle, idx) => {
+            {visibleRentals.map((vehicle, idx) => {
               const merchant = getMerchantByVehicle(vehicle);
               return (
                 <motion.div

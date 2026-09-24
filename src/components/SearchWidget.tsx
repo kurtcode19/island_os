@@ -16,13 +16,19 @@ import {
 export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'mobile' }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('stays');
-  
+  const [destination, setDestination] = useState('');
+
   const tabs = [
     { id: 'stays', label: 'Stays', icon: UilBuilding },
     { id: 'cars', label: 'Cars', icon: UilCar },
     { id: 'packages', label: 'Packages', icon: UilBox },
     { id: 'things', label: 'Things to do', icon: UilCamera },
   ];
+
+  const goSearch = () => {
+    const path = activeTab === 'stays' || activeTab === 'packages' ? 'stay' : activeTab === 'cars' ? 'rentals' : 'locations';
+    navigate(destination.trim() ? `/${path}?q=${encodeURIComponent(destination.trim())}` : `/${path}`);
+  };
 
   if (variant === 'mobile') {
     return (
@@ -54,6 +60,8 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
             <input 
               type="text" 
               placeholder="Where to?" 
+              value={destination}
+              onChange={e => setDestination(e.target.value)}
               className="w-full pl-12 pr-4 py-4 bg-tropic-sand/30 border border-tropic-sand/30 rounded-2xl text-sm font-bold text-tropic-green focus:ring-2 focus:ring-tropic-emerald/20 transition-all outline-none placeholder:text-tropic-green/30"
             />
           </div>
@@ -79,7 +87,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
             </div>
           </div>
 
-          <button onClick={() => navigate(`/${activeTab === 'stays' ? 'stay' : activeTab === 'cars' ? 'rentals' : activeTab === 'things' ? 'locations' : 'stay'}`)} className="w-full bg-gradient-to-r from-tropic-emerald to-tropic-ocean text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
+          <button onClick={goSearch} className="w-full bg-gradient-to-r from-tropic-emerald to-tropic-ocean text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
             <UilSearch size="18" />
             Search Experiences
           </button>
@@ -128,6 +136,8 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
               <input 
                 type="text" 
                 placeholder="Where to?" 
+                value={destination}
+                onChange={e => setDestination(e.target.value)}
                 className="w-full bg-transparent text-sm font-bold text-island-volcanic outline-none placeholder:text-slate-300"
               />
             </div>
@@ -160,7 +170,7 @@ export function SearchWidget({ variant = 'desktop' }: { variant?: 'desktop' | 'm
           </div>
         </div>
 
-        <button onClick={() => navigate(`/${activeTab === 'stays' ? 'stay' : activeTab === 'cars' ? 'rentals' : activeTab === 'things' ? 'locations' : 'stay'}`)} className="w-full lg:w-auto px-12 py-8 bg-island-volcanic text-white rounded-3xl font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-island-volcanic/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4">
+        <button onClick={goSearch} className="w-full lg:w-auto px-12 py-8 bg-island-volcanic text-white rounded-3xl font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-island-volcanic/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4">
           <UilSearch size="22" />
           Search
         </button>
