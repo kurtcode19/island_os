@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { collection, query, where, onSnapshot, doc, getDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -16,6 +16,10 @@ import {
   PerformanceSection, SettingsSection, GuideSection, FaqSection, HelpSection, AdminsSection
 } from '../components/admin/AdminSections';
 import { DININGGASAN_ROOM_COUNT } from '../data/dininggasanData';
+import {
+  stayRange, pickFreeRoomNumber, subscribeOccupancy, writeOccupancy,
+  setOccupancyStatus, removeOccupancy, backfillRoomAssignments, dayKey,
+} from '../lib/roomAssignment';
 
 const BUSINESS_ID = 'dininggasan-catarman';
 const TOTAL_ROOMS = DININGGASAN_ROOM_COUNT;
@@ -51,10 +55,12 @@ export default function DininggasanDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState('date');
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
+  const [selectedDate, setSelectedDate] = useState(() => dayKey(new Date()));
+  const [occupancy, setOccupancy] = useState<any[]>([]);
+
+  useEffect(() => {
+    return subscribeOccupancy(setOccupancy);
+  }, []);
 
   const rooms = Array.from({ length: TOTAL_ROOMS }, (_, i) => ({
     id: i + 1,
@@ -63,17 +69,13 @@ export default function DininggasanDashboard() {
 
   const getRoomStatus = (roomId: number, checkDate?: string) => {
     const dateToCheck = checkDate || selectedDate;
+    const roomNumber = String(roomId).padStart(2, '0');
     const booking = bookings.find(b => {
-      if (b.roomNumber !== String(roomId).padStart(2, '0')) return false;
+      if (b.roomNumber !== roomNumber) return false;
       if (b.status === 'cancelled') return false;
-      
-      const dateRange = b.date?.split(' - ') || [];
-      if (dateRange.length !== 2) return false;
-      
-      const checkIn = new Date(dateRange[0]).toISOString().split('T')[0];
-      const checkOut = new Date(dateRange[1]).toISOString().split('T')[0];
-      
-      return dateToCheck >= checkIn && dateToCheck < checkOut;
+      const range = stayRange(b);
+      if (!range) return false;
+      return dateToCheck >= range.start && dateToCheck < range.end;
     });
 
     if (!booking) return { status: 'available', color: 'bg-gray-300' };
@@ -87,6 +89,7 @@ export default function DininggasanDashboard() {
     if (!window.confirm('Delete this booking?')) return;
     try {
       await deleteDoc(doc(db, 'bookings', id));
+      await removeOccupancy(id);
       toast.success('Booking deleted');
       if (selectedBooking?.id === id) setSelectedBooking(null);
     } catch(err) {
@@ -96,12 +99,46 @@ export default function DininggasanDashboard() {
 
   const handleConfirm = async (id: string) => {
     try {
-      await updateDoc(doc(db, 'bookings', id), { status: 'confirmed' });
-      toast.success('Booking confirmed');
+      const booking = bookings.find(b => b.id === id);
+      const patch: any = { status: 'confirmed' };
+      if (
+        booking &&
+        booking.businessId === BUSINESS_ID &&
+        booking.serviceType === 'stay' &&
+        booking.bookingCategory !== 'event' &&
+        booking.status !== 'cancelled'
+      ) {
+        const range = stayRange(booking);
+        if (range) {
+          const roomNumber = booking.roomNumber
+            || pickFreeRoomNumber(occupancy, range.start, range.end);
+          if (roomNumber) {
+            patch.roomNumber = roomNumber;
+            await writeOccupancy(id, {
+              businessId: BUSINESS_ID,
+              roomNumber,
+              start: range.start,
+              end: range.end,
+              status: 'confirmed',
+              touristUid: booking.touristUid || '',
+            });
+          }
+        }
+      }
+      await updateDoc(doc(db, 'bookings', id), patch);
+      if (patch.roomNumber) setSelectedBooking((prev: any) => prev?.id === id ? { ...prev, ...patch } : prev);
+      toast.success(patch.roomNumber ? `Confirmed · Room ${patch.roomNumber}` : 'Booking confirmed');
     } catch(err) {
       toast.error('Failed to confirm');
     }
   };
+
+  const backfilledRef = useRef(false);
+  useEffect(() => {
+    if (loading || backfilledRef.current || bookings.length === 0) return;
+    backfilledRef.current = true;
+    backfillRoomAssignments(bookings).catch(() => {});
+  }, [loading, bookings]);
 
   const handleVerifyPayment = async (id: string) => {
     try {

@@ -41,6 +41,7 @@ import { collection, addDoc, serverTimestamp, onSnapshot, query, where, orderBy,
 import { accommodations, type PromoPackage } from '../data/accommodations';
 import { rentalVehicles, rentalMerchants, getMerchantByVehicle } from '../data/rentals';
 import { checkAvailability, checkRoomAvailability } from '../lib/capacityService';
+import { dayKey, pickFreeRoomNumber, loadOccupancy, writeOccupancy } from '../lib/roomAssignment';
 import { useNavigate } from 'react-router-dom';
 import IslandMap from '../components/IslandMap';
 import { OnboardingHero } from '../components/mobile/OnboardingHero';
@@ -317,9 +318,29 @@ export default function MobileAppView() {
         bookingData.addons = [];
         if (addons.breakfast) bookingData.addons.push({ id: 'breakfast', name: 'Breakfast Bundle', price: 250 * breakfastPeople });
         if (addons.lateCheckin) bookingData.addons.push({ id: 'lateCheckin', name: 'Late Check-in', price: 150 });
+        if (bookingData.businessId === 'dininggasan-catarman') {
+          const occupancy = await loadOccupancy();
+          const roomNumber = pickFreeRoomNumber(occupancy, dayKey(checkIn), dayKey(checkOut));
+          if (!roomNumber) {
+            setBookingStatus(prev => ({ ...prev, [itemId]: 'idle' }));
+            setAvailabilityError('No rooms available for those dates.');
+            return;
+          }
+          bookingData.roomNumber = roomNumber;
+        }
       }
 
-      await addDoc(collection(db, 'bookings'), bookingData);
+      const bookingRef = await addDoc(collection(db, 'bookings'), bookingData);
+      if (type === 'stay' && bookingData.businessId === 'dininggasan-catarman' && bookingData.roomNumber) {
+        await writeOccupancy(bookingRef.id, {
+          businessId: 'dininggasan-catarman',
+          roomNumber: bookingData.roomNumber,
+          start: dayKey(checkIn),
+          end: dayKey(checkOut),
+          status: 'pending',
+          touristUid: user.uid,
+        });
+      }
       
       setBookingStatus(prev => ({ ...prev, [itemId]: 'success' }));
       setTimeout(() => {

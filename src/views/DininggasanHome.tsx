@@ -7,6 +7,9 @@ import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit,
 import { toast } from 'sonner';
 import { UilArrowRight, UilCompass, UilBuilding, UilTennisBall, UilMapMarker, UilPhone, UilEnvelopeAlt, UilFacebook, UilCheckCircle, UilArrowLeft, UilCalendarAlt, UilPlus, UilMinus, UilUsersAlt, UilSync, UilBedDouble, UilExclamationCircle } from '@/icons';
 import { DININGGASAN_IMAGES, DININGGASAN_ROOM_COUNT } from '../data/dininggasanData';
+import {
+  dayKey, overlaps, pickFreeRoomNumber, subscribeOccupancy, writeOccupancy,
+} from '../lib/roomAssignment';
 
 const amenities = [
   'Free Wi-Fi', 'Air Conditioning', 'Hot & Cold Shower', 'Parking', 'CCTV', 'Event-ready Space',
@@ -83,13 +86,10 @@ export default function DininggasanHome() {
   const [showTourBooking, setShowTourBooking] = useState(false);
   const [selectedTour, setSelectedTour] = useState<typeof tourPackages[0] | null>(null);
   const [latestBroadcast, setLatestBroadcast] = useState<any>(null);
-  const [roomBookings, setRoomBookings] = useState<any[]>([]);
+  const [occupancy, setOccupancy] = useState<any[]>([]);
 
   useEffect(() => {
-    const unsub = onSnapshot(query(collection(db, 'bookings'), where('businessId', '==', 'dininggasan-catarman')), snap => {
-      setRoomBookings(snap.docs.map(d => ({ id: d.id, ...d.data() } as any)));
-    }, () => {});
-    return () => unsub();
+    return subscribeOccupancy(setOccupancy);
   }, []);
 
   useEffect(() => {
@@ -120,43 +120,16 @@ export default function DininggasanHome() {
   const roomTotal = ROOM_PRICE * nights;
 
   const getRoomTile = (roomNum: string, rangeStart: Date, rangeEnd: Date) => {
-    const start = rangeStart.toISOString().split('T')[0];
-    const end = rangeEnd.toISOString().split('T')[0];
-    const b = roomBookings.find(bk => {
-      if (bk.roomNumber !== roomNum) return false;
-      if (bk.status === 'cancelled') return false;
-      const r = bk.date?.split(' - ') || [];
-      if (r.length !== 2) return false;
-      const ci = new Date(r[0]).toISOString().split('T')[0];
-      const co = new Date(r[1]).toISOString().split('T')[0];
-      return start < co && end > ci;
-    });
-    if (!b) return { status: 'available', color: 'bg-gray-100 text-gray-600 border-gray-200', label: 'Free' };
-    if (b.status === 'confirmed' || b.status === 'checked_in') return { status: 'booked', color: 'bg-red-100 text-red-700 border-red-200', label: 'Booked' };
-    return { status: 'pending', color: 'bg-yellow-100 text-yellow-700 border-yellow-200', label: 'Pending' };
-  };
-
-  const pickFreeRoom = async (rangeStart: Date, rangeEnd: Date): Promise<string | null> => {
-    const start = rangeStart.toISOString().split('T')[0];
-    const end = rangeEnd.toISOString().split('T')[0];
-    const taken = new Set(
-      roomBookings
-        .filter(bk => {
-          if (bk.status === 'cancelled') return false;
-          const r = bk.date?.split(' - ') || [];
-          if (r.length !== 2) return false;
-          const ci = new Date(r[0]).toISOString().split('T')[0];
-          const co = new Date(r[1]).toISOString().split('T')[0];
-          return start < co && end > ci;
-        })
-        .map(bk => bk.roomNumber)
-        .filter(Boolean)
+    const start = dayKey(rangeStart);
+    const end = dayKey(rangeEnd);
+    const hit = occupancy.find(o =>
+      o.roomNumber === roomNum &&
+      o.status !== 'cancelled' &&
+      overlaps(start, end, o.start, o.end)
     );
-    for (let i = 1; i <= DININGGASAN_ROOM_COUNT; i++) {
-      const num = String(i).padStart(2, '0');
-      if (!taken.has(num)) return num;
-    }
-    return null;
+    if (!hit) return { status: 'available', color: 'bg-gray-100 text-gray-600 border-gray-200', label: 'Free' };
+    if (hit.status === 'confirmed' || hit.status === 'checked_in') return { status: 'booked', color: 'bg-red-100 text-red-700 border-red-200', label: 'Booked' };
+    return { status: 'pending', color: 'bg-yellow-100 text-yellow-700 border-yellow-200', label: 'Pending' };
   };
 
   const handleRoomBook = async () => {
@@ -165,13 +138,15 @@ export default function DininggasanHome() {
     roomSubmitting.current = true;
     setRoomStatus('loading');
     try {
-      const roomNumber = await pickFreeRoom(checkIn, checkOut);
+      const start = dayKey(checkIn);
+      const end = dayKey(checkOut);
+      const roomNumber = pickFreeRoomNumber(occupancy, start, end);
       if (!roomNumber) {
         setRoomStatus('idle'); roomSubmitting.current = false;
         toast.error('No rooms available for those dates');
         return;
       }
-      await addDoc(collection(db, 'bookings'), {
+      const ref = await addDoc(collection(db, 'bookings'), {
         touristUid: user.uid, touristName: user.displayName || 'Anonymous',
         serviceId: 'stay-dininggasan', serviceName: 'Dininggasan Room',
         serviceType: 'stay', businessId: 'dininggasan-catarman',
@@ -180,6 +155,10 @@ export default function DininggasanHome() {
         checkInTimestamp: Timestamp.fromDate(checkIn), checkOutTimestamp: Timestamp.fromDate(checkOut),
         adults, purposeOfVisit, amount: roomTotal, totalPrice: roomTotal,
         status: 'pending', paymentStatus: 'UNPAID', createdAt: serverTimestamp()
+      });
+      await writeOccupancy(ref.id, {
+        businessId: 'dininggasan-catarman',
+        roomNumber, start, end, status: 'pending', touristUid: user.uid,
       });
       setRoomStatus('success');
       toast.success(`Room ${roomNumber} booked!`);

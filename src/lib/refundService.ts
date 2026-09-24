@@ -1,5 +1,6 @@
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { setOccupancyStatus } from './roomAssignment';
 
 export async function requestCancellation(bookingId: string, reason: string): Promise<void> {
   try {
@@ -10,6 +11,7 @@ export async function requestCancellation(bookingId: string, reason: string): Pr
       cancellationRequestedAt: now,
       cancellationReason: reason,
     });
+    await setOccupancyStatus(bookingId, 'cancelled');
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
     throw error;

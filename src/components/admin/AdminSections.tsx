@@ -3,6 +3,7 @@ import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, getDoc, u
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { toast } from 'sonner';
 import { DININGGASAN_BUSINESS_ID, DININGGASAN_ROOM_COUNT, DININGGASAN_IMAGES } from '../../data/dininggasanData';
+import { dayKey, backfillRoomAssignments } from '../../lib/roomAssignment';
 import {
   UilTrashAlt, UilPlus, UilDollarSign, UilBedDouble, UilChartPie, UilSave, UilBell, UilUsersAlt, UilShield
 } from '@/icons';
@@ -81,6 +82,7 @@ export function RoomsSection({ bookings, getRoomStatus, selectedDate, setSelecte
   const [roomTypes, setRoomTypes] = useState<any[]>([]);
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [price, setPrice] = useState('');
+  const [backfilling, setBackfilling] = useState(false);
 
   useEffect(() => {
     getDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID)).then(snap => {
@@ -117,9 +119,22 @@ export function RoomsSection({ bookings, getRoomStatus, selectedDate, setSelecte
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Status — {selectedDate}</h3>
           <div className="flex gap-2">
+            <button
+              onClick={async () => {
+                setBackfilling(true);
+                try {
+                  const n = await backfillRoomAssignments(bookings);
+                  toast.success(n ? `Assigned rooms to ${n} booking(s)` : 'All stays already have rooms');
+                } catch { toast.error('Backfill failed'); }
+                finally { setBackfilling(false); }
+              }}
+              disabled={backfilling}
+              className="px-3 py-2 text-xs font-medium bg-slate-100 hover:bg-slate-200 rounded-lg disabled:opacity-50">
+              {backfilling ? 'Assigning...' : 'Assign missing rooms'}
+            </button>
             <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
               className="px-4 py-2 border border-gray-200 rounded-lg text-sm" />
-            <button onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+            <button onClick={() => setSelectedDate(dayKey(new Date()))}
               className="px-3 py-2 text-xs font-medium bg-gray-100 hover:bg-gray-200 rounded-lg">Today</button>
           </div>
         </div>
