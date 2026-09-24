@@ -52,6 +52,8 @@ export default function PaymentModule() {
     try {
       await updateDoc(doc(db, 'bookings', booking.id), {
         status: 'confirmed',
+        paymentStatus: 'VERIFIED',
+        verifiedAt: serverTimestamp(),
         ticketCode,
         confirmedAt: serverTimestamp(),
       });

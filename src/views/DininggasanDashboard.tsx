@@ -6,14 +6,14 @@ import { useAuth } from '../context/AuthContext';
 import {
   UilChartBar, UilCalendar, UilSignOutAlt, UilBuilding, UilArrowUpRight,
   UilUsersAlt, UilCreditCard, UilBedDouble, UilCheckCircle, UilTimes, UilTrashAlt, UilInfoCircle, UilPlus, UilSearch,
-  UilSetting, UilBookOpen, UilDollarSign, UilFileAlt, UilThumbsUp, UilChartPie
+  UilSetting, UilBookOpen, UilDollarSign, UilFileAlt, UilThumbsUp, UilChartPie, UilShieldCheck
 } from '@/icons';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
 import ReviewsModule from '../components/business/ReviewsModule';
 import {
   DashboardSection, RoomsSection, ExpensesSection, RatesSection,
-  PerformanceSection, SettingsSection, GuideSection, FaqSection, HelpSection
+  PerformanceSection, SettingsSection, GuideSection, FaqSection, HelpSection, AdminsSection
 } from '../components/admin/AdminSections';
 import { DININGGASAN_ROOM_COUNT } from '../data/dininggasanData';
 
@@ -29,6 +29,7 @@ const sidebarItems = [
   { icon: UilFileAlt, label: 'Rate Calculator', section: 'rates' },
   { icon: UilThumbsUp, label: 'Reviews & Ratings', section: 'reviews' },
   { icon: UilChartPie, label: 'Performance', section: 'performance' },
+  { icon: UilShieldCheck, label: 'Admins', section: 'admins' },
   { icon: UilBookOpen, label: 'User Guide', section: 'guide' },
   { icon: UilFileAlt, label: 'FAQ', section: 'faq' },
   { icon: UilFileAlt, label: 'Help Center', section: 'help' },
@@ -100,6 +101,24 @@ export default function DininggasanDashboard() {
     } catch(err) {
       toast.error('Failed to confirm');
     }
+  };
+
+  const handleVerifyPayment = async (id: string) => {
+    try {
+      await updateDoc(doc(db, 'bookings', id), {
+        paymentStatus: 'VERIFIED',
+        verifiedAt: serverTimestamp(),
+      });
+      setSelectedBooking((prev: any) => prev ? { ...prev, paymentStatus: 'VERIFIED' } : prev);
+      toast.success('Payment verified');
+    } catch(err) {
+      toast.error('Failed to verify payment');
+    }
+  };
+
+  const formatDateTs = (ts: any) => {
+    if (!ts?.toDate) return '—';
+    return ts.toDate().toLocaleString();
   };
 
   const handleExtend = async (id: string) => {
@@ -202,7 +221,7 @@ export default function DininggasanDashboard() {
   const bookedRooms = bookings.filter(b => b.status === 'confirmed' || b.status === 'checked_in').length;
   const pendingRooms = bookings.filter(b => b.status === 'pending').length;
   const cancelledRooms = bookings.filter(b => b.status === 'cancelled').length;
-  const totalRevenue = bookings.filter(b => b.paymentStatus === 'PAID').reduce((s, b) => s + (b.amount || 0), 0);
+  const totalRevenue = bookings.filter(b => b.paymentStatus === 'PAID' || b.paymentStatus === 'VERIFIED').reduce((s, b) => s + (b.amount || 0), 0);
 
   const filteredBookings = bookings.filter(b => {
     const matchesSearch = b.touristName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -294,6 +313,7 @@ export default function DininggasanDashboard() {
       case 'rates': return <RatesSection />;
       case 'reviews': return <div className="bg-white rounded-xl border border-gray-200 p-6"><ReviewsModule businessId={BUSINESS_ID} /></div>;
       case 'performance': return <PerformanceSection bookings={bookings} />;
+      case 'admins': return <AdminsSection />;
       case 'guide': return <GuideSection />;
       case 'faq': return <FaqSection />;
       case 'help': return <HelpSection />;
@@ -460,6 +480,7 @@ export default function DininggasanDashboard() {
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Guests</th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Check In</th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Check Out</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Booked</th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Contact</th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Country</th>
                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">ID Number</th>
@@ -470,11 +491,11 @@ export default function DininggasanDashboard() {
                     <tbody className="divide-y divide-gray-200">
                       {loading ? (
                         <tr>
-                          <td colSpan={10} className="px-6 py-12 text-center text-gray-500">Loading...</td>
+                          <td colSpan={11} className="px-6 py-12 text-center text-gray-500">Loading...</td>
                         </tr>
                       ) : sortedBookings.length === 0 ? (
                         <tr>
-                          <td colSpan={10} className="px-6 py-12 text-center text-gray-500">No bookings found</td>
+                          <td colSpan={11} className="px-6 py-12 text-center text-gray-500">No bookings found</td>
                         </tr>
                       ) : (
                         sortedBookings.map((booking) => (
@@ -484,6 +505,7 @@ export default function DininggasanDashboard() {
                             <td className="px-6 py-4 text-sm text-gray-600">{booking.adults || 'N/A'}</td>
                             <td className="px-6 py-4 text-sm text-gray-600">{booking.date?.split(' - ')[0] || 'N/A'}</td>
                             <td className="px-6 py-4 text-sm text-gray-600">{booking.date?.split(' - ')[1] || 'N/A'}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600">{formatDateTs(booking.createdAt)}</td>
                             <td className="px-6 py-4 text-sm text-gray-600">{booking.contactNumber || 'N/A'}</td>
                             <td className="px-6 py-4 text-sm text-gray-600">{booking.country || 'N/A'}</td>
                             <td className="px-6 py-4 text-sm text-gray-600">{booking.idNumber || 'N/A'}</td>
@@ -578,12 +600,38 @@ export default function DininggasanDashboard() {
                 <div>
                   <p className="text-xs text-gray-500 font-semibold mb-2">Payment</p>
                   <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
-                    selectedBooking.paymentStatus === 'PAID' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                    selectedBooking.paymentStatus === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700'
+                    : selectedBooking.paymentStatus === 'PAID' ? 'bg-green-100 text-green-700'
+                    : selectedBooking.paymentStatus === 'REFUNDED' ? 'bg-gray-100 text-gray-600'
+                    : 'bg-amber-100 text-amber-700'
                   }`}>
                     {selectedBooking.paymentStatus || 'UNPAID'}
                   </span>
                 </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500 font-semibold mb-1">Booked (createdAt)</p>
+                  <p className="text-sm text-gray-900">{formatDateTs(selectedBooking.createdAt)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 font-semibold mb-1">Booking ID (audit)</p>
+                  <p className="text-sm text-gray-900 font-mono break-all">{selectedBooking.id}</p>
+                </div>
+              </div>
+
+              {selectedBooking.paymentStatus === 'PAID' && (
+                <div className="border border-emerald-200 bg-emerald-50 rounded-xl p-4">
+                  <p className="text-sm font-semibold text-emerald-900 mb-3">Payment Received — Verify</p>
+                  <button
+                    onClick={() => handleVerifyPayment(selectedBooking.id)}
+                    className="w-full px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition-all flex items-center justify-center gap-2">
+                    <UilCheckCircle size="16" />
+                    Verify Payment
+                  </button>
+                </div>
+              )}
 
               {selectedBooking.additionalCharges && selectedBooking.additionalCharges.length > 0 && (
                 <div className="border border-gray-200 rounded-xl p-4">

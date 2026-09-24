@@ -4,14 +4,14 @@ import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { toast } from 'sonner';
 import { DININGGASAN_BUSINESS_ID, DININGGASAN_ROOM_COUNT, DININGGASAN_IMAGES } from '../../data/dininggasanData';
 import {
-  UilTrashAlt, UilPlus, UilDollarSign, UilBedDouble, UilChartPie, UilSave, UilBell
+  UilTrashAlt, UilPlus, UilDollarSign, UilBedDouble, UilChartPie, UilSave, UilBell, UilUsersAlt, UilShield
 } from '@/icons';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid
 } from 'recharts';
 
 export function DashboardSection({ bookings }: { bookings: any[] }) {
-  const paid = bookings.filter(b => b.paymentStatus === 'PAID');
+  const paid = bookings.filter(b => b.paymentStatus === 'PAID' || b.paymentStatus === 'VERIFIED');
   const totalRevenue = paid.reduce((s, b) => s + (b.amount || 0), 0);
   const confirmed = bookings.filter(b => b.status === 'confirmed' || b.status === 'checked_in').length;
   const pending = bookings.filter(b => b.status === 'pending').length;
@@ -127,9 +127,10 @@ export function RoomsSection({ bookings, getRoomStatus, selectedDate, setSelecte
           {rooms.map(room => {
             const s = getRoomStatus(room.id, selectedDate);
             return (
-              <div key={room.id} className={`p-4 rounded-lg font-bold text-white text-center ${s.color}`}
+              <div key={room.id} className={`p-4 rounded-lg text-white text-center ${s.color}`}
                 title={`Room ${room.number} — ${s.status}`}>
-                {room.number}
+                <div className="font-bold">{room.number}</div>
+                <div className="text-[10px] font-semibold capitalize">{s.status}</div>
               </div>
             );
           })}
@@ -372,7 +373,7 @@ export function PerformanceSection({ bookings }: { bookings: any[] }) {
   const cancelled = bookings.filter(b => b.status === 'cancelled').length;
   const total = bookings.length || 1;
   const occupancy = Math.round((confirmed / Math.max(total, DININGGASAN_ROOM_COUNT)) * 100);
-  const paid = bookings.filter(b => b.paymentStatus === 'PAID');
+  const paid = bookings.filter(b => b.paymentStatus === 'PAID' || b.paymentStatus === 'VERIFIED');
   const revenue = paid.reduce((s, b) => s + (b.amount || 0), 0);
   const adr = paid.length ? Math.round(revenue / paid.length) : 0;
 
@@ -587,6 +588,110 @@ export function HelpSection() {
           <p className="font-semibold text-amber-800 text-sm mb-1">Payments</p>
           <p className="text-sm text-amber-700">Online payments are not yet integrated. Payment status is managed manually from each booking.</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+export function AdminsSection() {
+  const [users, setUsers] = useState<any[]>([]);
+  const [email, setEmail] = useState('');
+  const [granteeRole, setGranteeRole] = useState<'LGU' | 'BUSINESS'>('LGU');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'users'), snap => {
+      setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() } as any)));
+      setLoading(false);
+    }, () => setLoading(false));
+    return () => unsub();
+  }, []);
+
+  const grant = async () => {
+    const target = users.find(u => (u.email || '').toLowerCase() === email.trim().toLowerCase());
+    if (!target) {
+      toast.error('No account with that email. They must sign in with Google once first, then retry.');
+      return;
+    }
+    if (target.role === granteeRole && (granteeRole !== 'BUSINESS' || target.businessId === DININGGASAN_BUSINESS_ID)) {
+      toast.info('Already has that role');
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateDoc(doc(db, 'users', target.id), granteeRole === 'LGU'
+        ? { role: 'LGU' }
+        : { role: 'BUSINESS', businessId: DININGGASAN_BUSINESS_ID });
+      toast.success(`Granted ${granteeRole} to ${target.email}`);
+      setEmail('');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, 'users');
+    } finally { setSaving(false); }
+  };
+
+  const roleBadge = (u: any) => {
+    if (u.role === 'LGU') return <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">LGU</span>;
+    if (u.role === 'BUSINESS' && u.businessId === DININGGASAN_BUSINESS_ID) return <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Dininggasan Admin</span>;
+    if (u.role === 'BUSINESS') return <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600">Business</span>;
+    return <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-500">Tourist</span>;
+  };
+
+  return (
+    <div className="space-y-6 max-w-4xl">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Admins</h2>
+        <p className="text-gray-600">Grant dashboard access by email — user must have signed in at least once</p>
+      </div>
+      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2"><UilShield size="18" /> Grant Admin Access</h3>
+        <div className="flex flex-wrap gap-3">
+          <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="user@example.com"
+            className="flex-1 min-w-64 px-4 py-2.5 border border-gray-200 rounded-lg text-sm" />
+          <select value={granteeRole} onChange={e => setGranteeRole(e.target.value as 'LGU' | 'BUSINESS')}
+            className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm">
+            <option value="LGU">LGU (full admin)</option>
+            <option value="BUSINESS">Dininggasan admin</option>
+          </select>
+          <button onClick={grant} disabled={saving || !email.trim()}
+            className="px-5 py-2.5 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-sm font-medium disabled:opacity-50">
+            {saving ? 'Granting...' : 'Grant'}
+          </button>
+        </div>
+        <p className="text-xs text-gray-500">Paste the email of an existing signed-in user. No invite emails are sent — they sign in with Google, then you grant here.</p>
+      </div>
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
+          <UilUsersAlt size="18" className="text-gray-500" />
+          <h3 className="font-semibold text-gray-900">Users ({users.length})</h3>
+        </div>
+        {loading ? (
+          <div className="p-8 text-center text-gray-500">Loading users...</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600">Role</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {users.map(u => (
+                  <tr key={u.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-3 text-sm font-medium text-gray-900">{u.displayName || u.name || '—'}</td>
+                    <td className="px-6 py-3 text-sm text-gray-600">{u.email || '—'}</td>
+                    <td className="px-6 py-3">{roleBadge(u)}</td>
+                  </tr>
+                ))}
+                {users.length === 0 && (
+                  <tr><td colSpan={3} className="px-6 py-8 text-center text-gray-500">No users yet</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

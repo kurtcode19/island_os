@@ -226,7 +226,7 @@ export default function MyBookingsView() {
 
           const filteredBookings = bookings.filter(b => {
             if (statusFilter !== 'all' && b.status !== statusFilter) return false;
-            if (reviewFilter === 'reviewable' && b.paymentStatus !== 'PAID') return false;
+            if (reviewFilter === 'reviewable' && b.paymentStatus !== 'PAID' && b.paymentStatus !== 'VERIFIED') return false;
             return true;
           });
 
@@ -274,8 +274,13 @@ export default function MyBookingsView() {
                             {booking.serviceType}
                           </span>
                           <span className="text-[10px] font-semibold text-slate-300 tracking-tight">
-                            ID: {booking.id.slice(-8).toUpperCase()}
+                            Booking ID: {booking.id}
                           </span>
+                          {booking.createdAt?.toDate && (
+                            <span className="text-[10px] font-semibold text-slate-300 tracking-tight">
+                              Booked: {booking.createdAt.toDate().toLocaleString()}
+                            </span>
+                          )}
                         </div>
                         <h3 className="text-4xl font-black text-island-volcanic tracking-tighter mb-8 group-hover:text-island-emerald transition-colors duration-500">{booking.serviceName}</h3>
                         
@@ -329,6 +334,11 @@ export default function MyBookingsView() {
                               Re-book
                             </button>
                           </>
+                        ) : booking.paymentStatus === 'VERIFIED' ? (
+                          <div className="flex items-center justify-center gap-3 text-island-emerald bg-emerald-50 py-5 rounded-[2rem] border-2 border-emerald-100 shadow-sm">
+                            <UilCheckCircle size="24" />
+                            <span className="text-xs font-bold tracking-wider">Payment Verified</span>
+                          </div>
                         ) : booking.paymentStatus === 'PAID' ? (
                           <>
                             <div className="flex items-center justify-center gap-3 text-amber-600 bg-amber-50 py-5 rounded-[2rem] border-2 border-amber-100 shadow-sm">
@@ -382,7 +392,7 @@ export default function MyBookingsView() {
                     </div>
 
                     {/* Operational Notes */}
-                    {booking.status === 'pending' && booking.paymentStatus !== 'PAID' && (
+                    {booking.status === 'pending' && booking.paymentStatus !== 'PAID' && booking.paymentStatus !== 'VERIFIED' && (
                       <div className="mt-10 p-6 bg-amber-50 rounded-[2rem] border-2 border-amber-100 flex items-start gap-4">
                         <div className="w-10 h-10 rounded-xl bg-amber-200 text-amber-700 flex items-center justify-center shrink-0 shadow-sm">
                           <UilExclamationCircle size="20" />

@@ -56,7 +56,7 @@ export type ServiceType = 'stay' | 'transport' | 'spot' | 'tour' | 'dining' | 's
 
 export type BookingStatus = 'pending' | 'confirmed' | 'checked_in' | 'cancelled' | 'departed';
 
-export type PaymentStatus = 'UNPAID' | 'PAID' | 'REFUNDED';
+export type PaymentStatus = 'UNPAID' | 'PAID' | 'VERIFIED' | 'REFUNDED';
 
 export interface Booking {
   id: string;

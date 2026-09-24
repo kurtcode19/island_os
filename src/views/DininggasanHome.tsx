@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType, Timestamp } from '../firebase';
-import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit, where } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { UilArrowRight, UilCompass, UilBuilding, UilTennisBall, UilMapMarker, UilPhone, UilEnvelopeAlt, UilFacebook, UilCheckCircle, UilArrowLeft, UilCalendarAlt, UilPlus, UilMinus, UilUsersAlt, UilSync, UilBedDouble, UilExclamationCircle } from '@/icons';
 import { DININGGASAN_IMAGES, DININGGASAN_ROOM_COUNT } from '../data/dininggasanData';
@@ -83,6 +83,14 @@ export default function DininggasanHome() {
   const [showTourBooking, setShowTourBooking] = useState(false);
   const [selectedTour, setSelectedTour] = useState<typeof tourPackages[0] | null>(null);
   const [latestBroadcast, setLatestBroadcast] = useState<any>(null);
+  const [roomBookings, setRoomBookings] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(query(collection(db, 'bookings'), where('businessId', '==', 'dininggasan-catarman')), snap => {
+      setRoomBookings(snap.docs.map(d => ({ id: d.id, ...d.data() } as any)));
+    }, () => {});
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     const q = query(collection(db, 'broadcasts'), orderBy('createdAt', 'desc'), limit(1));
@@ -111,23 +119,70 @@ export default function DininggasanHome() {
   const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
   const roomTotal = ROOM_PRICE * nights;
 
+  const getRoomTile = (roomNum: string, rangeStart: Date, rangeEnd: Date) => {
+    const start = rangeStart.toISOString().split('T')[0];
+    const end = rangeEnd.toISOString().split('T')[0];
+    const b = roomBookings.find(bk => {
+      if (bk.roomNumber !== roomNum) return false;
+      if (bk.status === 'cancelled') return false;
+      const r = bk.date?.split(' - ') || [];
+      if (r.length !== 2) return false;
+      const ci = new Date(r[0]).toISOString().split('T')[0];
+      const co = new Date(r[1]).toISOString().split('T')[0];
+      return start < co && end > ci;
+    });
+    if (!b) return { status: 'available', color: 'bg-gray-100 text-gray-600 border-gray-200', label: 'Free' };
+    if (b.status === 'confirmed' || b.status === 'checked_in') return { status: 'booked', color: 'bg-red-100 text-red-700 border-red-200', label: 'Booked' };
+    return { status: 'pending', color: 'bg-yellow-100 text-yellow-700 border-yellow-200', label: 'Pending' };
+  };
+
+  const pickFreeRoom = async (rangeStart: Date, rangeEnd: Date): Promise<string | null> => {
+    const start = rangeStart.toISOString().split('T')[0];
+    const end = rangeEnd.toISOString().split('T')[0];
+    const taken = new Set(
+      roomBookings
+        .filter(bk => {
+          if (bk.status === 'cancelled') return false;
+          const r = bk.date?.split(' - ') || [];
+          if (r.length !== 2) return false;
+          const ci = new Date(r[0]).toISOString().split('T')[0];
+          const co = new Date(r[1]).toISOString().split('T')[0];
+          return start < co && end > ci;
+        })
+        .map(bk => bk.roomNumber)
+        .filter(Boolean)
+    );
+    for (let i = 1; i <= DININGGASAN_ROOM_COUNT; i++) {
+      const num = String(i).padStart(2, '0');
+      if (!taken.has(num)) return num;
+    }
+    return null;
+  };
+
   const handleRoomBook = async () => {
     if (!user) { login(); return; }
     if (roomSubmitting.current) return;
     roomSubmitting.current = true;
     setRoomStatus('loading');
     try {
+      const roomNumber = await pickFreeRoom(checkIn, checkOut);
+      if (!roomNumber) {
+        setRoomStatus('idle'); roomSubmitting.current = false;
+        toast.error('No rooms available for those dates');
+        return;
+      }
       await addDoc(collection(db, 'bookings'), {
         touristUid: user.uid, touristName: user.displayName || 'Anonymous',
         serviceId: 'stay-dininggasan', serviceName: 'Dininggasan Room',
         serviceType: 'stay', businessId: 'dininggasan-catarman',
+        roomNumber,
         date: `${checkIn.toLocaleDateString()} - ${checkOut.toLocaleDateString()}`,
         checkInTimestamp: Timestamp.fromDate(checkIn), checkOutTimestamp: Timestamp.fromDate(checkOut),
         adults, purposeOfVisit, amount: roomTotal, totalPrice: roomTotal,
         status: 'pending', paymentStatus: 'UNPAID', createdAt: serverTimestamp()
       });
       setRoomStatus('success');
-      toast.success('Room booked!');
+      toast.success(`Room ${roomNumber} booked!`);
       setTimeout(() => { setRoomStatus('idle'); setShowRoomBooking(false); roomSubmitting.current = false; }, 2000);
     } catch (error) {
       setRoomStatus('idle'); roomSubmitting.current = false;
@@ -347,6 +402,33 @@ export default function DininggasanHome() {
                 Book This Room
               </button>
             </div>
+          </div>
+        </motion.div>
+
+        {/* Tourist room availability strip */}
+        <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          className="mt-10 max-w-md mx-auto">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold text-[#6e6e73] uppercase tracking-wider">
+              Availability · {checkIn.toLocaleDateString()} – {checkOut.toLocaleDateString()}
+            </p>
+          </div>
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+            {Array.from({ length: DININGGASAN_ROOM_COUNT }, (_, i) => {
+              const num = String(i + 1).padStart(2, '0');
+              const s = getRoomTile(num, checkIn, checkOut);
+              return (
+                <div key={num} className={`border rounded-lg py-2 text-center text-xs font-bold ${s.color}`}>
+                  <div>{num}</div>
+                  <div className="text-[9px] font-semibold">{s.label}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex gap-3 mt-3 text-[10px] text-[#6e6e73] font-medium">
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-gray-100 border border-gray-200 inline-block" /> Free</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-yellow-100 border border-yellow-200 inline-block" /> Pending</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-red-100 border border-red-200 inline-block" /> Booked</span>
           </div>
         </motion.div>
       </section>
