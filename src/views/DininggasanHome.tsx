@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType, Timestamp } from '../firebase';
-import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit, where, doc, getDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { UilArrowRight, UilCompass, UilBuilding, UilTennisBall, UilMapMarker, UilPhone, UilEnvelopeAlt, UilFacebook, UilCheckCircle, UilArrowLeft, UilCalendarAlt, UilPlus, UilMinus, UilUsersAlt, UilSync, UilBedDouble, UilExclamationCircle } from '@/icons';
-import { DININGGASAN_IMAGES, DININGGASAN_ROOM_COUNT } from '../data/dininggasanData';
+import { DININGGASAN_IMAGES, DININGGASAN_ROOM_COUNT, DININGGASAN_BUSINESS_ID } from '../data/dininggasanData';
 import {
   dayKey, overlaps, pickFreeRoomNumber, subscribeOccupancy, writeOccupancy,
 } from '../lib/roomAssignment';
@@ -118,9 +118,16 @@ export default function DininggasanHome() {
   const [purposeOfVisit, setPurposeOfVisit] = useState<'leisure' | 'business' | 'family' | 'transit' | 'other'>('leisure');
   const [roomStatus, setRoomStatus] = useState<'idle' | 'loading' | 'success'>('idle');
   const roomSubmitting = useRef(false);
+  const [roomPrice, setRoomPrice] = useState(ROOM_PRICE);
+  useEffect(() => {
+    getDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID)).then(snap => {
+      const bp = snap.exists() ? snap.data().roomTypes?.[0]?.basePrice : 0;
+      if (bp) setRoomPrice(bp);
+    }).catch(() => {});
+  }, []);
 
   const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));
-  const roomTotal = ROOM_PRICE * nights;
+  const roomTotal = roomPrice * nights;
 
   const getRoomTile = (roomNum: string, rangeStart: Date, rangeEnd: Date) => {
     const start = dayKey(rangeStart);
@@ -290,7 +297,7 @@ export default function DininggasanHome() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {[
             { title: 'Tour Packages', description: 'Heritage walks, island tours, nature escapes, and food trips — all guided and hassle-free.', action: 'Book Tour', onClick: () => { setSelectedTour(tourPackages[0]); setShowTourBooking(true); } },
-            { title: 'Rooms', description: `${DININGGASAN_ROOM_COUNT} rooms · up to ${MAX_ADULTS} guests at ₱${ROOM_PRICE.toLocaleString()}/night. Perfect for families and groups.`, action: 'Book Now', onClick: () => setShowRoomBooking(true) },
+            { title: 'Rooms', description: `${DININGGASAN_ROOM_COUNT} rooms · up to ${MAX_ADULTS} guests at ₱${roomPrice.toLocaleString()}/night. Perfect for families and groups.`, action: 'Book Now', onClick: () => setShowRoomBooking(true) },
             { title: 'Function Room', description: 'Morning until 5:00 PM (₱2,000 first 3 hrs, +₱200/hr) or night until 12:00 AM (₱3,000 first 3 hrs, +₱300/hr). Tables & chairs included.', action: 'Reserve Now', onClick: () => navigate('/function-room') },
             { title: 'Pickleball Court', description: 'Enjoy a game on our pickleball court. ₱150/hr for non-guests, free for guests.', action: 'Inquire', onClick: () => navigate('/function-room') },
           ].map((item, i) => (
@@ -367,7 +374,7 @@ export default function DininggasanHome() {
             Comfortable Stay in Catarman
           </h2>
           <p className="text-[#6e6e73] text-lg max-w-xl mx-auto mt-4">
-            {DININGGASAN_ROOM_COUNT} rooms, each good for up to {MAX_ADULTS} guests at ₱{ROOM_PRICE.toLocaleString()}/night. Ideal for families, groups, and travelers.
+            {DININGGASAN_ROOM_COUNT} rooms, each good for up to {MAX_ADULTS} guests at ₱{roomPrice.toLocaleString()}/night. Ideal for families, groups, and travelers.
           </p>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -378,7 +385,7 @@ export default function DininggasanHome() {
             <div className="p-8">
               <h3 className="text-2xl font-semibold text-[#1d1d1f] mb-2">Dininggasan Room</h3>
               <p className="text-[#6e6e73] text-sm mb-1">Up to {MAX_ADULTS} guests · Free Wi-Fi · Air Conditioning</p>
-              <p className="text-3xl font-semibold text-[#1d1d1f] mb-6">₱{ROOM_PRICE.toLocaleString()}<span className="text-base font-normal text-[#6e6e73]">/night</span></p>
+              <p className="text-3xl font-semibold text-[#1d1d1f] mb-6">₱{roomPrice.toLocaleString()}<span className="text-base font-normal text-[#6e6e73]">/night</span></p>
               <button onClick={() => setShowRoomBooking(true)}
                 className="w-full px-7 py-3.5 rounded-xl bg-[#1d1d1f] text-white text-sm font-semibold hover:bg-[#2d2d2f] transition-all active:scale-[0.98]">
                 Book This Room
@@ -544,7 +551,7 @@ export default function DininggasanHome() {
                     className="w-16 h-16 rounded-xl object-cover shrink-0" />
                   <div>
                     <p className="text-base font-semibold text-[#1d1d1f]">Dininggasan Room</p>
-                    <p className="text-sm text-[#6e6e73]">₱{ROOM_PRICE.toLocaleString()}/night · Up to {MAX_ADULTS} guests</p>
+                    <p className="text-sm text-[#6e6e73]">₱{roomPrice.toLocaleString()}/night · Up to {MAX_ADULTS} guests</p>
                   </div>
                 </div>
               </div>
@@ -580,7 +587,7 @@ export default function DininggasanHome() {
               </div>
               <div className="bg-[#fafafa] rounded-2xl p-4 border border-[#e8e8ed]">
                 <div className="flex justify-between text-sm text-[#6e6e73]">
-                  <span>₱{ROOM_PRICE.toLocaleString()} × {nights} night{nights > 1 ? 's' : ''}</span>
+                  <span>₱{roomPrice.toLocaleString()} × {nights} night{nights > 1 ? 's' : ''}</span>
                   <span className="font-semibold">₱{roomTotal.toLocaleString()}</span>
                 </div>
                 <div className="border-t border-[#e8e8ed] pt-3 mt-3 flex justify-between items-center">

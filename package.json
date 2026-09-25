@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.3.0",
-    "@duo-icons/react": "^1.0.1",
     "@google/genai": "^1.46.0",
     "@stripe/stripe-js": "^9.9.0",
     "@tailwindcss/vite": "^4.1.14",
@@ -29,6 +28,7 @@
     "html5-qrcode": "^2.3.8",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
+    "lucide-react": "^1.48.0",
     "motion": "^12.23.24",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",

@@ -30,7 +30,7 @@ const sidebarItems = [
   { icon: UilBedDouble, label: 'Bookings', section: 'bookings' },
   { icon: UilBuilding, label: 'Room Management', section: 'rooms' },
   { icon: UilDollarSign, label: 'Expenses', section: 'expenses' },
-  { icon: UilFileAlt, label: 'Rate Calculator', section: 'rates' },
+  { icon: UilFileAlt, label: 'Rates', section: 'rates' },
   { icon: UilThumbsUp, label: 'Reviews & Ratings', section: 'reviews' },
   { icon: UilChartPie, label: 'Performance', section: 'performance' },
   { icon: UilShieldCheck, label: 'Admins', section: 'admins' },
@@ -292,6 +292,8 @@ export default function DininggasanDashboard() {
   const pendingRooms = bookings.filter(b => b.status === 'pending').length;
   const cancelledRooms = bookings.filter(b => b.status === 'cancelled').length;
   const totalRevenue = bookings.filter(b => b.paymentStatus === 'PAID' || b.paymentStatus === 'VERIFIED').reduce((s, b) => s + (b.amount || 0), 0);
+  const occupiedRooms = rooms.filter(r => getRoomStatus(r.id, selectedDate).status !== 'available').length;
+  const occupancyPct = Math.round((occupiedRooms / TOTAL_ROOMS) * 100);
 
   const filteredBookings = bookings.filter(b => {
     const matchesSearch = b.touristName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -443,9 +445,10 @@ export default function DininggasanDashboard() {
                 <p className="text-gray-600">Manage reservations, cancellations, and booking activity</p>
               </div>
 
+              <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr_1.4fr] gap-4">
               {/* Room Status Grid */}
               <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">Room Status</h3>
                   <div className="flex items-center gap-3">
                     <label className="text-sm font-medium text-gray-700">Check Availability:</label>
@@ -482,8 +485,18 @@ export default function DininggasanDashboard() {
                 </div>
               </div>
 
+              {/* Occupancy Rate */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col items-center justify-center text-center">
+                <p className="text-xs text-gray-500 font-semibold mb-2">Occupancy — {selectedDate}</p>
+                <p className="text-5xl font-bold text-slate-800">{occupancyPct}%</p>
+                <p className="text-sm text-gray-500 mt-2">{occupiedRooms} of {TOTAL_ROOMS} rooms taken</p>
+                <div className="w-full bg-gray-100 rounded-full h-2.5 mt-4">
+                  <div className="bg-green-500 h-2.5 rounded-full transition-all" style={{ width: `${occupancyPct}%` }} />
+                </div>
+              </div>
+
               {/* Stats Summary */}
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-4 auto-rows-fr">
                 <div className="bg-white rounded-xl border border-gray-200 p-4">
                   <p className="text-xs text-gray-500 font-semibold mb-2">Booked Rooms</p>
                   <p className="text-2xl font-bold text-green-600">{bookedRooms}</p>
@@ -500,6 +513,7 @@ export default function DininggasanDashboard() {
                   <p className="text-xs text-gray-500 font-semibold mb-2">Total Revenue</p>
                   <p className="text-2xl font-bold text-blue-600">₱{(totalRevenue / 1000).toFixed(1)}k</p>
                 </div>
+              </div>
               </div>
 
               {/* Toolbar */}

@@ -83,6 +83,7 @@ export function RoomsSection({ bookings, getRoomStatus, selectedDate, setSelecte
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [price, setPrice] = useState('');
   const [backfilling, setBackfilling] = useState(false);
+  const [month, setMonth] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); });
 
   useEffect(() => {
     getDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID)).then(snap => {
@@ -109,11 +110,74 @@ export function RoomsSection({ bookings, getRoomStatus, selectedDate, setSelecte
     || DININGGASAN_ROOM_COUNT;
   const rooms = Array.from({ length: roomCount }, (_, i) => ({ id: i + 1, number: String(i + 1).padStart(2, '0') }));
 
+  const dayStatus = (key: string) => {
+    let booked = 0, pending = 0;
+    for (const r of rooms) {
+      const s = getRoomStatus(r.id, key);
+      if (s.status === 'booked') booked++;
+      else if (s.status === 'pending') pending++;
+    }
+    return { booked, pending, total: rooms.length };
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Room Management</h2>
         <p className="text-gray-600">Room status and rate management</p>
+      </div>
+      {/* Availability Calendar */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Availability Calendar</h3>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
+              className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg">‹</button>
+            <span className="text-sm font-medium text-gray-700 min-w-36 text-center">
+              {month.toLocaleString('en-US', { month: 'long', year: 'numeric' })}
+            </span>
+            <button
+              onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
+              className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg">›</button>
+            <button
+              onClick={() => { const t = new Date(); setMonth(new Date(t.getFullYear(), t.getMonth(), 1)); setSelectedDate(dayKey(t)); }}
+              className="px-3 py-2 text-xs font-medium bg-gray-100 hover:bg-gray-200 rounded-lg">Today</button>
+          </div>
+        </div>
+        <div className="grid grid-cols-7 gap-1 text-center">
+          {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
+            <div key={d} className="text-[10px] font-semibold text-gray-400 py-1">{d}</div>
+          ))}
+          {Array.from({ length: new Date(month.getFullYear(), month.getMonth(), 1).getDay() }).map((_, i) => (
+            <div key={`lead-${i}`} />
+          ))}
+          {Array.from({ length: new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate() }, (_, i) => {
+            const key = dayKey(new Date(month.getFullYear(), month.getMonth(), i + 1));
+            const st = dayStatus(key);
+            const isSel = key === selectedDate;
+            const bg = st.booked >= st.total ? 'bg-green-500 text-white'
+              : st.booked > 0 ? 'bg-green-100 text-green-700'
+              : st.pending > 0 ? 'bg-yellow-100 text-yellow-700'
+              : 'text-gray-600 hover:bg-gray-100';
+            return (
+              <button
+                key={key}
+                onClick={() => setSelectedDate(key)}
+                title={`${st.booked + st.pending} of ${st.total} rooms taken`}
+                className={`py-2.5 rounded-lg text-xs font-semibold transition-all ${bg} ${isSel ? 'ring-2 ring-slate-700' : ''}`}
+              >
+                {i + 1}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex flex-wrap gap-4 mt-4 text-xs text-gray-500">
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-white border border-gray-300 inline-block" /> Available</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-100 inline-block" /> Some taken</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-500 inline-block" /> Fully booked</span>
+          <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-100 inline-block" /> Pending holds</span>
+        </div>
       </div>
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
@@ -132,10 +196,6 @@ export function RoomsSection({ bookings, getRoomStatus, selectedDate, setSelecte
               className="px-3 py-2 text-xs font-medium bg-slate-100 hover:bg-slate-200 rounded-lg disabled:opacity-50">
               {backfilling ? 'Assigning...' : 'Assign missing rooms'}
             </button>
-            <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg text-sm" />
-            <button onClick={() => setSelectedDate(dayKey(new Date()))}
-              className="px-3 py-2 text-xs font-medium bg-gray-100 hover:bg-gray-200 rounded-lg">Today</button>
           </div>
         </div>
         <div className="grid grid-cols-4 gap-3">
@@ -283,7 +343,6 @@ export function ExpensesSection() {
 export function RatesSection() {
   const [roomTypes, setRoomTypes] = useState<any[]>([]);
   const [timeSlots, setTimeSlots] = useState<any[]>([]);
-  const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -293,7 +352,6 @@ export function RatesSection() {
         const d = snap.data();
         setRoomTypes(d.roomTypes || []);
         setTimeSlots(d.functionRoom?.timeSlots || []);
-        setServices(d.services || []);
       }
       setLoading(false);
     });
@@ -307,7 +365,6 @@ export function RatesSection() {
       await updateDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID), {
         roomTypes,
         functionRoom: { ...(prev.functionRoom || {}), timeSlots },
-        services,
         updatedAt: serverTimestamp(),
       });
       toast.success('Rates saved');
@@ -326,8 +383,8 @@ export function RatesSection() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Rate Calculator</h2>
-          <p className="text-gray-600">Edit room, function room, and service rates</p>
+          <h2 className="text-2xl font-bold text-gray-900">Rates</h2>
+          <p className="text-gray-600">Edit room and function room rates</p>
         </div>
         <button onClick={save} disabled={saving}
           className="px-5 py-2.5 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50">
@@ -361,20 +418,6 @@ export function RatesSection() {
               <label className="text-xs text-gray-500">Succeeding ₱/hr</label>
               <input type="number" value={ts.succeedingRate || 0} onChange={e => updateField(timeSlots, setTimeSlots, i, 'succeedingRate', Number(e.target.value))}
                 className="w-28 px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Services</h3>
-        <div className="space-y-3">
-          {services.map((sv, i) => (
-            <div key={sv.id || i} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <span className="flex-1 font-medium text-gray-900">{sv.name}</span>
-              <label className="text-xs text-gray-500">Price ₱</label>
-              <input type="number" value={sv.price || 0} onChange={e => updateField(services, setServices, i, 'price', Number(e.target.value))}
-                className="w-32 px-3 py-2 border border-gray-200 rounded-lg text-sm" />
             </div>
           ))}
         </div>
@@ -534,7 +577,7 @@ export function GuideSection() {
           { title: 'Bookings', body: 'View, confirm, extend, and cancel reservations. Use the room status grid to check availability for any date. The search bar filters by guest name, room number, or contact.' },
           { title: 'Room Management', body: 'Monitor room occupancy per day and edit base rates for each room type. Changes apply to new bookings immediately.' },
           { title: 'Expenses', body: 'Log operational costs (utilities, supplies, repairs). Totals update instantly and are scoped to this property only.' },
-          { title: 'Rates', body: 'Edit room nightly rates, function-room session pricing (base hours + succeeding hourly rate), and service prices such as pickleball court access.' },
+          { title: 'Rates', body: 'Edit room nightly rates and function-room session pricing (base hours + succeeding hourly rate). Saved rates apply to new bookings immediately.' },
           { title: 'Reviews', body: 'Moderate guest reviews: approve or reject pending entries and reply directly. Approved reviews can appear publicly.' },
           { title: 'Performance', body: 'Occupancy, average daily rate, cancellation rate, and revenue trends — all computed from your live bookings.' },
           { title: 'Settings', body: 'Update contact details and toggle which in-app notifications you receive.' },
@@ -553,7 +596,7 @@ export function FaqSection() {
   const faqs = [
     { q: 'How do I confirm a booking?', a: 'Open the booking from the Bookings tab and click "Confirm & Proceed" on a pending reservation.' },
     { q: 'How do I extend a stay?', a: 'Open a stay booking and use the Extend Stay panel. The charge is calculated from the current room base rate × extension days.' },
-    { q: 'Can I change room rates?', a: 'Yes — Room Management and Rate Calculator both edit base rates saved to the business document.' },
+    { q: 'Can I change room rates?', a: 'Yes — Room Management and Rates both edit base rates saved to the business document.' },
     { q: 'Where do expenses appear?', a: 'The Expenses tab shows a running list and monthly total for Dininggasan only.' },
     { q: 'Why is a review pending?', a: 'Reviews submitted by guests start unmoderated. Approve or reject them in the Reviews section.' },
     { q: 'How is occupancy calculated?', a: `Confirmed + checked-in bookings over the total booking count (min ${DININGGASAN_ROOM_COUNT} rooms), updated in real time.` },
@@ -647,10 +690,11 @@ export function AdminsSection() {
 
   const roleBadge = (u: any) => {
     if (u.role === 'LGU') return <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">LGU</span>;
-    if (u.role === 'BUSINESS' && u.businessId === DININGGASAN_BUSINESS_ID) return <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Dininggasan Admin</span>;
-    if (u.role === 'BUSINESS') return <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600">Business</span>;
-    return <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-500">Tourist</span>;
+    return <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Dininggasan Admin</span>;
   };
+
+  const admins = users.filter(u =>
+    u.role === 'LGU' || (u.role === 'BUSINESS' && u.businessId === DININGGASAN_BUSINESS_ID));
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -678,10 +722,10 @@ export function AdminsSection() {
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
           <UilUsersAlt size="18" className="text-gray-500" />
-          <h3 className="font-semibold text-gray-900">Users ({users.length})</h3>
+          <h3 className="font-semibold text-gray-900">Admins ({admins.length})</h3>
         </div>
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Loading users...</div>
+          <div className="p-8 text-center text-gray-500">Loading admins...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -693,15 +737,15 @@ export function AdminsSection() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {users.map(u => (
+                {admins.map(u => (
                   <tr key={u.id} className="hover:bg-gray-50">
                     <td className="px-6 py-3 text-sm font-medium text-gray-900">{u.displayName || u.name || '—'}</td>
                     <td className="px-6 py-3 text-sm text-gray-600">{u.email || '—'}</td>
                     <td className="px-6 py-3">{roleBadge(u)}</td>
                   </tr>
                 ))}
-                {users.length === 0 && (
-                  <tr><td colSpan={3} className="px-6 py-8 text-center text-gray-500">No users yet</td></tr>
+                {admins.length === 0 && (
+                  <tr><td colSpan={3} className="px-6 py-8 text-center text-gray-500">No admins yet</td></tr>
                 )}
               </tbody>
             </table>
