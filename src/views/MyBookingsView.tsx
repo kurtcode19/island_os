@@ -96,6 +96,7 @@ export default function MyBookingsView() {
       case 'confirmed': return 'bg-emerald-50 text-island-emerald border-emerald-100';
       case 'pending': return 'bg-amber-50 text-island-sunset border-amber-100';
       case 'cancelled': return 'bg-rose-50 text-island-coral border-rose-100';
+      case 'checked_out': return 'bg-purple-50 text-purple-600 border-purple-100';
       default: return 'bg-stone-50 text-slate-500 border-stone-200';
     }
   };

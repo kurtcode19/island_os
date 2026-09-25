@@ -98,8 +98,13 @@ export default function DininggasanDashboard() {
   };
 
   const handleConfirm = async (id: string) => {
+    // selectedBooking is patched optimistically by the payment handlers, list may lag a snapshot
+    const booking = selectedBooking?.id === id ? selectedBooking : bookings.find(b => b.id === id);
+    if (booking?.paymentStatus !== 'VERIFIED') {
+      toast.error('Verify the payment before confirming');
+      return;
+    }
     try {
-      const booking = bookings.find(b => b.id === id);
       const patch: any = { status: 'confirmed' };
       if (
         booking &&
@@ -150,6 +155,34 @@ export default function DininggasanDashboard() {
       toast.success('Payment verified');
     } catch(err) {
       toast.error('Failed to verify payment');
+    }
+  };
+
+  const handleMarkPaid = async (id: string) => {
+    try {
+      await updateDoc(doc(db, 'bookings', id), {
+        paymentStatus: 'PAID',
+        paidAt: serverTimestamp(),
+      });
+      setSelectedBooking((prev: any) => prev ? { ...prev, paymentStatus: 'PAID' } : prev);
+      toast.success('Payment marked as received');
+    } catch(err) {
+      toast.error('Failed to mark payment');
+    }
+  };
+
+  const handleCheckedOut = async (id: string) => {
+    if (!window.confirm('Mark this booking as checked out? The record is kept and the room is freed.')) return;
+    try {
+      await updateDoc(doc(db, 'bookings', id), {
+        status: 'checked_out',
+        checkedOutAt: serverTimestamp(),
+      });
+      await removeOccupancy(id);
+      setSelectedBooking((prev: any) => prev?.id === id ? { ...prev, status: 'checked_out' } : prev);
+      toast.success('Guest checked out');
+    } catch(err) {
+      toast.error('Failed to check out');
     }
   };
 
@@ -280,6 +313,7 @@ export default function DininggasanDashboard() {
       case 'pending': return 'bg-yellow-100 text-yellow-700';
       case 'confirmed': return 'bg-blue-100 text-blue-700';
       case 'checked_in': return 'bg-green-100 text-green-700';
+      case 'checked_out': return 'bg-purple-100 text-purple-700';
       case 'cancelled': return 'bg-red-100 text-red-700';
       default: return 'bg-gray-100 text-gray-700';
     }
@@ -489,6 +523,7 @@ export default function DininggasanDashboard() {
                   <option value="pending">Pending</option>
                   <option value="confirmed">Confirmed</option>
                   <option value="checked_in">Checked In</option>
+                  <option value="checked_out">Checked Out</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
                 <select 
@@ -685,17 +720,48 @@ export default function DininggasanDashboard() {
               )}
 
               {selectedBooking.status === 'pending' && (
-                <div className="border border-amber-200 bg-amber-50 rounded-xl p-4">
-                  <p className="text-sm font-semibold text-amber-900 mb-3">Confirm Booking</p>
+                <div className={`rounded-xl p-4 space-y-3 border ${
+                  selectedBooking.paymentStatus === 'VERIFIED' ? 'border-amber-200 bg-amber-50' : 'border-gray-200 bg-gray-50'
+                }`}>
+                  <p className="text-sm font-semibold text-amber-900">Confirm Booking</p>
+                  {selectedBooking.paymentStatus === 'VERIFIED' ? (
+                    <button 
+                      onClick={() => handleConfirm(selectedBooking.id)}
+                      className="w-full px-4 py-2.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium text-sm transition-all">
+                      Confirm & Proceed
+                    </button>
+                  ) : (
+                    <>
+                      <p className="text-xs text-gray-600">Payment must be verified before this booking can be confirmed.</p>
+                      {(selectedBooking.paymentStatus || 'UNPAID') === 'UNPAID' && (
+                        <button 
+                          onClick={() => handleMarkPaid(selectedBooking.id)}
+                          className="w-full px-4 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-medium text-sm transition-all flex items-center justify-center gap-2">
+                          <UilDollarSign size="16" />
+                          Mark as Paid
+                        </button>
+                      )}
+                      {selectedBooking.paymentStatus === 'PAID' && (
+                        <p className="text-xs font-semibold text-amber-700">Payment received — use “Verify Payment” above to unlock confirming.</p>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {(selectedBooking.status === 'confirmed' || selectedBooking.status === 'checked_in') && (
+                <div className="border border-purple-200 bg-purple-50 rounded-xl p-4">
+                  <p className="text-sm font-semibold text-purple-900 mb-3">Close this stay (keeps the record)</p>
                   <button 
-                    onClick={() => handleConfirm(selectedBooking.id)}
-                    className="w-full px-4 py-2.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium text-sm transition-all">
-                    Confirm & Proceed
+                    onClick={() => handleCheckedOut(selectedBooking.id)}
+                    className="w-full px-4 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm transition-all flex items-center justify-center gap-2">
+                    <UilSignOutAlt size="16" />
+                    Mark as Checked Out
                   </button>
                 </div>
               )}
 
-              {selectedBooking.status !== 'departed' && selectedBooking.serviceType === 'stay' && (
+              {selectedBooking.status !== 'departed' && selectedBooking.status !== 'checked_out' && selectedBooking.serviceType === 'stay' && (
                 <div className="border border-blue-200 bg-blue-50 rounded-xl p-4 space-y-3">
                   <p className="text-sm font-semibold text-blue-900">Extend Stay</p>
                   <div className="flex items-end gap-2">

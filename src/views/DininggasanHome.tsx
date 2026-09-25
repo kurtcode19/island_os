@@ -109,8 +109,11 @@ export default function DininggasanHome() {
     return () => unsub();
   }, []);
   
-  const [checkIn, setCheckIn] = useState(new Date(2026, 6, 15));
-  const [checkOut, setCheckOut] = useState(new Date(2026, 6, 18));
+  const today = new Date();
+  const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+  // ponytail: 1-night default, tourist picks duration via the date inputs
+  const [checkIn, setCheckIn] = useState(tomorrow);
+  const [checkOut, setCheckOut] = useState(new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate() + 1, 12));
   const [adults, setAdults] = useState(2);
   const [purposeOfVisit, setPurposeOfVisit] = useState<'leisure' | 'business' | 'family' | 'transit' | 'other'>('leisure');
   const [roomStatus, setRoomStatus] = useState<'idle' | 'loading' | 'success'>('idle');
@@ -551,13 +554,13 @@ export default function DininggasanHome() {
                   <div className="flex-1">
                     <label className="text-[9px] font-semibold text-[#6e6e73] mb-1 block uppercase tracking-wider">Check-in</label>
                     <input type="date" value={checkIn.toISOString().split('T')[0]}
-                      onChange={e => { const d = new Date(e.target.value + 'T14:00:00'); setCheckIn(d); }}
+                      onChange={e => { const d = new Date(e.target.value + 'T14:00:00'); setCheckIn(d); if (checkOut.getTime() <= d.getTime()) setCheckOut(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1, 12)); }}
                       className="w-full px-4 py-3 bg-[#f5f5f7] border-2 border-[#e8e8ed] rounded-xl outline-none text-sm font-medium text-[#1d1d1f] focus:border-[#8b7355] transition-colors" />
                   </div>
                   <div className="flex-1">
                     <label className="text-[9px] font-semibold text-[#6e6e73] mb-1 block uppercase tracking-wider">Check-out</label>
                     <input type="date" value={checkOut.toISOString().split('T')[0]}
-                      onChange={e => { const d = new Date(e.target.value + 'T12:00:00'); setCheckOut(d); }}
+                      onChange={e => { const d = new Date(e.target.value + 'T12:00:00'); setCheckOut(d.getTime() > checkIn.getTime() ? d : new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate() + 1, 12)); }}
                       className="w-full px-4 py-3 bg-[#f5f5f7] border-2 border-[#e8e8ed] rounded-xl outline-none text-sm font-medium text-[#1d1d1f] focus:border-[#8b7355] transition-colors" />
                   </div>
                 </div>

@@ -117,7 +117,8 @@ export default function MobileAppView() {
   const today = new Date();
   const [showBooking, setShowBooking] = useState(false);
   const [checkIn, setCheckIn] = useState<Date>(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1));
-  const [checkOut, setCheckOut] = useState<Date>(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3));
+  // ponytail: 1-night default, tourist picks duration in the calendar
+  const [checkOut, setCheckOut] = useState<Date>(new Date(checkIn.getFullYear(), checkIn.getMonth(), checkIn.getDate() + 1));
   const [guests, setGuests] = useState(2);
   const [addons, setAddons] = useState({ breakfast: false, lateCheckin: false });
   const [selectedImage, setSelectedImage] = useState(0);
@@ -1086,7 +1087,8 @@ export default function MobileAppView() {
                 </h4>
                 <MonthCalendar 
                   checkIn={checkIn} checkOut={checkOut}
-                  onSelectCheckIn={setCheckIn} onSelectCheckOut={setCheckOut}
+                  onSelectCheckIn={d => { setCheckIn(d); if (checkOut <= d) setCheckOut(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)); }}
+                  onSelectCheckOut={setCheckOut}
                 />
               </div>
 

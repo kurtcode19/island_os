@@ -78,7 +78,8 @@ export async function backfillRoomAssignments(bookings: any[]): Promise<number> 
   for (const b of bookings) {
     if (b.businessId !== DININGGASAN_BUSINESS_ID) continue;
     if (b.serviceType !== 'stay' || b.bookingCategory === 'event') continue;
-    if (b.status === 'cancelled') continue;
+    // closed stays must not be re-occupied by the backfill
+    if (b.status === 'cancelled' || b.status === 'checked_out' || b.status === 'departed') continue;
     const range = stayRange(b);
     if (!range) continue;
     const hasOcc = occupancy.some(o => o.id === b.id);

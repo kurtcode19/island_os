@@ -54,7 +54,7 @@ export interface UserProfile {
 
 export type ServiceType = 'stay' | 'transport' | 'spot' | 'tour' | 'dining' | 'shop' | 'rental';
 
-export type BookingStatus = 'pending' | 'confirmed' | 'checked_in' | 'cancelled' | 'departed';
+export type BookingStatus = 'pending' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled' | 'departed';
 
 export type PaymentStatus = 'UNPAID' | 'PAID' | 'VERIFIED' | 'REFUNDED';
 
