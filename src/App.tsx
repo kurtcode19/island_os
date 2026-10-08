@@ -11,6 +11,7 @@ import { createPass } from './lib/passService';
 import { logEvent } from './lib/auditService';
 import { isNativePlatform } from './lib/capacitorAuth';
 import OnboardingModal from './components/modals/OnboardingModal';
+import { dininggasanData, DININGGASAN_BUSINESS_ID } from './data/dininggasanData';
 
 export default function App() {
   const [role, setRole] = useState<UserRole>('TOURIST');
@@ -23,6 +24,19 @@ export default function App() {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const initializeDininggasanBusiness = async () => {
+      try {
+        await setDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID), dininggasanData, { merge: true });
+        console.log('Dininggasan business initialized/updated:', DININGGASAN_BUSINESS_ID);
+      } catch (error) {
+        console.error('Failed to initialize Dininggasan business:', error);
+        handleFirestoreError(error, OperationType.UPDATE, 'businesses');
+      }
+    };
+    initializeDininggasanBusiness();
   }, []);
 
   useEffect(() => {

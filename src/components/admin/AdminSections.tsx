@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, getDoc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { toast } from 'sonner';
 import { DININGGASAN_BUSINESS_ID, DININGGASAN_ROOM_COUNT, DININGGASAN_IMAGES } from '../../data/dininggasanData';
 import { dayKey, backfillRoomAssignments } from '../../lib/roomAssignment';
 import {
-  UilTrashAlt, UilPlus, UilDollarSign, UilBedDouble, UilChartPie, UilSave, UilBell, UilUsersAlt, UilShield
+  UilTrashAlt, UilPlus, UilDollarSign, UilBedDouble, UilChartPie, UilSave, UilBell, UilUsersAlt, UilShield, UilCalendar
 } from '@/icons';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid
@@ -345,28 +345,84 @@ export function RatesSection() {
   const [timeSlots, setTimeSlots] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [initializing, setInitializing] = useState(false);
+  const [calendarView, setCalendarView] = useState<'month' | 'week'>('month');
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [eventBookings, setEventBookings] = useState<any[]>([]);
 
   useEffect(() => {
-    getDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID)).then(snap => {
-      if (snap.exists()) {
-        const d = snap.data();
-        setRoomTypes(d.roomTypes || []);
-        setTimeSlots(d.functionRoom?.timeSlots || []);
+    const loadData = async () => {
+      try {
+        const snap = await getDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID));
+        if (snap.exists()) {
+          const d = snap.data();
+          setRoomTypes(d.roomTypes || []);
+          setTimeSlots(d.functionRoom?.timeSlots || []);
+        }
+      } catch (e) {
+        handleFirestoreError(e, OperationType.READ, 'businesses');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    };
+    loadData();
   }, []);
+
+  useEffect(() => {
+    const q = query(
+      collection(db, 'bookings'),
+      where('businessId', '==', DININGGASAN_BUSINESS_ID),
+      where('bookingCategory', '==', 'event')
+    );
+    const unsubscribe = onSnapshot(q, snap => {
+      setEventBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, () => {});
+    return () => unsubscribe();
+  }, []);
+
+  const initializeDefaultRates = async () => {
+    setInitializing(true);
+    try {
+      await setDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID), {
+        roomTypes: [
+          { id: 'room-main', name: 'Dininggasan Room', basePrice: 3800, capacity: 8, unitCount: 12 },
+        ],
+        functionRoom: {
+          name: 'Dininggasan Function Room',
+          capacity: 80,
+          description: 'A versatile function room perfect for meetings, celebrations, and gatherings.',
+          timeSlots: [
+            { id: 'morning', label: 'Morning Session', baseHours: 3, basePrice: 2000, succeedingRate: 200, endTime: '17:00', endTimeLabel: '5:00 PM' },
+            { id: 'night', label: 'Night Session', baseHours: 3, basePrice: 3000, succeedingRate: 300, endTime: '00:00', endTimeLabel: '12:00 AM' },
+          ],
+          addons: [
+            { id: 'addon-sound', name: 'Sound System', price: 1800, priceType: 'flat' },
+            { id: 'addon-pickleball', name: 'Pickleball Court Access', price: 150, priceType: 'per_hour' },
+          ],
+        },
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+      toast.success('Default rates initialized');
+      setRoomTypes([{ id: 'room-main', name: 'Dininggasan Room', basePrice: 3800, capacity: 8, unitCount: 12 }]);
+      setTimeSlots([
+        { id: 'morning', label: 'Morning Session', baseHours: 3, basePrice: 2000, succeedingRate: 200, endTime: '17:00', endTimeLabel: '5:00 PM' },
+        { id: 'night', label: 'Night Session', baseHours: 3, basePrice: 3000, succeedingRate: 300, endTime: '00:00', endTimeLabel: '12:00 AM' },
+      ]);
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, 'businesses');
+    } finally {
+      setInitializing(false);
+    }
+  };
 
   const save = async () => {
     setSaving(true);
     try {
-      const bizSnap = await getDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID));
-      const prev = bizSnap.exists() ? bizSnap.data() : {};
-      await updateDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID), {
+      await setDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID), {
         roomTypes,
-        functionRoom: { ...(prev.functionRoom || {}), timeSlots },
+        functionRoom: { timeSlots },
         updatedAt: serverTimestamp(),
-      });
+      }, { merge: true });
       toast.success('Rates saved');
     } catch (e) {
       handleFirestoreError(e, OperationType.UPDATE, 'businesses');
@@ -377,51 +433,158 @@ export function RatesSection() {
     setArr(arr.map((item, i) => i === idx ? { ...item, [field]: value } : item));
   };
 
+  const getEventsByDateRange = (startDate: string, endDate: string) => {
+    return eventBookings.filter(e => {
+      if (!e.eventStartTimestamp?.toDate || !e.eventEndTimestamp?.toDate) return false;
+      const eStart = e.eventStartTimestamp.toDate().toISOString().split('T')[0];
+      const eEnd = e.eventEndTimestamp.toDate().toISOString().split('T')[0];
+      return eStart <= endDate && eEnd >= startDate;
+    });
+  };
+
+  const generateWeekDates = (centerDate: string) => {
+    const d = new Date(centerDate);
+    const start = new Date(d);
+    start.setDate(d.getDate() - 3);
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + i);
+      return date.toISOString().split('T')[0];
+    });
+  };
+
+  const generateMonthDates = (yearMonth: string) => {
+    const [year, month] = yearMonth.split('-').map(Number);
+    const d = new Date(year, month - 1, 1);
+    const dates: string[] = [];
+    while (d.getMonth() === month - 1) {
+      dates.push(d.toISOString().split('T')[0]);
+      d.setDate(d.getDate() + 1);
+    }
+    return dates;
+  };
+
+  const weekDates = generateWeekDates(selectedDate);
+  const monthDates = generateMonthDates(selectedDate.slice(0, 7));
+  const calendarDates = calendarView === 'week' ? weekDates : monthDates;
+
   if (loading) return <div className="p-12 text-center text-gray-500">Loading rates...</div>;
+
+  const hasData = roomTypes.length > 0 && timeSlots.length > 0;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Rates</h2>
-          <p className="text-gray-600">Edit room and function room rates</p>
+          <h2 className="text-2xl font-bold text-gray-900">Rates & Availability</h2>
+          <p className="text-gray-600">Edit room and function room rates, view availability</p>
         </div>
-        <button onClick={save} disabled={saving}
-          className="px-5 py-2.5 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50">
-          <UilSave size="16" /> {saving ? 'Saving...' : 'Save Rates'}
-        </button>
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2"><UilBedDouble size="18" /> Rooms</h3>
-        <div className="space-y-3">
-          {roomTypes.map((rt, i) => (
-            <div key={rt.id || i} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <span className="flex-1 font-medium text-gray-900">{rt.name}</span>
-              <label className="text-xs text-gray-500">Base ₱</label>
-              <input type="number" value={rt.basePrice || 0} onChange={e => updateField(roomTypes, setRoomTypes, i, 'basePrice', Number(e.target.value))}
-                className="w-32 px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-            </div>
-          ))}
+        <div className="flex gap-2">
+          {!hasData && (
+            <button onClick={initializeDefaultRates} disabled={initializing}
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50">
+              <UilPlus size="16" /> {initializing ? 'Initializing...' : 'Initialize Default Rates'}
+            </button>
+          )}
+          <button onClick={save} disabled={saving || !hasData}
+            className="px-5 py-2.5 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-sm font-medium flex items-center gap-2 disabled:opacity-50">
+            <UilSave size="16" /> {saving ? 'Saving...' : 'Save Rates'}
+          </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2"><UilDollarSign size="18" /> Function Room Slots</h3>
-        <div className="space-y-3">
-          {timeSlots.map((ts, i) => (
-            <div key={ts.id || i} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <span className="flex-1 font-medium text-gray-900">{ts.label}</span>
-              <label className="text-xs text-gray-500">Base ₱</label>
-              <input type="number" value={ts.basePrice || 0} onChange={e => updateField(timeSlots, setTimeSlots, i, 'basePrice', Number(e.target.value))}
-                className="w-28 px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-              <label className="text-xs text-gray-500">Succeeding ₱/hr</label>
-              <input type="number" value={ts.succeedingRate || 0} onChange={e => updateField(timeSlots, setTimeSlots, i, 'succeedingRate', Number(e.target.value))}
-                className="w-28 px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-            </div>
-          ))}
+      {!hasData ? (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
+          <p className="text-yellow-800 font-medium">No rates found. Click "Initialize Default Rates" to set up pricing.</p>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2"><UilBedDouble size="18" /> Rooms</h3>
+            <div className="space-y-3">
+              {roomTypes.map((rt, i) => (
+                <div key={rt.id || i} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                  <span className="flex-1 font-medium text-gray-900">{rt.name}</span>
+                  <label className="text-xs text-gray-500">Base ₱</label>
+                  <input type="number" value={rt.basePrice || 0} onChange={e => updateField(roomTypes, setRoomTypes, i, 'basePrice', Number(e.target.value))}
+                    className="w-32 px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2"><UilDollarSign size="18" /> Function Room Slots</h3>
+            <div className="space-y-3">
+              {timeSlots.map((ts, i) => (
+                <div key={ts.id || i} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                  <span className="flex-1 font-medium text-gray-900">{ts.label}</span>
+                  <label className="text-xs text-gray-500">Base ₱</label>
+                  <input type="number" value={ts.basePrice || 0} onChange={e => updateField(timeSlots, setTimeSlots, i, 'basePrice', Number(e.target.value))}
+                    className="w-28 px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+                  <label className="text-xs text-gray-500">Succeeding ₱/hr</label>
+                  <input type="number" value={ts.succeedingRate || 0} onChange={e => updateField(timeSlots, setTimeSlots, i, 'succeedingRate', Number(e.target.value))}
+                    className="w-28 px-3 py-2 border border-gray-200 rounded-lg text-sm" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2"><UilCalendar size="18" /> Function Room Availability</h3>
+              <div className="flex gap-2">
+                <button onClick={() => setCalendarView('week')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium ${calendarView === 'week' ? 'bg-slate-700 text-white' : 'bg-gray-100 text-gray-700'}`}>
+                  Week
+                </button>
+                <button onClick={() => setCalendarView('month')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium ${calendarView === 'month' ? 'bg-slate-700 text-white' : 'bg-gray-100 text-gray-700'}`}>
+                  Month
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={() => {
+                const d = new Date(selectedDate);
+                d.setDate(d.getDate() - (calendarView === 'week' ? 7 : 1));
+                setSelectedDate(d.toISOString().split('T')[0]);
+              }} className="px-3 py-1 text-sm text-slate-600 hover:text-slate-900">← Prev</button>
+              <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
+                className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm" />
+              <button onClick={() => {
+                const d = new Date(selectedDate);
+                d.setDate(d.getDate() + (calendarView === 'week' ? 7 : 1));
+                setSelectedDate(d.toISOString().split('T')[0]);
+              }} className="px-3 py-1 text-sm text-slate-600 hover:text-slate-900">Next →</button>
+            </div>
+            <div className={`grid gap-2 ${calendarView === 'week' ? 'grid-cols-7' : 'grid-cols-7'}`}>
+              {calendarDates.map(date => {
+                const events = eventBookings.filter(e => {
+                  if (!e.eventStartTimestamp?.toDate || !e.eventEndTimestamp?.toDate) return false;
+                  const eStart = e.eventStartTimestamp.toDate().toISOString().split('T')[0];
+                  const eEnd = e.eventEndTimestamp.toDate().toISOString().split('T')[0];
+                  return date >= eStart && date < eEnd;
+                });
+                const isSelected = date === selectedDate;
+                const d = new Date(date);
+                const dayName = d.toLocaleString('default', { weekday: 'short' });
+                const dayNum = d.getDate();
+                return (
+                  <div key={date} onClick={() => setSelectedDate(date)}
+                    className={`p-3 rounded-lg border text-center cursor-pointer transition-all ${
+                      isSelected ? 'border-slate-700 bg-slate-50' : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}>
+                    <div className="text-xs font-semibold text-gray-600">{dayName}</div>
+                    <div className="text-sm font-bold text-gray-900">{dayNum}</div>
+                    {events.length > 0 && <div className="text-xs text-blue-600 mt-1 font-semibold">{events.length} booked</div>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

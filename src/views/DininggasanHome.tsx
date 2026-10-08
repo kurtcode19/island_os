@@ -296,18 +296,25 @@ export default function DininggasanHome() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {[
-            { title: 'Tour Packages', description: 'Heritage walks, island tours, nature escapes, and food trips — all guided and hassle-free.', action: 'Book Tour', onClick: () => { setSelectedTour(tourPackages[0]); setShowTourBooking(true); } },
-            { title: 'Rooms', description: `${DININGGASAN_ROOM_COUNT} rooms · up to ${MAX_ADULTS} guests at ₱${roomPrice.toLocaleString()}/night. Perfect for families and groups.`, action: 'Book Now', onClick: () => setShowRoomBooking(true) },
-            { title: 'Function Room', description: 'Morning until 5:00 PM (₱2,000 first 3 hrs, +₱200/hr) or night until 12:00 AM (₱3,000 first 3 hrs, +₱300/hr). Tables & chairs included.', action: 'Reserve Now', onClick: () => navigate('/function-room') },
-            { title: 'Pickleball Court', description: 'Enjoy a game on our pickleball court. ₱150/hr for non-guests, free for guests.', action: 'Inquire', onClick: () => navigate('/function-room') },
+            { title: 'Tour Packages', description: 'Heritage walks, island tours, nature escapes, and food trips — all guided and hassle-free.', action: 'Book Tour', onClick: () => { setSelectedTour(tourPackages[0]); setShowTourBooking(true); }, comingSoon: true },
+            { title: 'Rooms', description: `${DININGGASAN_ROOM_COUNT} rooms · up to ${MAX_ADULTS} guests at ₱${roomPrice.toLocaleString()}/night. Perfect for families and groups.`, action: 'Book Now', onClick: () => setShowRoomBooking(true), comingSoon: false },
+            { title: 'Function Room', description: 'Morning until 5:00 PM (₱2,000 first 3 hrs, +₱200/hr) or night until 12:00 AM (₱3,000 first 3 hrs, +₱300/hr). Tables & chairs included.', action: 'Reserve Now', onClick: () => navigate('/function-room'), comingSoon: false },
+            { title: 'Pickleball Court', description: 'Enjoy a game on our pickleball court. ₱150/hr for non-guests, free for guests.', action: 'Inquire', onClick: () => navigate('/function-room'), comingSoon: false },
           ].map((item, i) => (
             <motion.div key={item.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-              className="bg-white rounded-2xl border border-[#e8e8ed] p-8 hover:shadow-lg hover:shadow-black/[0.02] transition-all group">
+              className="relative bg-white rounded-2xl border border-[#e8e8ed] p-8 hover:shadow-lg hover:shadow-black/[0.02] transition-all group">
+              {item.comingSoon && (
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
+                  <div className="text-center">
+                    <p className="text-white text-lg font-semibold">Coming Soon</p>
+                  </div>
+                </div>
+              )}
               <h3 className="text-xl font-semibold text-[#1d1d1f] tracking-[-0.01em] mb-3">{item.title}</h3>
               <p className="text-[#6e6e73] text-sm leading-relaxed mb-8">{item.description}</p>
-              <button onClick={item.onClick}
-                className="flex items-center gap-1.5 text-sm font-semibold text-[#8b7355] hover:text-[#6b5a40] transition-all group/btn">
+              <button onClick={item.onClick} disabled={item.comingSoon}
+                className="flex items-center gap-1.5 text-sm font-semibold text-[#8b7355] hover:text-[#6b5a40] transition-all group/btn disabled:opacity-50 disabled:cursor-not-allowed">
                 {item.action}
               </button>
             </motion.div>
@@ -328,13 +335,18 @@ export default function DininggasanHome() {
             {tourPackages.map((tour, i) => (
               <motion.div key={tour.id} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                className="bg-white rounded-2xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg transition-all group">
+                className="relative bg-white rounded-2xl border border-[#e8e8ed] overflow-hidden hover:shadow-lg transition-all group">
                 <div className="relative h-44 bg-[#f5f5f7] overflow-hidden">
                   <div className="absolute inset-0 flex items-center justify-center text-[#8b7355]">
                     <UilCompass size="48" className="opacity-30" />
                   </div>
                   <div className="absolute top-3 left-3 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-[10px] font-semibold text-[#8b7355]">
                     {tour.duration}
+                  </div>
+                </div>
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
+                  <div className="text-center">
+                    <p className="text-white text-lg font-semibold">Coming Soon</p>
                   </div>
                 </div>
                 <div className="p-5">
@@ -353,8 +365,8 @@ export default function DininggasanHome() {
                       {tour.duration} · Up to {tour.persons} pax
                     </div>
                     <button 
-                      onClick={() => { setSelectedTour(tour); setShowTourBooking(true); }}
-                      className="px-4 py-2 bg-[#8b7355] text-white text-xs font-bold rounded-lg hover:bg-[#6b5a40] transition-colors"
+                      disabled
+                      className="px-4 py-2 bg-[#8b7355] text-white text-xs font-bold rounded-lg opacity-50 cursor-not-allowed"
                     >
                       Book Tour
                     </button>

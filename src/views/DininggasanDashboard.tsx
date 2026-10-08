@@ -15,6 +15,7 @@ import {
   DashboardSection, RoomsSection, ExpensesSection, RatesSection,
   PerformanceSection, SettingsSection, GuideSection, FaqSection, HelpSection, AdminsSection
 } from '../components/admin/AdminSections';
+import AddBookingModal from '../components/admin/AddBookingModal';
 import { DININGGASAN_ROOM_COUNT } from '../data/dininggasanData';
 import {
   stayRange, pickFreeRoomNumber, subscribeOccupancy, writeOccupancy,
@@ -57,6 +58,7 @@ export default function DininggasanDashboard() {
   const [sortBy, setSortBy] = useState('date');
   const [selectedDate, setSelectedDate] = useState(() => dayKey(new Date()));
   const [occupancy, setOccupancy] = useState<any[]>([]);
+  const [showAddBookingModal, setShowAddBookingModal] = useState(false);
 
   useEffect(() => {
     return subscribeOccupancy(setOccupancy);
@@ -549,7 +551,7 @@ export default function DininggasanDashboard() {
                   <option value="guest">Sort by Guest</option>
                   <option value="room">Sort by Room</option>
                 </select>
-                <button className="px-6 py-2.5 bg-slate-700 hover:bg-slate-800 text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2">
+                <button onClick={() => setShowAddBookingModal(true)} className="px-6 py-2.5 bg-slate-700 hover:bg-slate-800 text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2">
                   <UilPlus size="18" />
                   Add Booking
                 </button>
@@ -842,7 +844,14 @@ export default function DininggasanDashboard() {
             </div>
           </motion.div>
         </div>
-      )}
+       )}
+
+      <AddBookingModal
+        isOpen={showAddBookingModal}
+        onClose={() => setShowAddBookingModal(false)}
+        bookings={bookings}
+        occupancy={occupancy}
+      />
     </div>
   );
 }

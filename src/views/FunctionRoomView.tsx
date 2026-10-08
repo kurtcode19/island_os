@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { UilBuilding, UilCheckCircle, UilUsersAlt, UilClock, UilSun, UilMoon, UilMusic, UilTennisBall, UilArrowLeft } from '@/icons';
+import { UilBuilding, UilCheckCircle, UilUsersAlt, UilClock, UilSun, UilMoon, UilMusic, UilTennisBall, UilArrowLeft, UilCalendar } from '@/icons';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType, Timestamp } from '../firebase';
-import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDoc, query, where, onSnapshot } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { getPilotConfig, isDininggasanPilot, type PilotConfig } from '../lib/pilotService';
 import type { Business } from '../types';
@@ -15,6 +15,7 @@ export default function FunctionRoomView() {
   const [pilotConfig, setPilotConfig] = useState<PilotConfig | null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
+  const [eventBookings, setEventBookings] = useState<any[]>([]);
 
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [startTime, setStartTime] = useState('09:00');
@@ -24,6 +25,7 @@ export default function FunctionRoomView() {
   const [specialRequests, setSpecialRequests] = useState('');
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
 
   useEffect(() => {
     getPilotConfig().then(async (config) => {
@@ -39,6 +41,19 @@ export default function FunctionRoomView() {
       setLoading(false);
     });
   }, []);
+
+  useEffect(() => {
+    if (!pilotConfig?.businessId) return;
+    const q = query(
+      collection(db, 'bookings'),
+      where('businessId', '==', pilotConfig.businessId),
+      where('bookingCategory', '==', 'event')
+    );
+    const unsubscribe = onSnapshot(q, snap => {
+      setEventBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, () => {});
+    return () => unsubscribe();
+  }, [pilotConfig?.businessId]);
 
   const fRoom = business?.functionRoom;
 
@@ -64,7 +79,6 @@ export default function FunctionRoomView() {
       if (endTime <= startTime) return 'End time must be after start time';
       return null;
     }
-    // night: may run to midnight (00:00 next day); reject nonsensical end before start only if not 00:00
     if (endTime === '00:00') return null;
     if (endTime < startTime) return 'End time must be after start time (or 12:00 AM for midnight)';
     return null;
@@ -77,7 +91,6 @@ export default function FunctionRoomView() {
     let startMins = sh * 60 + sm;
     let endMins = eh * 60 + em;
     if (endMins <= startMins) {
-      // only night sessions may roll past midnight (end 00:00 or end before start)
       if (inferredSlot === 'night') endMins += 24 * 60;
       else return 0;
     }
@@ -119,6 +132,30 @@ export default function FunctionRoomView() {
     };
   }, [slotConfig, durationHours, selectedAddons, fRoom?.addons]);
 
+  const getDateAvailability = (date: string) => {
+    const events = eventBookings.filter(e => {
+      if (!e.eventStartTimestamp?.toDate || !e.eventEndTimestamp?.toDate) return false;
+      const eStart = e.eventStartTimestamp.toDate().toISOString().split('T')[0];
+      const eEnd = e.eventEndTimestamp.toDate().toISOString().split('T')[0];
+      return date >= eStart && date < eEnd;
+    });
+    return { booked: events.length > 0, count: events.length };
+  };
+
+  const generateCalendarDays = () => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    const days: (number | null)[] = [];
+    for (let i = 0; i < startingDayOfWeek; i++) days.push(null);
+    for (let i = 1; i <= daysInMonth; i++) days.push(i);
+    return days;
+  };
+
   const handleBook = async () => {
     if (!user) { login(); return; }
     if (!business || !priceBreakdown || durationHours <= 0) return;
@@ -126,7 +163,6 @@ export default function FunctionRoomView() {
     setBookingStatus('loading');
 
     const startDateTime = new Date(`${selectedDate}T${startTime}:00`);
-    // night session ending at 00:00 rolls to next calendar day
     const endDateTime = new Date(`${selectedDate}T${endTime}:00`);
     if (endDateTime <= startDateTime) endDateTime.setDate(endDateTime.getDate() + 1);
 
@@ -171,6 +207,9 @@ export default function FunctionRoomView() {
 
   const inputClass = "w-full px-4 py-3.5 bg-white border border-[#d2d2d7] rounded-xl outline-none text-sm text-[#1d1d1f] placeholder:text-[#86868b] focus:border-[#8b7355] focus:ring-1 focus:ring-[#8b7355]/20 transition-all";
   const labelClass = "block text-xs font-semibold text-[#6e6e73] tracking-[-0.01em] mb-2";
+
+  const calendarDays = generateCalendarDays();
+  const today = new Date().toISOString().slice(0, 10);
 
   if (loading) {
     return (
@@ -232,17 +271,53 @@ export default function FunctionRoomView() {
               <div className="lg:col-span-3 space-y-6">
                 <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
                   className="bg-white rounded-2xl border border-[#e8e8ed] p-8">
-                  <h2 className="text-lg font-semibold text-[#1d1d1f] tracking-[-0.01em] mb-8">Book the Function Room</h2>
+                  <h2 className="text-lg font-semibold text-[#1d1d1f] tracking-[-0.01em] mb-6">Availability & Booking</h2>
+
+                  <div className="mb-8">
+                    <label className={labelClass}>Select Date</label>
+                    <div className="bg-[#f5f5f7] rounded-xl p-4 mb-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1))}
+                          className="px-3 py-1.5 text-sm text-[#6e6e73] hover:text-[#1d1d1f] font-medium">← Prev</button>
+                        <h3 className="font-semibold text-[#1d1d1f]">
+                          {calendarMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                        </h3>
+                        <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1))}
+                          className="px-3 py-1.5 text-sm text-[#6e6e73] hover:text-[#1d1d1f] font-medium">Next →</button>
+                      </div>
+                      <div className="grid grid-cols-7 gap-1 mb-2">
+                        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                          <div key={day} className="text-center text-xs font-semibold text-[#86868b] py-2">
+                            {day}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-7 gap-1">
+                        {calendarDays.map((day, idx) => {
+                          if (day === null) return <div key={`empty-${idx}`} />;
+                          const dateStr = `${calendarMonth.getFullYear()}-${String(calendarMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                          const isPast = dateStr < today;
+                          const isSelected = dateStr === selectedDate;
+                          const availability = getDateAvailability(dateStr);
+                          return (
+                            <button key={day} disabled={isPast}
+                              onClick={() => setSelectedDate(dateStr)}
+                              className={`py-2 rounded-lg text-sm font-semibold transition-all ${
+                                isSelected ? 'bg-[#8b7355] text-white border-[#8b7355]' :
+                                availability.booked ? 'bg-red-100 text-red-700 border border-red-200' :
+                                isPast ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
+                                'bg-white text-[#1d1d1f] border border-[#e8e8ed] hover:border-[#8b7355]'
+                              }`}>
+                              {day}
+                              {availability.booked && !isSelected && <div className="text-[9px]">booked</div>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
 
                   <div className="space-y-6">
-                    <div>
-                      <label className={labelClass}>Date</label>
-                      <input type="date" value={selectedDate}
-                        onChange={e => setSelectedDate(e.target.value)}
-                        min={new Date().toISOString().slice(0, 10)}
-                        className={inputClass} />
-                    </div>
-
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className={labelClass}>Start Time</label>
