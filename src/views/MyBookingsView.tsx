@@ -29,8 +29,7 @@ import { toast } from 'sonner';
 import ReviewForm from '../components/shared/ReviewForm';
 import { requestCancellation, processRefundEligibility } from '../lib/refundService';
 import { QRCodeSVG } from 'qrcode.react';
-import StripePaymentModal from '../components/shared/StripePaymentModal';
-import { isStripeConfigured } from '../lib/paymentUtils';
+import { LANDBANK_DETAILS } from '../lib/paymentUtils';
 
 export default function MyBookingsView() {
   const { user } = useAuth();
@@ -40,9 +39,8 @@ export default function MyBookingsView() {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
-  const [cancellingBooking, setCancellingBooking] = useState<{ id: string; eligibility: string } | null>(null);
-  const [showPaymentModal, setShowPaymentModal] = useState<string | null>(null);
-  const [cancelReason, setCancelReason] = useState('');
+   const [cancellingBooking, setCancellingBooking] = useState<{ id: string; eligibility: string } | null>(null);
+   const [cancelReason, setCancelReason] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [reviewFilter, setReviewFilter] = useState<'all' | 'reviewable'>('all');
 
@@ -353,44 +351,64 @@ export default function MyBookingsView() {
                             <span className="text-xs font-bold tracking-wider">Cancelled</span>
                           </div>
                         ) : (
-                          <>
-                            <button 
-                              onClick={() => handleSimulatePayment(booking.id)}
-                              disabled={processingId === booking.id}
-                              className="btn-primary w-full py-5 rounded-[2rem] text-[10px]"
-                            >
-                              {processingId === booking.id ? (
-                                <UilRefresh size="20" className="animate-spin" />
-                              ) : (
-                                <UilCreditCard size="20" />
-                              )}
-                              Pay Online (LGU)
-                            </button>
-                            {isStripeConfigured() && (
-                              <button
-                                onClick={() => setShowPaymentModal(booking.id)}
-                                className="w-full py-4 bg-white border-2 border-island-emerald/20 text-island-emerald rounded-[2rem] text-[10px] font-bold tracking-wider hover:bg-island-emerald/5 transition-all flex items-center justify-center gap-2"
-                              >
-                                <UilCreditCard size="16" />
-                                Pay with Card / GCash
-                              </button>
-                            )}
-                            <button
-                              onClick={() => {
-                                const eligibility = processRefundEligibility(booking, new Date());
-                                setCancellingBooking({ id: booking.id, eligibility });
-                                setCancelReason('');
-                              }}
-                              className="flex items-center justify-center gap-2 py-4 bg-white border-2 border-rose-200 text-island-coral rounded-[2rem] text-[10px] font-bold tracking-wider hover:bg-rose-50 transition-all"
-                            >
-                              <UilTimesCircle size="16" />
-                              Cancel Booking
-                            </button>
-                            <p className="text-[10px] text-center text-slate-400 font-semibold tracking-tight opacity-60">Payment processed by LGU or online</p>
-                          </>
-                        )}
+                           <>
+                             <button 
+                               onClick={() => handleSimulatePayment(booking.id)}
+                               disabled={processingId === booking.id}
+                               className="btn-primary w-full py-5 rounded-[2rem] text-[10px]"
+                             >
+                               {processingId === booking.id ? (
+                                 <UilRefresh size="20" className="animate-spin" />
+                               ) : (
+                                 <UilCreditCard size="20" />
+                               )}
+                               Mark Payment Complete
+                             </button>
+                             <button
+                               onClick={() => {
+                                 const eligibility = processRefundEligibility(booking, new Date());
+                                 setCancellingBooking({ id: booking.id, eligibility });
+                                 setCancelReason('');
+                               }}
+                               className="flex items-center justify-center gap-2 py-4 bg-white border-2 border-rose-200 text-island-coral rounded-[2rem] text-[10px] font-bold tracking-wider hover:bg-rose-50 transition-all"
+                             >
+                               <UilTimesCircle size="16" />
+                               Cancel Booking
+                             </button>
+                             <p className="text-[10px] text-center text-slate-400 font-semibold tracking-tight opacity-60">Transfer payment details shown above</p>
+                           </>
+                         )}
                       </div>
                     </div>
+
+                    {/* Payment Details & Instructions */}
+                    {booking.status === 'pending' && booking.paymentStatus !== 'PAID' && booking.paymentStatus !== 'VERIFIED' && (
+                      <div className="mt-10 p-6 bg-blue-50 rounded-[2rem] border-2 border-blue-100">
+                        <h4 className="font-bold text-blue-900 tracking-wider text-[10px] mb-4 block">BANK TRANSFER PAYMENT DETAILS</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[11px]">
+                          <div>
+                            <span className="text-blue-700 font-semibold block text-[9px] mb-1">Account Name</span>
+                            <span className="text-blue-900 font-bold">{LANDBANK_DETAILS.accountName}</span>
+                          </div>
+                          <div>
+                            <span className="text-blue-700 font-semibold block text-[9px] mb-1">Account Number</span>
+                            <span className="text-blue-900 font-bold font-mono">{LANDBANK_DETAILS.accountNumber}</span>
+                          </div>
+                          <div>
+                            <span className="text-blue-700 font-semibold block text-[9px] mb-1">Bank</span>
+                            <span className="text-blue-900 font-bold">{LANDBANK_DETAILS.bankName}</span>
+                          </div>
+                          <div>
+                            <span className="text-blue-700 font-semibold block text-[9px] mb-1">Amount</span>
+                            <span className="text-blue-900 font-bold">₱{booking.amount?.toLocaleString()}</span>
+                          </div>
+                          <div className="sm:col-span-2">
+                            <span className="text-blue-700 font-semibold block text-[9px] mb-1">Contact for Confirmation</span>
+                            <p className="text-blue-900 font-bold">{LANDBANK_DETAILS.email} | {LANDBANK_DETAILS.phone}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Operational Notes */}
                     {booking.status === 'pending' && booking.paymentStatus !== 'PAID' && booking.paymentStatus !== 'VERIFIED' && (
@@ -401,7 +419,7 @@ export default function MyBookingsView() {
                         <div>
                           <span className="font-bold text-amber-900 tracking-wider text-[10px] mb-1 block">Reminder</span>
                           <p className="text-[11px] text-amber-800 font-bold leading-relaxed italic">
-                            Payment is processed by the LGU. Your booking will be confirmed once payment is verified.
+                            Transfer the payment to the account above, then contact us to confirm. Your booking will be confirmed once payment is verified.
                           </p>
                         </div>
                       </div>

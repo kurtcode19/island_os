@@ -454,7 +454,7 @@ export default function LandingView() {
               </p>
             </div>
             
-            <div className="grid grid-cols-2 gap-20">
+            <div className="grid grid-cols-3 gap-20">
               <div className="space-y-8">
                 <h4 className="text-xs font-bold tracking-wider text-slate-400">Explore</h4>
                 <ul className="space-y-4 text-sm font-semibold tracking-tight">
@@ -468,7 +468,23 @@ export default function LandingView() {
                 <ul className="space-y-4 text-sm font-semibold tracking-tight">
                   <li><button onClick={() => navigate('/how-it-works')} className="hover:text-island-emerald transition-all">About Us</button></li>
                   <li><button className="hover:text-island-emerald transition-all cursor-default opacity-50">Careers</button></li>
-                  <li><button className="hover:text-island-emerald transition-all cursor-default opacity-50">Contact</button></li>
+                </ul>
+              </div>
+              <div className="space-y-8">
+                <h4 className="text-xs font-bold tracking-wider text-slate-400">Contact & Payment</h4>
+                <ul className="space-y-3 text-xs font-semibold tracking-tight">
+                  <li>
+                    <a href="mailto:dininggasanriversideinn@gmail.com" className="hover:text-island-emerald transition-all break-all">
+                      dininggasanriversideinn@gmail.com
+                    </a>
+                  </li>
+                  <li className="hover:text-island-emerald transition-all">+63 945 801 9323</li>
+                  <li className="mt-4 pt-4 border-t border-slate-100">
+                    <p className="text-slate-400 mb-2 text-[10px] uppercase tracking-widest">Bank Transfer</p>
+                    <p className="font-bold text-slate-600">LGU CATARMAN</p>
+                    <p className="font-bold text-slate-600 font-mono">0992100982</p>
+                    <p className="text-slate-400 text-[10px] mt-1">LANDBANK</p>
+                  </li>
                 </ul>
               </div>
             </div>

@@ -112,8 +112,11 @@ export interface Booking {
   autoCancelAt?: any;
   confirmedAt?: any;
   refundedAt?: any;
-  autoApproved?: boolean;
-  disputeResolution?: string;
+   autoApproved?: boolean;
+   disputeResolution?: string;
+   receiptImageUrl?: string;
+   receiptUploadedAt?: any;
+   receiptUploadedBy?: string;
 }
 
 export type PassStatus = 'active' | 'expired' | 'revoked';

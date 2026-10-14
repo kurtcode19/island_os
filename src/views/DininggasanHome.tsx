@@ -7,6 +7,7 @@ import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit,
 import { toast } from 'sonner';
 import { UilArrowRight, UilCompass, UilBuilding, UilTennisBall, UilMapMarker, UilPhone, UilEnvelopeAlt, UilFacebook, UilCheckCircle, UilArrowLeft, UilCalendarAlt, UilPlus, UilMinus, UilUsersAlt, UilSync, UilBedDouble, UilExclamationCircle } from '@/icons';
 import { DININGGASAN_IMAGES, DININGGASAN_ROOM_COUNT, DININGGASAN_BUSINESS_ID } from '../data/dininggasanData';
+import { LANDBANK_DETAILS } from '../lib/paymentUtils';
 import {
   dayKey, overlaps, pickFreeRoomNumber, subscribeOccupancy, writeOccupancy,
 } from '../lib/roomAssignment';
@@ -478,16 +479,16 @@ export default function DininggasanHome() {
           <div className="w-12 h-12 rounded-xl bg-[#f5f5f7] flex items-center justify-center mx-auto mb-5">
             <UilMapMarker className="text-[#8b7355]" size="22" />
           </div>
-          <h2 className="text-3xl font-semibold text-[#1d1d1f] tracking-[-0.01em] mb-2">Visit Us</h2>
+          <h2 className="text-3xl font-semibold text-[#1d1d1f] tracking-[-0.01em] mb-2">Visit Us & Payment Details</h2>
           <p className="text-[#6e6e73] mb-1">Dinggasan Tourism Complex, Catarman, Philippines, 9104</p>
           <div className="flex flex-col items-center gap-2 mb-8">
             <div className="flex items-center gap-1.5 text-sm font-medium text-[#8b7355]">
               <UilPhone size="14" />
-              <span>0997 577 8185</span>
+              <span>{LANDBANK_DETAILS.phone}</span>
             </div>
             <div className="flex items-center gap-1.5 text-sm font-medium text-[#8b7355]">
               <UilEnvelopeAlt size="14" />
-              <a href="mailto:lgucatarman50@gmail.com" className="hover:underline">lgucatarman50@gmail.com</a>
+              <a href={`mailto:${LANDBANK_DETAILS.email}`} className="hover:underline">{LANDBANK_DETAILS.email}</a>
             </div>
             <a href="https://www.facebook.com/profile.php?id=61591491051099" target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-sm font-medium text-[#8b7355] hover:underline">
@@ -495,6 +496,26 @@ export default function DininggasanHome() {
               <span>LGU Catarman on Facebook</span>
             </a>
           </div>
+
+          {/* Bank Transfer Details */}
+          <div className="bg-[#fafafa] rounded-2xl p-6 border-2 border-[#8b7355]/20 mb-8">
+            <h3 className="text-sm font-semibold text-[#1d1d1f] mb-4">Bank Transfer Payment Details</h3>
+            <div className="space-y-3 text-left">
+              <div>
+                <p className="text-[10px] font-semibold text-[#6e6e73] uppercase tracking-wider mb-1">Account Name</p>
+                <p className="text-sm font-bold text-[#1d1d1f]">{LANDBANK_DETAILS.accountName}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-[#6e6e73] uppercase tracking-wider mb-1">Account Number</p>
+                <p className="text-sm font-bold text-[#1d1d1f] font-mono">{LANDBANK_DETAILS.accountNumber}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-[#6e6e73] uppercase tracking-wider mb-1">Bank</p>
+                <p className="text-sm font-bold text-[#1d1d1f]">{LANDBANK_DETAILS.bankName}</p>
+              </div>
+            </div>
+          </div>
+
           <div className="w-full h-64 rounded-2xl bg-[#f5f5f7] overflow-hidden border border-[#e8e8ed]">
             <iframe
               src="https://www.openstreetmap.org/export/embed.html?bbox=124.7,9.12,124.73,9.15&layer=mapnik&marker=9.1333,124.7167"
@@ -597,16 +618,40 @@ export default function DininggasanHome() {
                   </div>
                 </div>
               </div>
-              <div className="bg-[#fafafa] rounded-2xl p-4 border border-[#e8e8ed]">
-                <div className="flex justify-between text-sm text-[#6e6e73]">
-                  <span>₱{roomPrice.toLocaleString()} × {nights} night{nights > 1 ? 's' : ''}</span>
-                  <span className="font-semibold">₱{roomTotal.toLocaleString()}</span>
-                </div>
-                <div className="border-t border-[#e8e8ed] pt-3 mt-3 flex justify-between items-center">
-                  <span className="text-base font-semibold text-[#1d1d1f]">Total</span>
-                  <span className="text-xl font-semibold text-[#1d1d1f]">₱{roomTotal.toLocaleString()}</span>
-                </div>
-              </div>
+               <div className="bg-[#fafafa] rounded-2xl p-4 border border-[#e8e8ed]">
+                 <div className="flex justify-between text-sm text-[#6e6e73]">
+                   <span>₱{roomPrice.toLocaleString()} × {nights} night{nights > 1 ? 's' : ''}</span>
+                   <span className="font-semibold">₱{roomTotal.toLocaleString()}</span>
+                 </div>
+                 <div className="border-t border-[#e8e8ed] pt-3 mt-3 flex justify-between items-center">
+                   <span className="text-base font-semibold text-[#1d1d1f]">Total</span>
+                   <span className="text-xl font-semibold text-[#1d1d1f]">₱{roomTotal.toLocaleString()}</span>
+                 </div>
+               </div>
+
+               {/* Payment Instructions */}
+               <div className="bg-blue-50 rounded-2xl p-4 border-2 border-blue-200">
+                 <h4 className="text-sm font-semibold text-blue-900 mb-3">Payment Instructions</h4>
+                 <div className="space-y-2 text-[10px]">
+                   <div>
+                     <p className="font-semibold text-blue-700 uppercase tracking-wider mb-1">Account Name</p>
+                     <p className="text-blue-900 font-bold">{LANDBANK_DETAILS.accountName}</p>
+                   </div>
+                   <div>
+                     <p className="font-semibold text-blue-700 uppercase tracking-wider mb-1">Account Number</p>
+                     <p className="text-blue-900 font-bold font-mono">{LANDBANK_DETAILS.accountNumber}</p>
+                   </div>
+                   <div>
+                     <p className="font-semibold text-blue-700 uppercase tracking-wider mb-1">Bank</p>
+                     <p className="text-blue-900 font-bold">{LANDBANK_DETAILS.bankName}</p>
+                   </div>
+                   <div className="pt-2 border-t border-blue-200">
+                     <p className="font-semibold text-blue-700 uppercase tracking-wider mb-1">Contact for Confirmation</p>
+                     <p className="text-blue-900 font-bold">{LANDBANK_DETAILS.email}</p>
+                     <p className="text-blue-900 font-bold">{LANDBANK_DETAILS.phone}</p>
+                   </div>
+                 </div>
+               </div>
               {roomStatus === 'success' ? (
                 <div className="text-center py-6">
                   <div className="w-14 h-14 bg-[#f5f5f7] rounded-full flex items-center justify-center mx-auto mb-3">
@@ -665,12 +710,36 @@ export default function DininggasanHome() {
                       className="w-full px-4 py-3 bg-[#f5f5f7] border-2 border-[#e8e8ed] rounded-xl outline-none text-sm font-medium text-[#1d1d1f] focus:border-[#8b7355] transition-colors" />
                 </div>
               </div>
-              <div className="bg-[#fafafa] rounded-2xl p-4 border border-[#e8e8ed]">
-                <div className="flex justify-between items-center">
-                  <span className="text-base font-semibold text-[#1d1d1f]">Total</span>
-                  <span className="text-xl font-semibold text-[#1d1d1f]">₱{selectedTour.price.toLocaleString()}</span>
-                </div>
-              </div>
+               <div className="bg-[#fafafa] rounded-2xl p-4 border border-[#e8e8ed]">
+                 <div className="flex justify-between items-center">
+                   <span className="text-base font-semibold text-[#1d1d1f]">Total</span>
+                   <span className="text-xl font-semibold text-[#1d1d1f]">₱{selectedTour.price.toLocaleString()}</span>
+                 </div>
+               </div>
+
+               {/* Payment Instructions */}
+               <div className="bg-blue-50 rounded-2xl p-4 border-2 border-blue-200">
+                 <h4 className="text-sm font-semibold text-blue-900 mb-3">Payment Instructions</h4>
+                 <div className="space-y-2 text-[10px]">
+                   <div>
+                     <p className="font-semibold text-blue-700 uppercase tracking-wider mb-1">Account Name</p>
+                     <p className="text-blue-900 font-bold">{LANDBANK_DETAILS.accountName}</p>
+                   </div>
+                   <div>
+                     <p className="font-semibold text-blue-700 uppercase tracking-wider mb-1">Account Number</p>
+                     <p className="text-blue-900 font-bold font-mono">{LANDBANK_DETAILS.accountNumber}</p>
+                   </div>
+                   <div>
+                     <p className="font-semibold text-blue-700 uppercase tracking-wider mb-1">Bank</p>
+                     <p className="text-blue-900 font-bold">{LANDBANK_DETAILS.bankName}</p>
+                   </div>
+                   <div className="pt-2 border-t border-blue-200">
+                     <p className="font-semibold text-blue-700 uppercase tracking-wider mb-1">Contact for Confirmation</p>
+                     <p className="text-blue-900 font-bold">{LANDBANK_DETAILS.email}</p>
+                     <p className="text-blue-900 font-bold">{LANDBANK_DETAILS.phone}</p>
+                   </div>
+                 </div>
+               </div>
               {roomStatus === 'success' ? (
                 <div className="text-center py-6">
                   <div className="w-14 h-14 bg-[#f5f5f7] rounded-full flex items-center justify-center mx-auto mb-3">

@@ -8,7 +8,7 @@ import { sendPasswordResetEmail } from 'firebase/auth';
 import { businesses as staticBusinesses } from '../../data/businesses';
 import { BusinessType, BUSINESS_TYPE_CONFIGS } from '../../types';
 import { toast } from 'sonner';
-import { createStripeConnectAccountLink, createStripeLoginLink, createSubscriptionCheckout } from '../../lib/paymentUtils';
+
 
 export default function SettingsModule() {
   const { profile } = useAuth();
@@ -313,110 +313,8 @@ export default function SettingsModule() {
                     </div>
                     <div className="p-5 bg-white rounded-2xl border border-slate-100">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Payouts</p>
-                      <p className="text-2xl font-black text-island-volcanic">{stripeAccountId ? 'Connected' : 'Not Setup'}</p>
+                      <p className="text-2xl font-black text-island-volcanic">Bank Transfer</p>
                     </div>
-                  </div>
-
-                  {subscriptionTier === 'free' && (
-                    <button
-                      onClick={async () => {
-                        if (!profile?.businessId) return;
-                        setBillingLoading('subscription');
-                        try {
-                          const { url } = await createSubscriptionCheckout('price_premium_monthly', profile.businessId);
-                          window.open(url, '_blank');
-                        } catch (err: any) {
-                          toast.error(err.message || 'Failed to create checkout');
-                        } finally {
-                          setBillingLoading(null);
-                        }
-                      }}
-                      disabled={billingLoading === 'subscription'}
-                      className="w-full bg-amber-500 text-white py-5 rounded-2xl font-bold text-sm hover:bg-amber-600 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
-                    >
-                      {billingLoading === 'subscription' ? <RefreshCw size="20" className="animate-spin" /> : <Star size="20" />}
-                      Upgrade to Premium
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Stripe Connect */}
-              <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
-                <h3 className="text-xl font-black text-island-volcanic tracking-tighter mb-6">Payout Settings</h3>
-                <p className="text-slate-500 text-sm font-medium mb-8">
-                  Connect your Stripe account to receive automated payouts from bookings.
-                </p>
-
-                <div className="p-8 rounded-3xl border-2 border-slate-100 bg-stone-50">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h4 className="text-lg font-bold text-island-volcanic mb-1">Stripe Connect</h4>
-                      <p className="text-sm text-slate-500">
-                        {stripeAccountId
-                          ? 'Your Stripe account is connected. You can manage your payout details from the Stripe dashboard.'
-                          : 'Link your bank account or GCash via Stripe to receive payouts.'}
-                      </p>
-                    </div>
-                    {stripeAccountId && (
-                      <span className="px-4 py-1.5 bg-emerald-100 text-island-emerald rounded-full text-[10px] font-bold uppercase tracking-wider">
-                        Connected
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex gap-4">
-                    {!stripeAccountId ? (
-                      <button
-                        onClick={async () => {
-                          if (!profile?.businessId) return;
-                          setBillingLoading('connect');
-                          try {
-                            const { url } = await createStripeConnectAccountLink(profile.businessId);
-                            window.open(url, '_blank');
-                          } catch (err: any) {
-                            toast.error(err.message || 'Failed to create Stripe account link');
-                          } finally {
-                            setBillingLoading(null);
-                          }
-                        }}
-                        disabled={billingLoading === 'connect'}
-                        className="flex-1 bg-island-emerald text-white py-5 rounded-2xl font-bold text-sm hover:bg-island-green active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
-                      >
-                        {billingLoading === 'connect' ? <RefreshCw size="20" className="animate-spin" /> : <ExternalLink size="20" />}
-                        Connect Stripe Account
-                      </button>
-                    ) : (
-                      <button
-                        onClick={async () => {
-                          if (!profile?.businessId) return;
-                          setBillingLoading('login');
-                          try {
-                            const { url } = await createStripeLoginLink(profile.businessId);
-                            window.open(url, '_blank');
-                          } catch (err: any) {
-                            toast.error(err.message || 'Failed to open Stripe dashboard');
-                          } finally {
-                            setBillingLoading(null);
-                          }
-                        }}
-                        disabled={billingLoading === 'login'}
-                        className="flex-1 bg-island-emerald text-white py-5 rounded-2xl font-bold text-sm hover:bg-island-green active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
-                      >
-                        {billingLoading === 'login' ? <RefreshCw size="20" className="animate-spin" /> : <ExternalLink size="20" />}
-                        Open Stripe Dashboard
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="mt-6 p-5 bg-white rounded-2xl border border-slate-100">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Commission Rate</p>
-                    <p className="text-sm text-slate-600">
-                      Your current commission rate is <strong className="text-island-volcanic">{commissionRate}%</strong>.
-                      {subscriptionTier === 'premium'
-                        ? ' Premium members enjoy a reduced rate.'
-                        : ' Upgrade to Premium for a reduced rate.'}
-                    </p>
                   </div>
                 </div>
               </div>
@@ -425,7 +323,7 @@ export default function SettingsModule() {
               <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm">
                 <h3 className="text-xl font-black text-island-volcanic tracking-tighter mb-6">Payout History</h3>
                 <p className="text-slate-500 text-sm font-medium mb-8">
-                  Weekly payouts are processed every Monday. View your payout history below.
+                   Payout records will appear here once processed.
                 </p>
                 <div className="p-12 text-center bg-stone-50 rounded-3xl border border-slate-100">
                   <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
