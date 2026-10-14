@@ -45,7 +45,10 @@ export default function MyBookingsView() {
   const [reviewFilter, setReviewFilter] = useState<'all' | 'reviewable'>('all');
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.uid) {
+      setLoading(false);
+      return;
+    }
 
     const q = query(
       collection(db, 'bookings'),
@@ -61,12 +64,13 @@ export default function MyBookingsView() {
       setBookings(bookingsData);
       setLoading(false);
     }, (error) => {
+      console.error('Bookings fetch error:', error);
       setLoading(false);
       handleFirestoreError(error, OperationType.LIST, 'bookings');
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user?.uid]);
 
   const handleSimulatePayment = async (bookingId: string) => {
     setProcessingId(bookingId);
@@ -107,6 +111,23 @@ export default function MyBookingsView() {
       default: return UilTicket;
     }
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-white pb-40 flex items-center justify-center">
+        <div className="bg-white rounded-[4rem] p-20 text-center border-2 border-stone-100 shadow-2xl max-w-md">
+          <div className="w-24 h-24 volcanic-gradient text-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-3xl">
+            <UilCompass size="48" />
+          </div>
+          <h2 className="text-4xl font-black text-island-volcanic tracking-tighter mb-4">Sign In Required</h2>
+          <p className="text-slate-500 font-medium text-lg mb-12 max-w-sm mx-auto leading-relaxed">Please log in to view your bookings and manage your adventures.</p>
+          <Link to="/auth" className="btn-primary px-12 py-6 rounded-full inline-flex">
+            Sign In <UilArrowLeft size="24" />
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
