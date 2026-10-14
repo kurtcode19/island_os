@@ -22,7 +22,7 @@ import {
   UilTimes
 } from '@/icons';
 import { Link, useNavigate } from 'react-router-dom';
-import { collection, query, where, onSnapshot, doc, updateDoc, orderBy } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, orderBy, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
@@ -30,6 +30,7 @@ import ReviewForm from '../components/shared/ReviewForm';
 import { requestCancellation, processRefundEligibility } from '../lib/refundService';
 import { QRCodeSVG } from 'qrcode.react';
 import { LANDBANK_DETAILS } from '../lib/paymentUtils';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function MyBookingsView() {
   const { user } = useAuth();
@@ -41,8 +42,11 @@ export default function MyBookingsView() {
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
    const [cancellingBooking, setCancellingBooking] = useState<{ id: string; eligibility: string } | null>(null);
    const [cancelReason, setCancelReason] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [reviewFilter, setReviewFilter] = useState<'all' | 'reviewable'>('all');
+   const [statusFilter, setStatusFilter] = useState<string>('all');
+   const [reviewFilter, setReviewFilter] = useState<'all' | 'reviewable'>('all');
+   const [showPaymentModal, setShowPaymentModal] = useState<string | null>(null);
+   const [showReceiptModal, setShowReceiptModal] = useState<string | null>(null);
+   const [uploadingReceiptId, setUploadingReceiptId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.uid) {
@@ -72,26 +76,62 @@ export default function MyBookingsView() {
     return () => unsubscribe();
   }, [user?.uid]);
 
-  const handleSimulatePayment = async (bookingId: string) => {
-    setProcessingId(bookingId);
-    setTestError(null);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    try {
-      const bookingRef = doc(db, 'bookings', bookingId);
-      await updateDoc(bookingRef, {
-        paymentStatus: 'PAID'
-      });
-    } catch (error: any) {
-      console.error("Payment error:", error);
-      setTestError(error.message || String(error));
-      try {
-        handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
-      } catch (e) {}
-    } finally {
-      setProcessingId(null);
-    }
-  };
+   const handleSimulatePayment = async (bookingId: string) => {
+     setProcessingId(bookingId);
+     setTestError(null);
+     await new Promise(resolve => setTimeout(resolve, 1500));
+     
+     try {
+       const bookingRef = doc(db, 'bookings', bookingId);
+       await updateDoc(bookingRef, {
+         paymentStatus: 'PAID'
+       });
+     } catch (error: any) {
+       console.error("Payment error:", error);
+       setTestError(error.message || String(error));
+       try {
+         handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
+       } catch (e) {}
+     } finally {
+       setProcessingId(null);
+     }
+   };
+
+   const handleReceiptUpload = async (bookingId: string, file: File) => {
+     if (!file) return;
+     
+     setUploadingReceiptId(bookingId);
+     try {
+       const storage = getStorage();
+       const timestamp = Date.now();
+       const storageRef = ref(storage, `receipts/${bookingId}_${timestamp}`);
+       
+       await uploadBytes(storageRef, file);
+       const url = await getDownloadURL(storageRef);
+       
+       const bookingRef = doc(db, 'bookings', bookingId);
+       await updateDoc(bookingRef, {
+         receiptImageUrl: url,
+         receiptUploadedAt: serverTimestamp(),
+         receiptUploadedBy: 'customer',
+       });
+       
+       toast.success('Receipt uploaded successfully');
+       setShowReceiptModal(null);
+     } catch (error: any) {
+       console.error('Receipt upload error:', error);
+       toast.error(error.message || 'Failed to upload receipt');
+     } finally {
+       setUploadingReceiptId(null);
+     }
+   };
+
+   const handleFileChange = (bookingId: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+     const file = e.target.files?.[0];
+     if (file) {
+       handleReceiptUpload(bookingId, file);
+     }
+   };
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -429,9 +469,107 @@ export default function MyBookingsView() {
                           </div>
                         </div>
                       </div>
+                     )}
+
+                    {/* Receipt Upload Section - Show when payment status is PAID */}
+                    {booking.paymentStatus === 'PAID' && booking.status === 'pending' && (
+                      <div className="mt-10 p-6 bg-emerald-50 rounded-[2rem] border-2 border-emerald-100">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-bold text-emerald-900 tracking-wider text-[10px]">
+                            PAYMENT RECEIPT UPLOAD
+                          </h4>
+                          {booking.receiptImageUrl ? (
+                            <span className="px-3 py-1 bg-emerald-200 text-emerald-900 rounded-full text-[9px] font-bold">
+                              ✓ Uploaded
+                            </span>
+                          ) : (
+                            <span className="px-3 py-1 bg-amber-200 text-amber-900 rounded-full text-[9px] font-bold">
+                              ⏳ Pending
+                            </span>
+                          )}
+                        </div>
+                        
+                        <p className="text-emerald-700 text-[11px] font-semibold mb-4">
+                          Upload a screenshot or photo of your bank transfer to complete the payment verification.
+                        </p>
+
+                        <div className="flex gap-3">
+                          {booking.receiptImageUrl ? (
+                            <>
+                              <a
+                                href={booking.receiptImageUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg text-[10px] font-bold text-center hover:bg-emerald-700 transition-all"
+                              >
+                                📷 View Receipt
+                              </a>
+                              <button
+                                onClick={() => setShowReceiptModal(booking.id)}
+                                className="flex-1 px-4 py-3 bg-white text-emerald-600 rounded-lg text-[10px] font-bold border-2 border-emerald-600 hover:bg-emerald-50 transition-all"
+                              >
+                                📎 Change Receipt
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => setShowReceiptModal(booking.id)}
+                              disabled={uploadingReceiptId === booking.id}
+                              className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                              {uploadingReceiptId === booking.id ? (
+                                <>
+                                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                  </svg>
+                                  Uploading...
+                                </>
+                              ) : (
+                                <>📎 Upload Receipt</>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     )}
 
-                    {/* Operational Notes */}
+                    {/* Receipt Upload Modal */}
+                    {showReceiptModal === booking.id && (
+                      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
+                          <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-2xl font-black text-island-volcanic">Upload Receipt</h3>
+                            <button
+                              onClick={() => setShowReceiptModal(null)}
+                              className="p-2 hover:bg-slate-100 rounded-lg transition-all"
+                            >
+                              <UilTimes size="20" />
+                            </button>
+                          </div>
+                          
+                          <div className="mb-6 p-6 bg-slate-50 rounded-2xl text-center border border-slate-200">
+                            <p className="text-sm text-slate-600 mb-2">Service: <span className="font-bold">{booking.serviceName}</span></p>
+                            <p className="text-sm text-slate-600 mb-2">Amount Paid: <span className="font-bold text-island-green">₱{booking.amount?.toLocaleString()}</span></p>
+                            <p className="text-xs text-slate-500">Please upload proof of your bank transfer</p>
+                          </div>
+
+                          <label className="flex flex-col items-center justify-center p-8 bg-emerald-50 border-2 border-dashed border-emerald-300 rounded-2xl cursor-pointer hover:bg-emerald-100 transition-all">
+                            <div className="text-3xl mb-2">📷</div>
+                            <span className="text-sm font-bold text-emerald-600">Click to upload receipt</span>
+                            <span className="text-xs text-slate-500 mt-1">PNG, JPG or PDF (Max 5MB)</span>
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,application/pdf"
+                              onChange={handleFileChange(booking.id)}
+                              disabled={uploadingReceiptId === booking.id}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    )}
+                    
                     {booking.status === 'pending' && booking.paymentStatus !== 'PAID' && booking.paymentStatus !== 'VERIFIED' && (
                       <div className="mt-10 p-6 bg-amber-50 rounded-[2rem] border-2 border-amber-100 flex items-start gap-4">
                         <div className="w-10 h-10 rounded-xl bg-amber-200 text-amber-700 flex items-center justify-center shrink-0 shadow-sm">

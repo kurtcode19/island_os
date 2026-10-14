@@ -25,6 +25,8 @@ export default function PaymentModule() {
    const [uploadingId, setUploadingId] = useState<string | null>(null);
    const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
    const [showReceiptModal, setShowReceiptModal] = useState(false);
+   const [showReceiptVerifyModal, setShowReceiptVerifyModal] = useState<string | null>(null);
+   const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub1 = onSnapshot(
@@ -102,6 +104,43 @@ export default function PaymentModule() {
      const file = e.target.files?.[0];
      if (file) {
        handleReceiptUpload(file);
+     }
+   };
+
+   const handleVerifyReceipt = async (bookingId: string) => {
+     setVerifyingId(bookingId);
+     const ticketCode = generateTicketCode();
+     try {
+       await updateDoc(doc(db, 'bookings', bookingId), {
+         status: 'confirmed',
+         paymentStatus: 'VERIFIED',
+         ticketCode,
+         confirmedAt: serverTimestamp(),
+         receiptUploadedBy: 'verified',
+       });
+       toast.success(`Receipt verified! Ticket ${ticketCode} issued`);
+       setShowReceiptVerifyModal(null);
+     } catch (error) {
+       handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
+     } finally {
+       setVerifyingId(null);
+     }
+   };
+
+   const handleRejectReceipt = async (bookingId: string) => {
+     setVerifyingId(bookingId);
+     try {
+       await updateDoc(doc(db, 'bookings', bookingId), {
+         receiptImageUrl: null,
+         receiptUploadedAt: null,
+         receiptUploadedBy: null,
+       });
+       toast.success('Receipt rejected. Customer needs to resubmit.');
+       setShowReceiptVerifyModal(null);
+     } catch (error) {
+       handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
+     } finally {
+       setVerifyingId(null);
      }
    };
 
@@ -274,15 +313,13 @@ export default function PaymentModule() {
                     </td>
                     <td className="px-10 py-6">
                       {booking.receiptImageUrl ? (
-                        <a
-                          href={booking.receiptImageUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() => setShowReceiptVerifyModal(booking.id)}
                           className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-island-emerald rounded-lg text-[10px] font-bold hover:bg-emerald-100 transition-all"
                         >
                           <Image size="14" />
-                          View
-                        </a>
+                          View & Verify
+                        </button>
                       ) : (
                         <button
                           onClick={() => {
@@ -348,6 +385,87 @@ export default function PaymentModule() {
                 className="hidden"
               />
             </label>
+          </div>
+        </div>
+      )}
+
+      {/* Receipt Verification Modal */}
+      {showReceiptVerifyModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-black text-island-volcanic">Verify Receipt & Confirm Booking</h3>
+              <button
+                onClick={() => setShowReceiptVerifyModal(null)}
+                className="p-2 hover:bg-slate-100 rounded-lg transition-all"
+              >
+                <X size="20" />
+              </button>
+            </div>
+
+            {showReceiptVerifyModal && confirmedPayments.find(b => b.id === showReceiptVerifyModal) && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                  {/* Receipt Image */}
+                  <div className="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200">
+                    {confirmedPayments.find(b => b.id === showReceiptVerifyModal)?.receiptImageUrl && (
+                      <img
+                        src={confirmedPayments.find(b => b.id === showReceiptVerifyModal)?.receiptImageUrl}
+                        alt="Receipt"
+                        className="w-full h-auto object-cover"
+                      />
+                    )}
+                  </div>
+
+                  {/* Booking Details */}
+                  <div className="space-y-4">
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tourist Name</p>
+                      <p className="text-lg font-bold text-island-volcanic">{confirmedPayments.find(b => b.id === showReceiptVerifyModal)?.touristName}</p>
+                    </div>
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Service</p>
+                      <p className="text-lg font-bold text-island-volcanic">{confirmedPayments.find(b => b.id === showReceiptVerifyModal)?.serviceName}</p>
+                    </div>
+                    <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-200">
+                      <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-1">Amount to Verify</p>
+                      <p className="text-2xl font-black text-island-green">₱{confirmedPayments.find(b => b.id === showReceiptVerifyModal)?.amount?.toLocaleString()}</p>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-2xl border-2 border-blue-200">
+                      <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider mb-2">Payment Account</p>
+                      <p className="text-sm font-bold text-blue-900">{LANDBANK_DETAILS.accountName}</p>
+                      <p className="text-sm font-bold text-blue-900 font-mono">{LANDBANK_DETAILS.accountNumber}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => handleVerifyReceipt(showReceiptVerifyModal)}
+                    disabled={verifyingId === showReceiptVerifyModal}
+                    className="flex-1 px-6 py-4 bg-emerald-600 text-white rounded-2xl font-bold text-sm hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {verifyingId === showReceiptVerifyModal ? (
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    ) : (
+                      '✓'
+                    )}
+                    Verify & Confirm Booking
+                  </button>
+                  <button
+                    onClick={() => handleRejectReceipt(showReceiptVerifyModal)}
+                    disabled={verifyingId === showReceiptVerifyModal}
+                    className="flex-1 px-6 py-4 bg-rose-600 text-white rounded-2xl font-bold text-sm hover:bg-rose-700 transition-all disabled:opacity-50"
+                  >
+                    ✕ Reject Receipt
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
