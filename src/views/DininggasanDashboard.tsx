@@ -11,6 +11,7 @@ import {
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
 import ReviewsModule from '../components/business/ReviewsModule';
+import { LANDBANK_DETAILS } from '../lib/paymentUtils';
 import {
   DashboardSection, RoomsSection, ExpensesSection, RatesSection,
   PerformanceSection, SettingsSection, GuideSection, FaqSection, HelpSection, AdminsSection
@@ -140,6 +141,36 @@ export default function DininggasanDashboard() {
     }
   };
 
+  const handleVerifyReceipt = async (id: string) => {
+    try {
+      await updateDoc(doc(db, 'bookings', id), {
+        paymentStatus: 'VERIFIED',
+        receiptVerifiedAt: serverTimestamp(),
+        receiptVerifiedBy: 'operator',
+      });
+      setSelectedBooking((prev: any) => prev?.id === id ? { ...prev, paymentStatus: 'VERIFIED' } : prev);
+      toast.success('Receipt verified! You can now confirm the booking.');
+    } catch(err) {
+      toast.error('Failed to verify receipt');
+    }
+  };
+
+  const handleRejectReceipt = async (id: string) => {
+    if (!window.confirm('Reject this receipt? The customer will be notified and asked to resubmit.')) return;
+    try {
+      await updateDoc(doc(db, 'bookings', id), {
+        receiptImageUrl: null,
+        receiptUploadedAt: null,
+        receiptUploadedBy: null,
+        receiptRejectedAt: serverTimestamp(),
+      });
+      setSelectedBooking((prev: any) => prev?.id === id ? { ...prev, receiptImageUrl: null } : prev);
+      toast.success('Receipt rejected. Customer notified.');
+    } catch(err) {
+      toast.error('Failed to reject receipt');
+    }
+  };
+
   const backfilledRef = useRef(false);
   useEffect(() => {
     if (loading || backfilledRef.current || bookings.length === 0) return;
@@ -147,31 +178,7 @@ export default function DininggasanDashboard() {
     backfillRoomAssignments(bookings).catch(() => {});
   }, [loading, bookings]);
 
-  const handleVerifyPayment = async (id: string) => {
-    try {
-      await updateDoc(doc(db, 'bookings', id), {
-        paymentStatus: 'VERIFIED',
-        verifiedAt: serverTimestamp(),
-      });
-      setSelectedBooking((prev: any) => prev ? { ...prev, paymentStatus: 'VERIFIED' } : prev);
-      toast.success('Payment verified');
-    } catch(err) {
-      toast.error('Failed to verify payment');
-    }
-  };
 
-  const handleMarkPaid = async (id: string) => {
-    try {
-      await updateDoc(doc(db, 'bookings', id), {
-        paymentStatus: 'PAID',
-        paidAt: serverTimestamp(),
-      });
-      setSelectedBooking((prev: any) => prev ? { ...prev, paymentStatus: 'PAID' } : prev);
-      toast.success('Payment marked as received');
-    } catch(err) {
-      toast.error('Failed to mark payment');
-    }
-  };
 
   const handleCheckedOut = async (id: string) => {
     if (!window.confirm('Mark this booking as checked out? The record is kept and the room is freed.')) return;
@@ -709,17 +716,7 @@ export default function DininggasanDashboard() {
                 </div>
               </div>
 
-              {selectedBooking.paymentStatus === 'PAID' && (
-                <div className="border border-emerald-200 bg-emerald-50 rounded-xl p-4">
-                  <p className="text-sm font-semibold text-emerald-900 mb-3">Payment Received — Verify</p>
-                  <button
-                    onClick={() => handleVerifyPayment(selectedBooking.id)}
-                    className="w-full px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition-all flex items-center justify-center gap-2">
-                    <UilCheckCircle size="16" />
-                    Verify Payment
-                  </button>
-                </div>
-              )}
+
 
               {selectedBooking.additionalCharges && selectedBooking.additionalCharges.length > 0 && (
                 <div className="border border-gray-200 rounded-xl p-4">
@@ -735,6 +732,43 @@ export default function DininggasanDashboard() {
                 </div>
               )}
 
+              {selectedBooking.receiptImageUrl && selectedBooking.status === 'pending' && (
+                <div className="border border-emerald-200 bg-emerald-50 rounded-xl p-4 space-y-3">
+                  <p className="text-sm font-semibold text-emerald-900">Receipt Verification</p>
+                  <div className="bg-white rounded-lg overflow-hidden border border-emerald-200 max-h-64">
+                    <img 
+                      src={selectedBooking.receiptImageUrl} 
+                      alt="Receipt" 
+                      className="w-full h-auto object-contain"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <p className="text-xs text-emerald-700 font-semibold mb-1">Amount to Verify</p>
+                      <p className="text-lg font-bold text-emerald-900">₱{(selectedBooking.amount || 0).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-emerald-700 font-semibold mb-1">Payment Account</p>
+                      <p className="text-xs font-semibold text-emerald-900">{LANDBANK_DETAILS.accountNumber}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => handleVerifyReceipt(selectedBooking.id)}
+                      className="flex-1 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm transition-all flex items-center justify-center gap-2">
+                      <UilCheckCircle size="16" />
+                      Verify Receipt
+                    </button>
+                    <button 
+                      onClick={() => handleRejectReceipt(selectedBooking.id)}
+                      className="flex-1 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium text-sm transition-all flex items-center justify-center gap-2">
+                      <UilTimes size="16" />
+                      Reject Receipt
+                    </button>
+                  </div>
+                </div>
+               )}
+
               {selectedBooking.status === 'pending' && (
                 <div className={`rounded-xl p-4 space-y-3 border ${
                   selectedBooking.paymentStatus === 'VERIFIED' ? 'border-amber-200 bg-amber-50' : 'border-gray-200 bg-gray-50'
@@ -747,20 +781,7 @@ export default function DininggasanDashboard() {
                       Confirm & Proceed
                     </button>
                   ) : (
-                    <>
-                      <p className="text-xs text-gray-600">Payment must be verified before this booking can be confirmed.</p>
-                      {(selectedBooking.paymentStatus || 'UNPAID') === 'UNPAID' && (
-                        <button 
-                          onClick={() => handleMarkPaid(selectedBooking.id)}
-                          className="w-full px-4 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-medium text-sm transition-all flex items-center justify-center gap-2">
-                          <UilDollarSign size="16" />
-                          Mark as Paid
-                        </button>
-                      )}
-                      {selectedBooking.paymentStatus === 'PAID' && (
-                        <p className="text-xs font-semibold text-amber-700">Payment received — use “Verify Payment” above to unlock confirming.</p>
-                      )}
-                    </>
+                     <p className="text-xs text-gray-600">Verify the receipt to unlock booking confirmation.</p>
                   )}
                 </div>
               )}

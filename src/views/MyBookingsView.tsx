@@ -30,7 +30,6 @@ import ReviewForm from '../components/shared/ReviewForm';
 import { requestCancellation, processRefundEligibility } from '../lib/refundService';
 import { QRCodeSVG } from 'qrcode.react';
 import { LANDBANK_DETAILS } from '../lib/paymentUtils';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function MyBookingsView() {
   const { user } = useAuth();
@@ -41,12 +40,11 @@ export default function MyBookingsView() {
   const [testError, setTestError] = useState<string | null>(null);
   const [reviewBookingId, setReviewBookingId] = useState<string | null>(null);
    const [cancellingBooking, setCancellingBooking] = useState<{ id: string; eligibility: string } | null>(null);
-   const [cancelReason, setCancelReason] = useState('');
-   const [statusFilter, setStatusFilter] = useState<string>('all');
-   const [reviewFilter, setReviewFilter] = useState<'all' | 'reviewable'>('all');
-   const [showPaymentModal, setShowPaymentModal] = useState<string | null>(null);
-   const [showReceiptModal, setShowReceiptModal] = useState<string | null>(null);
-   const [uploadingReceiptId, setUploadingReceiptId] = useState<string | null>(null);
+    const [cancelReason, setCancelReason] = useState('');
+    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [reviewFilter, setReviewFilter] = useState<'all' | 'reviewable'>('all');
+    const [showReceiptModal, setShowReceiptModal] = useState<string | null>(null);
+    const [uploadingReceiptId, setUploadingReceiptId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.uid) {
@@ -76,55 +74,56 @@ export default function MyBookingsView() {
     return () => unsubscribe();
   }, [user?.uid]);
 
-   const handleSimulatePayment = async (bookingId: string) => {
-     setProcessingId(bookingId);
-     setTestError(null);
-     await new Promise(resolve => setTimeout(resolve, 1500));
-     
-     try {
-       const bookingRef = doc(db, 'bookings', bookingId);
-       await updateDoc(bookingRef, {
-         paymentStatus: 'PAID'
-       });
-     } catch (error: any) {
-       console.error("Payment error:", error);
-       setTestError(error.message || String(error));
-       try {
-         handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
-       } catch (e) {}
-     } finally {
-       setProcessingId(null);
-     }
-   };
+   const handleInitiatePayment = async (bookingId: string) => {
+      setProcessingId(bookingId);
+      setTestError(null);
+      try {
+        setShowReceiptModal(bookingId);
+      } catch (error: any) {
+        console.error("Payment error:", error);
+        setTestError(error.message || String(error));
+      } finally {
+        setProcessingId(null);
+      }
+    };
 
    const handleReceiptUpload = async (bookingId: string, file: File) => {
-     if (!file) return;
-     
-     setUploadingReceiptId(bookingId);
-     try {
-       const storage = getStorage();
-       const timestamp = Date.now();
-       const storageRef = ref(storage, `receipts/${bookingId}_${timestamp}`);
-       
-       await uploadBytes(storageRef, file);
-       const url = await getDownloadURL(storageRef);
-       
-       const bookingRef = doc(db, 'bookings', bookingId);
-       await updateDoc(bookingRef, {
-         receiptImageUrl: url,
-         receiptUploadedAt: serverTimestamp(),
-         receiptUploadedBy: 'customer',
-       });
-       
-       toast.success('Receipt uploaded successfully');
-       setShowReceiptModal(null);
-     } catch (error: any) {
-       console.error('Receipt upload error:', error);
-       toast.error(error.message || 'Failed to upload receipt');
-     } finally {
-       setUploadingReceiptId(null);
-     }
-   };
+      if (!file) return;
+      
+      setUploadingReceiptId(bookingId);
+      try {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const base64String = e.target?.result as string;
+            
+            const bookingRef = doc(db, 'bookings', bookingId);
+            await updateDoc(bookingRef, {
+              receiptImageUrl: base64String,
+              receiptUploadedAt: serverTimestamp(),
+              receiptUploadedBy: 'customer',
+            });
+            
+            toast.success('Receipt uploaded successfully. Awaiting operator verification.');
+            setShowReceiptModal(null);
+          } catch (error: any) {
+            console.error('Receipt update error:', error);
+            toast.error(error.message || 'Failed to save receipt');
+          } finally {
+            setUploadingReceiptId(null);
+          }
+        };
+        reader.onerror = () => {
+          toast.error('Failed to read file');
+          setUploadingReceiptId(null);
+        };
+        reader.readAsDataURL(file);
+      } catch (error: any) {
+        console.error('Receipt upload error:', error);
+        toast.error(error.message || 'Failed to upload receipt');
+        setUploadingReceiptId(null);
+      }
+    };
 
    const handleFileChange = (bookingId: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
      const file = e.target.files?.[0];
@@ -411,20 +410,20 @@ export default function MyBookingsView() {
                             <UilTimesCircle size="24" />
                             <span className="text-xs font-bold tracking-wider">Cancelled</span>
                           </div>
-                        ) : (
-                           <>
-                             <button 
-                               onClick={() => handleSimulatePayment(booking.id)}
-                               disabled={processingId === booking.id}
-                               className="btn-primary w-full py-5 rounded-[2rem] text-[10px]"
-                             >
-                               {processingId === booking.id ? (
-                                 <UilRefresh size="20" className="animate-spin" />
-                               ) : (
-                                 <UilCreditCard size="20" />
-                               )}
-                               Mark Payment Complete
-                             </button>
+                           ) : (
+                            <>
+                              <button 
+                                onClick={() => setShowReceiptModal(booking.id)}
+                                disabled={uploadingReceiptId === booking.id}
+                                className="btn-primary w-full py-5 rounded-[2rem] text-[10px]"
+                              >
+                                {uploadingReceiptId === booking.id ? (
+                                  <UilRefresh size="20" className="animate-spin" />
+                                ) : (
+                                  <UilCreditCard size="20" />
+                                )}
+                                Transfer & Upload Receipt
+                              </button>
                              <button
                                onClick={() => {
                                  const eligibility = processRefundEligibility(booking, new Date());
@@ -471,68 +470,32 @@ export default function MyBookingsView() {
                       </div>
                      )}
 
-                    {/* Receipt Upload Section - Show when payment status is PAID */}
-                    {booking.paymentStatus === 'PAID' && booking.status === 'pending' && (
-                      <div className="mt-10 p-6 bg-emerald-50 rounded-[2rem] border-2 border-emerald-100">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="font-bold text-emerald-900 tracking-wider text-[10px]">
-                            PAYMENT RECEIPT UPLOAD
-                          </h4>
-                          {booking.receiptImageUrl ? (
-                            <span className="px-3 py-1 bg-emerald-200 text-emerald-900 rounded-full text-[9px] font-bold">
-                              ✓ Uploaded
-                            </span>
-                          ) : (
-                            <span className="px-3 py-1 bg-amber-200 text-amber-900 rounded-full text-[9px] font-bold">
-                              ⏳ Pending
-                            </span>
-                          )}
-                        </div>
-                        
-                        <p className="text-emerald-700 text-[11px] font-semibold mb-4">
-                          Upload a screenshot or photo of your bank transfer to complete the payment verification.
-                        </p>
+                    {/* Receipt Upload Section - Show when receipt uploaded */}
+                     {booking.receiptImageUrl && booking.status === 'pending' && (
+                       <div className="mt-10 p-6 bg-emerald-50 rounded-[2rem] border-2 border-emerald-100">
+                         <div className="flex items-center justify-between mb-4">
+                           <h4 className="font-bold text-emerald-900 tracking-wider text-[10px]">
+                             RECEIPT UPLOADED
+                           </h4>
+                           <span className="px-3 py-1 bg-emerald-200 text-emerald-900 rounded-full text-[9px] font-bold">
+                             ✓ Awaiting Verification
+                           </span>
+                         </div>
+                         
+                         <p className="text-emerald-700 text-[11px] font-semibold mb-4">
+                           Your receipt has been uploaded. The operator will verify it shortly.
+                         </p>
 
-                        <div className="flex gap-3">
-                          {booking.receiptImageUrl ? (
-                            <>
-                              <a
-                                href={booking.receiptImageUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg text-[10px] font-bold text-center hover:bg-emerald-700 transition-all"
-                              >
-                                📷 View Receipt
-                              </a>
-                              <button
-                                onClick={() => setShowReceiptModal(booking.id)}
-                                className="flex-1 px-4 py-3 bg-white text-emerald-600 rounded-lg text-[10px] font-bold border-2 border-emerald-600 hover:bg-emerald-50 transition-all"
-                              >
-                                📎 Change Receipt
-                              </button>
-                            </>
-                          ) : (
-                            <button
-                              onClick={() => setShowReceiptModal(booking.id)}
-                              disabled={uploadingReceiptId === booking.id}
-                              className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                            >
-                              {uploadingReceiptId === booking.id ? (
-                                <>
-                                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                  </svg>
-                                  Uploading...
-                                </>
-                              ) : (
-                                <>📎 Upload Receipt</>
-                              )}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                         <a
+                           href={booking.receiptImageUrl}
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="inline-flex px-4 py-3 bg-emerald-600 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-700 transition-all"
+                         >
+                           📷 View Receipt
+                         </a>
+                       </div>
+                     )}
 
                     {/* Receipt Upload Modal */}
                     {showReceiptModal === booking.id && (
@@ -583,19 +546,19 @@ export default function MyBookingsView() {
                         </div>
                       </div>
                     )}
-                    {booking.paymentStatus === 'PAID' && booking.status === 'pending' && !booking.ticketCode && (
-                      <div className="mt-10 p-6 bg-blue-50 rounded-[2rem] border-2 border-blue-100 flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-blue-200 text-blue-700 flex items-center justify-center shrink-0 shadow-sm">
-                          <UilClock size="20" />
-                        </div>
-                        <div>
-                          <span className="font-bold text-blue-900 tracking-wider text-[10px] mb-1 block">LGU Processing</span>
-                          <p className="text-[11px] text-blue-800 font-bold leading-relaxed italic">
-                            Payment received. The LGU is processing your ticket — this usually takes a few minutes during office hours.
-                          </p>
-                        </div>
-                      </div>
-                    )}
+                    {booking.receiptImageUrl && booking.status === 'pending' && !booking.ticketCode && booking.paymentStatus !== 'VERIFIED' && (
+                       <div className="mt-10 p-6 bg-blue-50 rounded-[2rem] border-2 border-blue-100 flex items-start gap-4">
+                         <div className="w-10 h-10 rounded-xl bg-blue-200 text-blue-700 flex items-center justify-center shrink-0 shadow-sm">
+                           <UilClock size="20" />
+                         </div>
+                         <div>
+                           <span className="font-bold text-blue-900 tracking-wider text-[10px] mb-1 block">Operator Verification In Progress</span>
+                           <p className="text-[11px] text-blue-800 font-bold leading-relaxed italic">
+                             Your receipt is being verified by the operator. Once approved, your booking will be confirmed immediately.
+                           </p>
+                         </div>
+                       </div>
+                     )}
                   </motion.div>
                 );
               })}
@@ -625,23 +588,6 @@ export default function MyBookingsView() {
               })()}
             </div>
           </div>
-        )}
-      </AnimatePresence>
-
-      {/* Payment Modal */}
-      <AnimatePresence>
-        {showPaymentModal && (
-          <StripePaymentModal
-            key="payment-modal"
-            bookingId={showPaymentModal}
-            bookingName={bookings.find(b => b.id === showPaymentModal)?.serviceName || 'Booking'}
-            amount={bookings.find(b => b.id === showPaymentModal)?.amount || 0}
-            onClose={() => setShowPaymentModal(null)}
-            onSuccess={(id) => {
-              setShowPaymentModal(null);
-              toast.success('Payment successful!');
-            }}
-          />
         )}
       </AnimatePresence>
 

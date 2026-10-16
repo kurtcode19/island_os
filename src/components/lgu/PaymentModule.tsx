@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { UilCreditCard as CreditCard, UilCheckCircle as CheckCircle, UilSearch as Search, UilClock as Clock, UilUser as User, UilCalendar as Calendar, UilMapPin as MapPin, UilDownloadAlt as Upload, UilFileAlt as Image, UilTimes as X } from '@/icons';
 import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { LANDBANK_DETAILS } from '../../lib/paymentUtils';
 
 function generateTicketCode(): string {
@@ -21,18 +20,21 @@ export default function PaymentModule() {
    const [confirmedPayments, setConfirmedPayments] = useState<any[]>([]);
    const [loading, setLoading] = useState(true);
    const [processingId, setProcessingId] = useState<string | null>(null);
-   const [searchTerm, setSearchTerm] = useState('');
-   const [uploadingId, setUploadingId] = useState<string | null>(null);
-   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
-   const [showReceiptModal, setShowReceiptModal] = useState(false);
    const [showReceiptVerifyModal, setShowReceiptVerifyModal] = useState<string | null>(null);
    const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub1 = onSnapshot(
-      query(collection(db, 'bookings'), where('paymentStatus', '==', 'PAID'), where('status', '==', 'pending')),
+      query(
+        collection(db, 'bookings'),
+        where('paymentStatus', '==', 'UNPAID'),
+        where('status', '==', 'pending')
+      ),
       (snapshot) => {
-        setPendingPayments(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+        const payments = snapshot.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .filter((d: any) => d.receiptImageUrl);
+        setPendingPayments(payments);
       },
       (err) => handleFirestoreError(err, OperationType.LIST, 'bookings')
     );
@@ -53,96 +55,65 @@ export default function PaymentModule() {
     return () => { unsub1(); unsub2(); };
   }, []);
 
-   const handleConfirmPayment = async (booking: any) => {
-     setProcessingId(booking.id);
-     const ticketCode = generateTicketCode();
-     try {
-       await updateDoc(doc(db, 'bookings', booking.id), {
-         status: 'confirmed',
-         paymentStatus: 'VERIFIED',
-         verifiedAt: serverTimestamp(),
-         ticketCode,
-         confirmedAt: serverTimestamp(),
-       });
-       toast.success(`Ticket ${ticketCode} issued`);
-     } catch (error) {
-       handleFirestoreError(error, OperationType.UPDATE, `bookings/${booking.id}`);
-     } finally {
-       setProcessingId(null);
-     }
-   };
+     const handleConfirmPayment = async (booking: any) => {
+       setProcessingId(booking.id);
+       const ticketCode = generateTicketCode();
+       try {
+         await updateDoc(doc(db, 'bookings', booking.id), {
+           status: 'confirmed',
+           paymentStatus: 'VERIFIED',
+           receiptVerifiedAt: serverTimestamp(),
+           receiptVerifiedBy: 'operator',
+           ticketCode,
+           confirmedAt: serverTimestamp(),
+         });
+         toast.success(`Receipt verified! Ticket ${ticketCode} issued`);
+       } catch (error) {
+         handleFirestoreError(error, OperationType.UPDATE, `bookings/${booking.id}`);
+       } finally {
+         setProcessingId(null);
+       }
+     };
 
-   const handleReceiptUpload = async (file: File) => {
-     if (!selectedBooking) return;
-     
-     setUploadingId(selectedBooking.id);
-     try {
-       const storage = getStorage();
-       const timestamp = Date.now();
-       const storageRef = ref(storage, `receipts/${selectedBooking.id}_${timestamp}`);
-       
-       await uploadBytes(storageRef, file);
-       const url = await getDownloadURL(storageRef);
-       
-       await updateDoc(doc(db, 'bookings', selectedBooking.id), {
-         receiptImageUrl: url,
-         receiptUploadedAt: serverTimestamp(),
-         receiptUploadedBy: 'operator',
-       });
-       
-       toast.success('Receipt uploaded successfully');
-       setShowReceiptModal(false);
-       setSelectedBooking(null);
-     } catch (error) {
-       handleFirestoreError(error, OperationType.UPDATE, `bookings/${selectedBooking.id}`);
-     } finally {
-       setUploadingId(null);
-     }
-   };
+    const handleVerifyReceipt = async (bookingId: string) => {
+      setVerifyingId(bookingId);
+      const ticketCode = generateTicketCode();
+      try {
+        await updateDoc(doc(db, 'bookings', bookingId), {
+          status: 'confirmed',
+          paymentStatus: 'VERIFIED',
+          receiptVerifiedAt: serverTimestamp(),
+          receiptVerifiedBy: 'operator',
+          ticketCode,
+          confirmedAt: serverTimestamp(),
+        });
+        toast.success(`Receipt verified! Ticket ${ticketCode} issued`);
+        setShowReceiptVerifyModal(null);
+      } catch (error) {
+        handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
+      } finally {
+        setVerifyingId(null);
+      }
+    };
 
-   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-     const file = e.target.files?.[0];
-     if (file) {
-       handleReceiptUpload(file);
-     }
-   };
-
-   const handleVerifyReceipt = async (bookingId: string) => {
-     setVerifyingId(bookingId);
-     const ticketCode = generateTicketCode();
-     try {
-       await updateDoc(doc(db, 'bookings', bookingId), {
-         status: 'confirmed',
-         paymentStatus: 'VERIFIED',
-         ticketCode,
-         confirmedAt: serverTimestamp(),
-         receiptUploadedBy: 'verified',
-       });
-       toast.success(`Receipt verified! Ticket ${ticketCode} issued`);
-       setShowReceiptVerifyModal(null);
-     } catch (error) {
-       handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
-     } finally {
-       setVerifyingId(null);
-     }
-   };
-
-   const handleRejectReceipt = async (bookingId: string) => {
-     setVerifyingId(bookingId);
-     try {
-       await updateDoc(doc(db, 'bookings', bookingId), {
-         receiptImageUrl: null,
-         receiptUploadedAt: null,
-         receiptUploadedBy: null,
-       });
-       toast.success('Receipt rejected. Customer needs to resubmit.');
-       setShowReceiptVerifyModal(null);
-     } catch (error) {
-       handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
-     } finally {
-       setVerifyingId(null);
-     }
-   };
+     const handleRejectReceipt = async (bookingId: string) => {
+       setVerifyingId(bookingId);
+       try {
+         await updateDoc(doc(db, 'bookings', bookingId), {
+           receiptImageUrl: null,
+           receiptUploadedAt: null,
+           receiptUploadedBy: null,
+           receiptRejectedReason: 'Rejected by operator',
+           receiptRejectedAt: serverTimestamp(),
+         });
+         toast.success('Receipt rejected. Customer needs to resubmit.');
+         setShowReceiptVerifyModal(null);
+       } catch (error) {
+         handleFirestoreError(error, OperationType.UPDATE, `bookings/${bookingId}`);
+       } finally {
+         setVerifyingId(null);
+       }
+     };
 
   if (loading) {
     return (
@@ -192,15 +163,15 @@ export default function PaymentModule() {
 
       {/* Pending Payments */}
       <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-10 border-b border-slate-50 flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-amber-50 text-amber-600">
-            <Clock size="24" />
-          </div>
-          <div>
-            <h3 className="text-2xl font-black text-island-volcanic tracking-tighter">Awaiting Confirmation</h3>
-            <p className="text-sm text-slate-400 font-medium">{pendingPayments.length} pending payment(s)</p>
-          </div>
-        </div>
+         <div className="p-10 border-b border-slate-50 flex items-center gap-4">
+           <div className="p-3 rounded-2xl bg-amber-50 text-amber-600">
+             <Clock size="24" />
+           </div>
+           <div>
+             <h3 className="text-2xl font-black text-island-volcanic tracking-tighter">Awaiting Receipt Verification</h3>
+             <p className="text-sm text-slate-400 font-medium">{pendingPayments.length} receipt(s) uploaded</p>
+           </div>
+         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -214,52 +185,52 @@ export default function PaymentModule() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {pendingPayments.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-10 py-12 text-center text-slate-400 italic">No pending payments.</td>
-                </tr>
+               {pendingPayments.length === 0 ? (
+                 <tr>
+                   <td colSpan={5} className="px-10 py-12 text-center text-slate-400 italic">No receipts awaiting verification.</td>
+                 </tr>
               ) : (
                 pendingPayments.map((booking) => (
                   <tr key={booking.id} className="group hover:bg-slate-50/50 transition-all">
-                    <td className="px-10 py-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-island-emerald/10 flex items-center justify-center text-island-emerald font-bold">
-                          {booking.touristName?.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-island-green">{booking.touristName}</p>
-                          <p className="text-xs text-slate-400">{booking.touristEmail}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-10 py-6">
-                      <p className="text-sm font-bold text-island-green">{booking.serviceName}</p>
-                      <p className="text-xs text-slate-400 capitalize">{booking.serviceType}</p>
-                    </td>
-                    <td className="px-10 py-6">
-                      <div className="flex items-center gap-2 text-sm text-slate-600">
-                        <Calendar size="14" className="text-island-emerald" />
-                        {booking.date}
-                      </div>
-                    </td>
-                    <td className="px-10 py-6">
-                      <p className="text-sm font-bold text-island-green">₱{booking.amount?.toLocaleString()}</p>
-                    </td>
-                    <td className="px-10 py-6 text-right">
-                      <button
-                        onClick={() => handleConfirmPayment(booking)}
-                        disabled={processingId === booking.id}
-                        className="px-6 py-3 bg-island-emerald text-white rounded-2xl text-[10px] font-bold tracking-wider hover:bg-island-emerald/90 transition-all disabled:opacity-50 flex items-center gap-2 ml-auto"
-                      >
-                        {processingId === booking.id ? (
-                          <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                        ) : (
-                          <CheckCircle size="16" />
-                        )}
-                        Confirm & Issue Ticket
-                      </button>
-                    </td>
-                  </tr>
+                     <td className="px-10 py-6">
+                       <div className="flex items-center gap-3">
+                         <div className="w-10 h-10 rounded-full bg-island-emerald/10 flex items-center justify-center text-island-emerald font-bold">
+                           {booking.touristName?.charAt(0)}
+                         </div>
+                         <div>
+                           <p className="text-sm font-bold text-island-green">{booking.touristName}</p>
+                           <p className="text-xs text-slate-400">{booking.touristEmail}</p>
+                         </div>
+                       </div>
+                     </td>
+                     <td className="px-10 py-6">
+                       <p className="text-sm font-bold text-island-green">{booking.serviceName}</p>
+                       <p className="text-xs text-slate-400 capitalize">{booking.serviceType}</p>
+                     </td>
+                     <td className="px-10 py-6">
+                       <div className="flex items-center gap-2 text-sm text-slate-600">
+                         <Calendar size="14" className="text-island-emerald" />
+                         {booking.date}
+                       </div>
+                     </td>
+                     <td className="px-10 py-6">
+                       <p className="text-sm font-bold text-island-green">₱{booking.amount?.toLocaleString()}</p>
+                     </td>
+                      <td className="px-10 py-6 text-right">
+                        <button
+                          onClick={() => setShowReceiptVerifyModal(booking.id)}
+                          disabled={verifyingId === booking.id}
+                          className="px-6 py-3 bg-island-emerald text-white rounded-2xl text-[10px] font-bold tracking-wider hover:bg-island-emerald/90 transition-all disabled:opacity-50 flex items-center gap-2 ml-auto"
+                        >
+                         {verifyingId === booking.id ? (
+                           <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                         ) : (
+                           <Image size="16" />
+                         )}
+                         View & Verify Receipt
+                       </button>
+                     </td>
+                   </tr>
                 ))
               )}
             </tbody>
@@ -269,15 +240,15 @@ export default function PaymentModule() {
 
       {/* Confirmed Tickets */}
       <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-10 border-b border-slate-50 flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-emerald-50 text-island-emerald">
-            <CreditCard size="24" />
-          </div>
-          <div>
-            <h3 className="text-2xl font-black text-island-volcanic tracking-tighter">Issued Tickets</h3>
-            <p className="text-sm text-slate-400 font-medium">{confirmedPayments.length} ticket(s) issued</p>
-          </div>
-        </div>
+         <div className="p-10 border-b border-slate-50 flex items-center gap-4">
+           <div className="p-3 rounded-2xl bg-emerald-50 text-island-emerald">
+             <CreditCard size="24" />
+           </div>
+           <div>
+             <h3 className="text-2xl font-black text-island-volcanic tracking-tighter">Verified & Confirmed</h3>
+             <p className="text-sm text-slate-400 font-medium">{confirmedPayments.length} booking(s) confirmed</p>
+           </div>
+         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -292,10 +263,10 @@ export default function PaymentModule() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {confirmedPayments.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-10 py-12 text-center text-slate-400 italic">No tickets issued yet.</td>
-                </tr>
+               {confirmedPayments.length === 0 ? (
+                 <tr>
+                   <td colSpan={6} className="px-10 py-12 text-center text-slate-400 italic">No confirmed bookings yet.</td>
+                 </tr>
               ) : (
                 confirmedPayments.map((booking) => (
                   <tr key={booking.id} className="group hover:bg-slate-50/50 transition-all">
@@ -311,33 +282,19 @@ export default function PaymentModule() {
                     <td className="px-10 py-6">
                       <p className="text-sm font-bold text-island-green">₱{booking.amount?.toLocaleString()}</p>
                     </td>
-                    <td className="px-10 py-6">
-                      {booking.receiptImageUrl ? (
-                        <button
-                          onClick={() => setShowReceiptVerifyModal(booking.id)}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-island-emerald rounded-lg text-[10px] font-bold hover:bg-emerald-100 transition-all"
-                        >
-                          <Image size="14" />
-                          View & Verify
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setSelectedBooking(booking);
-                            setShowReceiptModal(true);
-                          }}
-                          disabled={uploadingId === booking.id}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-bold hover:bg-amber-100 transition-all disabled:opacity-50"
-                        >
-                          {uploadingId === booking.id ? (
-                            <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                          ) : (
-                            <Upload size="14" />
-                          )}
-                          Upload
-                        </button>
-                      )}
-                    </td>
+                     <td className="px-10 py-6">
+                       {booking.receiptImageUrl ? (
+                         <button
+                           onClick={() => setShowReceiptVerifyModal(booking.id)}
+                           className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-island-emerald rounded-lg text-[10px] font-bold hover:bg-emerald-100 transition-all"
+                         >
+                           <Image size="14" />
+                           View Receipt
+                         </button>
+                       ) : (
+                         <span className="text-slate-400 text-[10px] font-semibold">—</span>
+                       )}
+                     </td>
                     <td className="px-10 py-6">
                       <span className="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-island-emerald/10 text-island-emerald">
                         {booking.status}
@@ -350,44 +307,6 @@ export default function PaymentModule() {
           </table>
         </div>
       </div>
-
-      {/* Receipt Upload Modal */}
-      {showReceiptModal && selectedBooking && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-black text-island-volcanic">Upload Receipt</h3>
-              <button
-                onClick={() => {
-                  setShowReceiptModal(false);
-                  setSelectedBooking(null);
-                }}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-all"
-              >
-                <X size="20" />
-              </button>
-            </div>
-            
-            <div className="mb-6 p-6 bg-slate-50 rounded-2xl text-center border-2 border-dashed border-slate-300">
-              <p className="text-sm text-slate-600 mb-2">Tourist: <span className="font-bold">{selectedBooking.touristName}</span></p>
-              <p className="text-sm text-slate-600 mb-4">Amount: <span className="font-bold text-island-green">₱{selectedBooking.amount?.toLocaleString()}</span></p>
-            </div>
-
-            <label className="flex flex-col items-center justify-center p-8 bg-island-emerald/5 border-2 border-dashed border-island-emerald rounded-2xl cursor-pointer hover:bg-island-emerald/10 transition-all">
-              <Upload size="32" className="text-island-emerald mb-2" />
-              <span className="text-sm font-bold text-island-emerald">Click to upload receipt image</span>
-              <span className="text-xs text-slate-500 mt-1">PNG, JPG or PDF</span>
-              <input
-                type="file"
-                accept="image/png,image/jpeg,application/pdf"
-                onChange={handleFileChange}
-                disabled={uploadingId === selectedBooking.id}
-                className="hidden"
-              />
-            </label>
-          </div>
-        </div>
-      )}
 
       {/* Receipt Verification Modal */}
       {showReceiptVerifyModal && (
@@ -403,41 +322,41 @@ export default function PaymentModule() {
               </button>
             </div>
 
-            {showReceiptVerifyModal && confirmedPayments.find(b => b.id === showReceiptVerifyModal) && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                  {/* Receipt Image */}
-                  <div className="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200">
-                    {confirmedPayments.find(b => b.id === showReceiptVerifyModal)?.receiptImageUrl && (
-                      <img
-                        src={confirmedPayments.find(b => b.id === showReceiptVerifyModal)?.receiptImageUrl}
-                        alt="Receipt"
-                        className="w-full h-auto object-cover"
-                      />
-                    )}
-                  </div>
+             {showReceiptVerifyModal && pendingPayments.find(b => b.id === showReceiptVerifyModal) && (
+               <>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                   {/* Receipt Image */}
+                   <div className="bg-slate-50 rounded-2xl overflow-hidden border border-slate-200">
+                     {pendingPayments.find(b => b.id === showReceiptVerifyModal)?.receiptImageUrl && (
+                       <img
+                         src={pendingPayments.find(b => b.id === showReceiptVerifyModal)?.receiptImageUrl}
+                         alt="Receipt"
+                         className="w-full h-auto object-cover max-h-96"
+                       />
+                     )}
+                   </div>
 
-                  {/* Booking Details */}
-                  <div className="space-y-4">
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tourist Name</p>
-                      <p className="text-lg font-bold text-island-volcanic">{confirmedPayments.find(b => b.id === showReceiptVerifyModal)?.touristName}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Service</p>
-                      <p className="text-lg font-bold text-island-volcanic">{confirmedPayments.find(b => b.id === showReceiptVerifyModal)?.serviceName}</p>
-                    </div>
-                    <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-200">
-                      <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-1">Amount to Verify</p>
-                      <p className="text-2xl font-black text-island-green">₱{confirmedPayments.find(b => b.id === showReceiptVerifyModal)?.amount?.toLocaleString()}</p>
-                    </div>
-                    <div className="p-4 bg-blue-50 rounded-2xl border-2 border-blue-200">
-                      <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider mb-2">Payment Account</p>
-                      <p className="text-sm font-bold text-blue-900">{LANDBANK_DETAILS.accountName}</p>
-                      <p className="text-sm font-bold text-blue-900 font-mono">{LANDBANK_DETAILS.accountNumber}</p>
-                    </div>
-                  </div>
-                </div>
+                   {/* Booking Details */}
+                   <div className="space-y-4">
+                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tourist Name</p>
+                       <p className="text-lg font-bold text-island-volcanic">{pendingPayments.find(b => b.id === showReceiptVerifyModal)?.touristName}</p>
+                     </div>
+                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Service</p>
+                       <p className="text-lg font-bold text-island-volcanic">{pendingPayments.find(b => b.id === showReceiptVerifyModal)?.serviceName}</p>
+                     </div>
+                     <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-200">
+                       <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-1">Amount to Verify</p>
+                       <p className="text-2xl font-black text-island-green">₱{pendingPayments.find(b => b.id === showReceiptVerifyModal)?.amount?.toLocaleString()}</p>
+                     </div>
+                     <div className="p-4 bg-blue-50 rounded-2xl border-2 border-blue-200">
+                       <p className="text-[10px] font-bold text-blue-700 uppercase tracking-wider mb-2">Payment Account</p>
+                       <p className="text-sm font-bold text-blue-900">{LANDBANK_DETAILS.accountName}</p>
+                       <p className="text-sm font-bold text-blue-900 font-mono">{LANDBANK_DETAILS.accountNumber}</p>
+                     </div>
+                   </div>
+                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex gap-4">
