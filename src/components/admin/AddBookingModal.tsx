@@ -99,6 +99,7 @@ export default function AddBookingModal({ isOpen, onClose, bookings, occupancy }
         totalPrice: totalAmount,
         status: 'pending',
         paymentStatus: 'UNPAID',
+        bookingSource: 'walk-in',
         businessId: DININGGASAN_BUSINESS_ID,
         serviceType: 'stay',
         serviceName: 'Room Booking',

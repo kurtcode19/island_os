@@ -103,7 +103,7 @@ export default function DininggasanDashboard() {
   const handleConfirm = async (id: string) => {
     // selectedBooking is patched optimistically by the payment handlers, list may lag a snapshot
     const booking = selectedBooking?.id === id ? selectedBooking : bookings.find(b => b.id === id);
-    if (booking?.paymentStatus !== 'VERIFIED') {
+    if (booking?.paymentStatus !== 'VERIFIED' && booking?.bookingSource !== 'walk-in') {
       toast.error('Verify the payment before confirming');
       return;
     }
@@ -780,6 +780,15 @@ export default function DininggasanDashboard() {
                       className="w-full px-4 py-2.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium text-sm transition-all">
                       Confirm & Proceed
                     </button>
+                  ) : selectedBooking.bookingSource === 'walk-in' ? (
+                    <>
+                      <button 
+                        onClick={() => handleConfirm(selectedBooking.id)}
+                        className="w-full px-4 py-2.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium text-sm transition-all">
+                        Confirm Walk-in
+                      </button>
+                      <p className="text-xs text-gray-600">Walk-in booking — no receipt needed. Collect payment at the desk.</p>
+                    </>
                   ) : (
                      <p className="text-xs text-gray-600">Verify the receipt to unlock booking confirmation.</p>
                   )}
