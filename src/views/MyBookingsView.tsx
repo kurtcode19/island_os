@@ -22,7 +22,7 @@ import {
   UilTimes
 } from '@/icons';
 import { Link, useNavigate } from 'react-router-dom';
-import { collection, query, where, onSnapshot, doc, updateDoc, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
@@ -54,15 +54,15 @@ export default function MyBookingsView() {
 
     const q = query(
       collection(db, 'bookings'),
-      where('touristUid', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('touristUid', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const bookingsData = snapshot.docs.map(doc => ({
+      const bookingsData: any[] = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+      bookingsData.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       setBookings(bookingsData);
       setLoading(false);
     }, (error) => {

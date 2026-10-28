@@ -3,9 +3,10 @@ import { motion } from 'motion/react';
 import { UilTimes, UilPlus } from '@/icons';
 import { toast } from 'sonner';
 import { db, handleFirestoreError, OperationType, Timestamp } from '../../firebase';
-import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, onSnapshot } from 'firebase/firestore';
 import { DININGGASAN_BUSINESS_ID, DININGGASAN_ROOM_COUNT } from '../../data/dininggasanData';
 import { stayRange, overlaps, pickFreeRoomNumber, writeOccupancy } from '../../lib/roomAssignment';
+import { useAuth } from '../../context/AuthContext';
 
 interface AddBookingModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface AddBookingModalProps {
 }
 
 export default function AddBookingModal({ isOpen, onClose, bookings, occupancy }: AddBookingModalProps) {
+  const { user } = useAuth();
   const [step, setStep] = useState<'mode' | 'autoAssign' | 'manual'>('mode');
   const [guestName, setGuestName] = useState('');
   const [email, setEmail] = useState('');
@@ -28,18 +30,13 @@ export default function AddBookingModal({ isOpen, onClose, bookings, occupancy }
   const [roomTypes, setRoomTypes] = useState<any[]>([]);
 
   useEffect(() => {
-    const loadRoomTypes = async () => {
-      try {
-        const snap = await getDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID));
-        if (snap.exists()) {
-          setRoomTypes(snap.data().roomTypes || []);
-        }
-      } catch (e) {
-        console.error('Failed to load room types', e);
-      }
-    };
-    loadRoomTypes();
-  }, []);
+    if (!isOpen) return;
+    // live rate while the modal is open, so the total always matches the saved rate
+    const unsub = onSnapshot(doc(db, 'businesses', DININGGASAN_BUSINESS_ID), snap => {
+      if (snap.exists()) setRoomTypes(snap.data().roomTypes || []);
+    }, () => {});
+    return () => unsub();
+  }, [isOpen]);
 
   const dayKey = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -71,8 +68,8 @@ export default function AddBookingModal({ isOpen, onClose, bookings, occupancy }
   const nights = checkIn && checkOut ? Math.ceil((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)) : 0;
   const totalAmount = nights * roomPrice;
 
-  const handleAutoAssign = async () => {
-    if (!guestName || !email || !checkIn || !checkOut || !suggestedRoom) {
+  const handleCreate = async (roomNumber: string) => {
+    if (!guestName || !email || !checkIn || !checkOut || !roomNumber) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -80,19 +77,26 @@ export default function AddBookingModal({ isOpen, onClose, bookings, occupancy }
       toast.error('Check-out must be after check-in');
       return;
     }
+    if (!user) {
+      toast.error('Sign in required to create a booking');
+      return;
+    }
     setLoading(true);
     try {
       const bookingData = {
+        touristUid: user.uid,
         touristName: guestName,
         touristEmail: email,
         contactNumber,
-        roomNumber: suggestedRoom,
+        roomNumber,
         adults,
         children,
+        nights,
         date: `${checkIn} - ${checkOut}`,
         checkInTimestamp: Timestamp.fromDate(new Date(checkIn)),
         checkOutTimestamp: Timestamp.fromDate(new Date(checkOut)),
         amount: totalAmount,
+        totalPrice: totalAmount,
         status: 'pending',
         paymentStatus: 'UNPAID',
         businessId: DININGGASAN_BUSINESS_ID,
@@ -103,62 +107,16 @@ export default function AddBookingModal({ isOpen, onClose, bookings, occupancy }
       const bookingRef = await addDoc(collection(db, 'bookings'), bookingData);
       await writeOccupancy(bookingRef.id, {
         businessId: DININGGASAN_BUSINESS_ID,
-        roomNumber: suggestedRoom,
+        roomNumber,
         start: checkIn,
         end: checkOut,
         status: 'pending',
-        touristUid: 'admin-created',
+        touristUid: user.uid,
       });
-      toast.success(`Booking created! Room ${suggestedRoom} assigned to ${guestName}.`);
-      onClose();
+      toast.success(`Booking created! Room ${roomNumber} assigned to ${guestName}.`);
+      handleClose();
     } catch (e) {
-      handleFirestoreError(e, OperationType.CREATE, 'bookings');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleManualSelect = async () => {
-    if (!guestName || !email || !checkIn || !checkOut || !selectedRoom) {
-      toast.error('Please fill in all required fields and select a room');
-      return;
-    }
-    if (new Date(checkIn) >= new Date(checkOut)) {
-      toast.error('Check-out must be after check-in');
-      return;
-    }
-    setLoading(true);
-    try {
-      const bookingData = {
-        touristName: guestName,
-        touristEmail: email,
-        contactNumber,
-        roomNumber: selectedRoom,
-        adults,
-        children,
-        date: `${checkIn} - ${checkOut}`,
-        checkInTimestamp: Timestamp.fromDate(new Date(checkIn)),
-        checkOutTimestamp: Timestamp.fromDate(new Date(checkOut)),
-        amount: totalAmount,
-        status: 'pending',
-        paymentStatus: 'UNPAID',
-        businessId: DININGGASAN_BUSINESS_ID,
-        serviceType: 'stay',
-        serviceName: 'Room Booking',
-        createdAt: serverTimestamp(),
-      };
-      const bookingRef = await addDoc(collection(db, 'bookings'), bookingData);
-      await writeOccupancy(bookingRef.id, {
-        businessId: DININGGASAN_BUSINESS_ID,
-        roomNumber: selectedRoom,
-        start: checkIn,
-        end: checkOut,
-        status: 'pending',
-        touristUid: 'admin-created',
-      });
-      toast.success(`Booking created! Room ${selectedRoom} assigned to ${guestName}.`);
-      onClose();
-    } catch (e) {
+      toast.error('Could not create booking');
       handleFirestoreError(e, OperationType.CREATE, 'bookings');
     } finally {
       setLoading(false);
@@ -352,7 +310,7 @@ export default function AddBookingModal({ isOpen, onClose, bookings, occupancy }
                 )}
 
                 <button
-                  onClick={step === 'autoAssign' ? handleAutoAssign : handleManualSelect}
+                  onClick={() => handleCreate(step === 'autoAssign' ? suggestedRoom || '' : selectedRoom)}
                   disabled={loading || (step === 'autoAssign' && !suggestedRoom) || (step === 'manual' && !selectedRoom)}
                   className="w-full px-6 py-3 bg-slate-700 hover:bg-slate-800 text-white rounded-lg font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
                 >

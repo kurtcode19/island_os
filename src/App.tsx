@@ -1,7 +1,7 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, User as FirebaseUser, signInWithPopup, signInWithRedirect, signInAnonymously } from 'firebase/auth';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore';
 import { Toaster, toast } from 'sonner';
 import { auth, db, googleProvider, handleFirestoreError, OperationType } from './firebase';
 import { UserRole, UserProfile } from './types';
@@ -29,8 +29,11 @@ export default function App() {
   useEffect(() => {
     const initializeDininggasanBusiness = async () => {
       try {
-        await setDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID), dininggasanData, { merge: true });
-        console.log('Dininggasan business initialized/updated:', DININGGASAN_BUSINESS_ID);
+        // ponytail: seed only on first run; re-writing dininggasanData replaces the saved roomTypes/timeSlots
+        const ref = doc(db, 'businesses', DININGGASAN_BUSINESS_ID);
+        if ((await getDoc(ref)).exists()) return;
+        await setDoc(ref, dininggasanData, { merge: true });
+        console.log('Dininggasan business initialized:', DININGGASAN_BUSINESS_ID);
       } catch (error) {
         console.error('Failed to initialize Dininggasan business:', error);
         handleFirestoreError(error, OperationType.UPDATE, 'businesses');

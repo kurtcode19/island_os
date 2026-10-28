@@ -32,7 +32,7 @@ import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext';
 import { StatCard } from '../components/shared/StatCard';
 import { SidebarItem } from '../components/shared/SidebarItem';
-import { doc, getDoc, collection, addDoc, serverTimestamp, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, serverTimestamp, query, where, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { motion } from 'motion/react';
 import { toast } from 'sonner';
@@ -112,8 +112,7 @@ export default function BusinessDashboard() {
 
     const q = query(
       collection(db, 'bookings'),
-      where('businessId', '==', effectiveBusinessId),
-      orderBy('createdAt', 'desc')
+      where('businessId', '==', effectiveBusinessId)
     );
 
     const now = new Date();
@@ -124,6 +123,7 @@ export default function BusinessDashboard() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const allBookings = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
+      allBookings.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       const pendingIds = new Set(allBookings.filter(b => b.status === 'pending').map(b => b.id));
       setUnreadCount(pendingIds.size);
 

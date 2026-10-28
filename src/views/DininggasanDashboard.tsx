@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { collection, query, where, onSnapshot, doc, getDoc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, deleteDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -268,13 +268,13 @@ export default function DininggasanDashboard() {
   };
 
   useEffect(() => {
-    (async () => {
-      const bizDoc = await getDoc(doc(db, 'businesses', BUSINESS_ID));
+    const unsub = onSnapshot(doc(db, 'businesses', BUSINESS_ID), (bizDoc) => {
       if (bizDoc.exists()) {
         setBusinessName(bizDoc.data().name || 'Dininggasan');
         setRoomTypes(bizDoc.data().roomTypes || []);
       }
-    })();
+    }, () => {});
+    return () => unsub();
   }, []);
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType, Timestamp } from '../firebase';
-import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit, where, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit, where, doc } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { UilArrowRight, UilCompass, UilBuilding, UilTennisBall, UilMapMarker, UilPhone, UilEnvelopeAlt, UilFacebook, UilCheckCircle, UilArrowLeft, UilCalendarAlt, UilPlus, UilMinus, UilUsersAlt, UilSync, UilBedDouble, UilExclamationCircle } from '@/icons';
 import { DININGGASAN_IMAGES, DININGGASAN_ROOM_COUNT, DININGGASAN_BUSINESS_ID } from '../data/dininggasanData';
@@ -121,10 +121,11 @@ export default function DininggasanHome() {
   const roomSubmitting = useRef(false);
   const [roomPrice, setRoomPrice] = useState(ROOM_PRICE);
   useEffect(() => {
-    getDoc(doc(db, 'businesses', DININGGASAN_BUSINESS_ID)).then(snap => {
+    const unsub = onSnapshot(doc(db, 'businesses', DININGGASAN_BUSINESS_ID), snap => {
       const bp = snap.exists() ? snap.data().roomTypes?.[0]?.basePrice : 0;
       if (bp) setRoomPrice(bp);
-    }).catch(() => {});
+    }, () => {});
+    return () => unsub();
   }, []);
 
   const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)));

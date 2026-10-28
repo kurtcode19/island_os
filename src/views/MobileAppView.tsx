@@ -37,7 +37,7 @@ import { businesses } from '../data/businesses';
 import { transportOptions, schedules } from '../data/transport';
 import { useAuth } from '../context/AuthContext';
 import { db, handleFirestoreError, OperationType } from '../firebase';
-import { collection, addDoc, serverTimestamp, onSnapshot, query, where, orderBy, doc, updateDoc, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, onSnapshot, query, where, doc, updateDoc, getDocs, Timestamp } from 'firebase/firestore';
 import { accommodations, type PromoPackage } from '../data/accommodations';
 import { rentalVehicles, rentalMerchants, getMerchantByVehicle } from '../data/rentals';
 import { checkAvailability, checkRoomAvailability } from '../lib/capacityService';
@@ -179,15 +179,15 @@ export default function MobileAppView() {
 
     const q = query(
       collection(db, 'bookings'),
-      where('touristUid', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('touristUid', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const bookingsData = snapshot.docs.map(doc => ({
+      const bookingsData: any[] = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+      bookingsData.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       setBookings(bookingsData);
     }, (error) => {
       console.error("Booking Listener Error:", error);

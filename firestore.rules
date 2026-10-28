@@ -58,8 +58,11 @@ service cloud.firestore {
         isAdmin() ||
         isBusinessOwner(resource.data.get('businessId', ''))
       );
-      allow create: if isAuthenticated() &&
-        request.resource.data.touristUid == request.auth.uid;
+      allow create: if isAuthenticated() && (
+        request.resource.data.touristUid == request.auth.uid ||
+        isAdmin() ||
+        isBusinessOwner(request.resource.data.get('businessId', ''))
+      );
       allow update: if isBookingStakeholder() && (
         isAdmin() ||
         isBusinessOwner(request.resource.data.get('businessId', '')) ||
